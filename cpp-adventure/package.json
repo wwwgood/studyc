@@ -1,0 +1,12 @@
+{
+  "name": "cpp-adventure",
+  "version": "1.0.0",
+  "description": "代码小指挥官 · C++ 星际冒险 - 面向四年级零基础小学生的 C++ 信息学闯关学习系统",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/",
+    "validate:levels": "node build/validate-levels.js",
+    "build": "node build/merge.js",
+    "lint": "npx eslint src/scripts/ --ext .js"
+  }
+}

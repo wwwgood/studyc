@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>代码小指挥官 · C++ 星际冒险</title>
+<meta name="description" content="面向四年级零基础小学生的 C++ 信息学闯关学习系统：三阶段冒险地图、23 个关卡、徽章鼓励、捉 Bug 游戏与赛事航路。">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">★ 代码小指挥官<span class="sub">C++ 星际冒险</span></div>
+  <nav class="topnav" aria-label="主导航">
+    <a href="#map" aria-current="true">冒险地图</a>
+    <a href="#badges">徽章墙</a>
+    <a href="#train">训练基地</a>
+    <a href="#road">赛事航路</a>
+    <a href="#parent">家长指挥所</a>
+  </nav>
+  <div class="hud">★ <b id="hudStars">0</b> · Lv.<b id="hudLevel">1</b></div>
+  <div class="cmdr" id="cmdrBar" style="display:none">
+    👤 <b id="cmdrName">—</b><span class="save-dot" title="进度已自动保存到本机"></span>
+    <button class="cmdr-btn" type="button" onclick="openLogin()">切换</button>
+    <button class="cmdr-btn" type="button" onclick="exportSave()">导出</button>
+    <button class="cmdr-btn" type="button" onclick="document.getElementById('importFile').click()">导入</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSave(event)">
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <h1 id="heroTitle">欢迎登上 C++ <span class="hi">星际飞船</span>，<span class="hi2">小指挥官</span>！</h1>
+    <p class="tagline">这里不是课本，而是一张<b>冒险地图</b>：每个知识点是一关；点亮一关捡一颗星。找到程序里的 Bug，就像抓住了捣乱的小怪兽。一步一步来，你是最棒的程序员小队长。</p>
+    <div class="cta">
+      <button class="btn" onclick="goMap()">★ 开始闯关</button>
+      <a class="btn ghost" href="#map"></a>
+      <button class="btn ghost small" onclick="resetAll()">重置进度</button>
+    </div>
+    <div class="hero-grid" aria-label="系统速览">
+      <div class="hero-chip"><b>三大模块</b>语法 → 算法 → 数据结构，一路升级</div>
+      <div class="hero-chip"><b>三大阶段</b>勇士起步 · 算法试炼 · 高手集结</div>
+      <div class="hero-chip"><b>赛事航路</b>市赛 → GESP → CSP-J → 省国赛</div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section id="map" aria-labelledby="mapTitle">
+    <div class="sec-head"><span class="kicker">ADVENTURE MAP</span><h2 id="mapTitle">冒险地图</h2>
+      <p>一共 <b id="totalCount">23</b> 关，分成三个星域。先点亮第 1 关，再一颗一颗往前飞。卡住了？点开关卡，里面藏着生活比喻和小帮忙。</p></div>
+    <div class="stage-tabs" role="tablist" aria-label="选择阶段">
+      <button class="stage-tab" role="tab" data-s="1" aria-selected="true">阶段一<small>语法筑基 · 3~6 月</small></button>
+      <button class="stage-tab" role="tab" data-s="2" aria-selected="false">阶段二<small>算法入门 · 6~12 月</small></button>
+      <button class="stage-tab" role="tab" data-s="3" aria-selected="false">阶段三<small>小初衔接 · 六年级起</small></button>
+    </div>
+    <div class="map-card">
+      <div class="map-stage-title"><span id="mapStageTitle">—</span><span class="desc" id="mapStageDesc"></span></div>
+      <div class="path-wrap">
+        <svg class="path-svg" id="pathSvg" aria-hidden="true"></svg>
+        <div class="level-grid" id="levelGrid" role="list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BADGES -->
+  <section id="badges" aria-labelledby="badgeTitle">
+    <div class="sec-head"><span class="kicker">HONOR WALL</span><h2 id="badgeTitle">徽章墙</h2>
+      <p>每过一关收一徽章；5 星升一级，集满 23 关你就是「代码小指挥官」终章！</p></div>
+    <div class="levcard">等级 Lv.<b id="lvBig">1</b>
+      <div class="levbar" aria-hidden="true"><span id="lvBar" style="width:0%"></span></div>
+      <p class="lev-txt" id="lvTxt">—</p>
+    </div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </section>
+
+  <!-- TRAIN -->
+  <section id="train" aria-labelledby="trainTitle">
+    <div class="sec-head"><span class="kicker">TRAINING BASE</span><h2 id="trainTitle">训练基地</h2>
+      <p>起飞前先把三把钥匙配齐：打字手指、数学脑力、还有一颗不怕 Bug 的勇敢心。</p></div>
+<div class="train-tabs" id="trainTabs">
+      <button class="train-tab active" type="button" onclick="trainTab(0)">①：键盘指法<span class="tab-sub" id="tabKb">命中 0 键</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(1)">②：数学脑力<span class="tab-sub" id="tabMath">得分 0</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(2)">③：打字热身<span class="tab-sub" id="tabType">0 字/分</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(3)">④：把 Bug 心态卡<span class="tab-sub">不怕错</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(4)">⑤：错题本<span class="tab-sub" id="tabErr">0 题</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(5)">⑥：编程英文<span class="tab-sub" id="tabEng">0 词</span></button>
+      <button class="train-tab" type="button" onclick="trainTab(6)">⑦：学习记录<span class="tab-sub" id="tabLog">0 条</span></button>
+    </div>
+    <div class="train-panels">
+      <div class="train-panel active" id="panel0">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>①：键盘指法<span class="desc">先认识大键盘，手位不乱</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">写 C++ 会用的整块键盘都在这：数字、字母、标点、功能键一网打尽。颜色相同 = 同一根手指管它。先把手指「领养」好，再玩击键小游戏。记住口诀：F/J 键上有小凸点，一摸就找回手位。</p>
+        <div class="kb" id="kbBoard" aria-label="大键盘指法图"></div>
+        <p class="bug-feedback" id="kbHint" style="color:var(--blue)">鼠标点键听介绍；看完点「开始击键」练手感。</p>
+        <div class="kb-game">
+          <div class="kb-target" id="kbTarget">准备好了吗？</div>
+          <p class="kb-tip" id="kbTip">看上面的大字，在真键盘上敲出对应的键，15 键一轮。</p>
+          <p class="kb-stat" id="kbStat">本轮 0/15</p>
+          <p class="kb-lv" id="kbLv">Lv1 新兵营 · 累计命中 0 键</p>
+        </div>
+        <button class="mode-btn" id="kbStart">开始击键</button>
+      </div>
+      </div>
+      <div class="train-panel" id="panel1">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>②：数学脑力<span class="desc">四则运算 + 余数</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">答对一题 +1 分，10 题一轮。用心算哦！</p>
+        <div class="math-q" id="mathQ">—</div>
+        <input class="math-input" id="mathIn" inputmode="numeric" aria-label="你的答案" placeholder="?" autocomplete="off">
+        <p class="bug-feedback" id="mathStatus" style="color:var(--blue)">出题啦，用键盘输答案，按回车。</p>
+        <button class="mode-btn" id="mathRestart">再来一轮</button>
+      </div>
+      </div>
+      <div class="train-panel" id="panel2">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>③：打字热身<span class="desc">目标约 30 字/分 ≈ 60 键/分</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">指法熟了再上这里。照着下面的代码一句一句敲，60 秒后看你的指力。</p>
+        <div class="type-area" id="typeArea" aria-live="polite"><p>按下面按钮开始。</p></div>
+        <button class="mode-btn" id="typeStartO">开始打字</button>
+        <p class="bug-feedback" id="typeStatus" style="color:var(--blue)">点「开始打字」，光标跟着代码跳。</p>
+      </div>
+      </div>
+      <div class="train-panel" id="panel3">
+      <div class="train-card mind-card">
+        <div class="card-head">
+        <h3>④：把 Bug 心态卡</h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <div class="mind-item">报错不可怕，它是老师在偷偷帮你 —— 每个红条都是怪兽露出的尾巴。</div>
+        <div class="mind-item">没通关不是失败，是这只代码怪兽还挺会藏。休息 2 分钟，回来继续。</div>
+        <div class="mind-item">妈妈的话：今天比昨天多敲 3 行，就赢啦！</div>
+      </div>
+      </div>
+      <div class="train-panel" id="panel4">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>⑤：错题本<span class="desc">错了不怕，教会了就是赚到</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">你在数学、击键、打字里做错的题，都会自动记到这里。先点「教会我」看讲解，再用「再练一次」反复练，直到消灭它！</p>
+        <div id="errBook"><div class="err-empty"><div class="big">📝</div>还没有错题，继续保持！做错的题会自动出现在这里。</div></div>
+      </div>
+      </div>
+      <div class="train-panel" id="panel5">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>⑥：编程英文<span class="desc">C++ 关键字认读与拼写</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">学 C++ 不用英语考试，但要认识这些编程关键字。每个词配中文解释和代码用法，先认读再拼写，轻松搞定！</p>
+        <div id="engArea"><div class="err-empty"><div class="big">🔤</div>点下面按钮开始学 C++ 编程英文！</div></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+          <button class="mode-btn" id="engStartRead">开始认读</button>
+          <button class="mode-btn green" id="engStartQuiz">选择测验</button>
+          <button class="mode-btn" id="engStartSpell">拼写挑战</button>
+        </div>
+        <p class="eng-progress" id="engProgress"></p>
+      </div>
+      </div>
+      <div class="train-panel" id="panel6">
+      <div class="train-card">
+        <div class="card-head">
+        <h3>⑦：学习记录<span class="desc">各科学习笔记 · 规划 · 核心提炼</span></h3>
+        <button class="focus-btn" type="button">全屏</button>
+      </div>
+        <p class="desc">不限于信息学，任何学科的学习计划、读书笔记、知识点都能记。按类别和年级分类，随时搜索，还能一键提炼核心要素和年级规划。</p>
+        <div class="log-wrap">
+          <div class="log-form">
+            <h4>✏️ 新建记录</h4>
+            <div class="log-row">
+              <div class="log-field"><span class="log-label">类别</span>
+                <select class="log-select" id="logCat">
+                  <option value="信息学">💻 信息学</option>
+                  <option value="数学">🔢 数学</option>
+                  <option value="语文">📖 语文</option>
+                  <option value="英语">🔤 英语</option>
+                  <option value="学习规划">🎯 学习规划</option>
+                  <option value="阅读笔记">📚 阅读笔记</option>
+                  <option value="其他">📝 其他</option>
+                </select>
+              </div>
+              <div class="log-field"><span class="log-label">年级</span>
+                <select class="log-select" id="logGrade">
+                  <option value="三年级">三年级</option>
+                  <option value="四年级" selected>四年级</option>
+                  <option value="五年级">五年级</option>
+                  <option value="六年级">六年级</option>
+                  <option value="初一">初一</option>
+                  <option value="初二">初二</option>
+                  <option value="初三">初三</option>
+                  <option value="高一">高一</option>
+                  <option value="高二">高二</option>
+                  <option value="高三">高三</option>
+                </select>
+              </div>
+              <div class="log-field flex1"><span class="log-label">标题（简短一句话）</span>
+                <input class="log-input" id="logTitle" placeholder="例：学完了 for 循环" maxlength="60">
+              </div>
+            </div>
+            <div class="log-field" style="margin-bottom:10px;"><span class="log-label">详细内容（换行可分段，提到书名用《》括起来方便提炼）</span>
+              <textarea class="log-textarea" id="logContent" placeholder="例：今天学了 for 循环，就是让电脑重复做一件事。比如数 1 到 10，不用写 10 行，一个 for 就搞定。参考《小学生C++趣味编程》第 5 章。"></textarea>
+            </div>
+            <button class="log-save-btn" type="button" onclick="logAdd()">💾 保存记录</button>
+          </div>
+          <div class="log-batch-section">
+            <button class="log-batch-toggle" id="logBatchToggle" type="button" onclick="logBatchToggle()">⚡ 批量提纯 · 粘贴微信对话一键提取<span class="arrow">▼</span></button>
+            <div class="log-batch-area" id="logBatchArea" style="display:none;">
+              <p class="log-batch-hint">把微信群聊或对话文字全部复制粘贴到下面，点「开始提纯」会自动过滤闲聊废话，提取有价值的学习信息。每条结果可编辑类别、年级、标题后再保存。</p>
+              <textarea class="log-batch-textarea" id="logBatchInput" placeholder="在这里粘贴微信对话文字…"></textarea>
+              <div class="log-batch-actions">
+                <button class="log-batch-btn" type="button" onclick="logBatchPurify()">⚡ 开始提纯</button>
+                <button class="log-batch-clear" type="button" onclick="logBatchClear()">清空</button>
+                <span class="log-batch-stat" id="logBatchStat"></span>
+              </div>
+              <div id="logBatchResults"></div>
+            </div>
+          </div>
+          <div class="log-search-bar">
+            <input class="log-search-input" id="logSearchInput" placeholder="🔍 搜索标题或内容…" oninput="logRender()">
+            <select class="log-select" id="logFilterCat" onchange="logRender()">
+              <option value="">全部分类</option>
+              <option value="信息学">信息学</option>
+              <option value="数学">数学</option>
+              <option value="语文">语文</option>
+              <option value="英语">英语</option>
+              <option value="学习规划">学习规划</option>
+              <option value="阅读笔记">阅读笔记</option>
+              <option value="其他">其他</option>
+            </select>
+            <select class="log-select" id="logFilterGrade" onchange="logRender()">
+              <option value="">全部年级</option>
+              <option value="三年级">三年级</option>
+              <option value="四年级">四年级</option>
+              <option value="五年级">五年级</option>
+              <option value="六年级">六年级</option>
+              <option value="初一">初一</option>
+              <option value="初二">初二</option>
+              <option value="初三">初三</option>
+            </select>
+          </div>
+          <div class="log-view-btns">
+            <button class="log-view-btn active" type="button" onclick="logSwitchView('list')">📋 记录列表</button>
+            <button class="log-view-btn" type="button" onclick="logSwitchView('extract')">🔍 核心提炼</button>
+            <button class="log-view-btn" type="button" onclick="logSwitchView('plan')">🎯 年级规划</button>
+          </div>
+          <div id="logListView">
+            <div id="logList"></div>
+          </div>
+          <div id="logExtractBox" style="display:none;"></div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROAD -->
+  <section id="road" aria-labelledby="roadTitle">
+    <div class="sec-head"><span class="kicker">RACE ROUTE</span><h2 id="roadTitle">赛事航路</h2>
+      <p>不是只有天才才能比赛，是练得多才能比赛。照这条航路飞就对啦。</p></div>
+    <div class="road" id="roadList"></div>
+  </section>
+
+  <!-- PARENT -->
+  <section id="parent" aria-labelledby="parentTitle">
+    <div class="sec-head"><span class="kicker">PARENT HQ</span><h2 id="parentTitle">家长指挥所</h2>
+      <p>三阶段总规划、教材对照、前置要求与陪跑守则，都在这里。</p></div>
+    <div class="p-grid">
+      <div class="p-card">
+        <h3>三阶段总规划</h3>
+        <table class="tbl">
+          <tr><th>阶段</th><th>时长</th><th>重点</th><th>里程碑</th></tr>
+          <tr><td>一</td><td>3-6 月</td><td>框架 / 类型 / 输入输出 / 判断 / 循环</td><td>独立写 50 行内小程序</td></tr>
+          <tr><td>二</td><td>6-12 月</td><td>枚举 / 模拟 / 排序 / 查找 / 进制 / 递归</td><td>30 分钟限时赛 2~3 题</td></tr>
+          <tr><td>三</td><td>六年级起</td><td>数组 / 字符串 / 栈队结构体 / 贪心</td><td>对准初中 CSP-J 与科特长生</td></tr>
+        </table>
+      </div>
+      <div class="p-card">
+        <h3>教材对照（二选一）</h3>
+        <ul class="lst">
+          <li>《小学生C++ 趣味编程》清华社 · 潘洪波：故事式入门，配本系统 1~12 关</li>
+          <li>《青少年C++ 编程入门》：体系更全，可作 13 关以后进阶参考</li>
+          <li>建议节奏：每周 3 次（周三 + 周六 + 周日），每次 30-45 分钟</li>
+        </ul>
+        <div class="todo">待确认清单已升级：翻到下面「家长确认单 → 专属飞行计划」卡片，点一点、选一选、存一存，就能拿到孩子的专属节奏，不用改任何代码。</div>
+      </div>
+      <div class="p-card">
+        <h3>前置三把钥匙</h3>
+        <ul class="lst">
+          <li>打字 ≥ 30 字/分：训练基地每天 3 分钟就够；慢不是问题，稳定才是</li>
+          <li>数学底子：四则运算滚瓜烂熟 + 余数（7÷2=3 余 1）+ 简单逻辑推理</li>
+          <li>心态：找 Bug 当寻宝；家长不骂怎么又错，而是这只怪躲得真好</li>
+        </ul>
+      </div>
+      <div class="p-card">
+        <h3>陪跑守则（精简版）</h3>
+        <ul class="lst">
+          <li>只和昨天比，不和别人比</li>
+          <li>每关必过：过不去先休息再战</li>
+          <li>代码他自己敲，家长只当观战员</li>
+          <li>错题复盘五步：找错 → 猜因 → 改一次 → 记本本 → 一周后重做</li>
+          <li>GESP 每年 4 次（3/6/9/12 月），60 分过级、90 分跳级</li>
+<li>CSP-J 看生日不看年级：当年 9 月 1 日前满 12 周岁可报，初一首战正好</li>
+        </ul>
+      </div>
+      <div class="p-card full">
+        <h3>家长确认单 → 专属飞行计划</h3>
+        <p class="desc" style="font-size:14px; color:var(--ink-soft); margin-bottom:10px;">下面 6 问，点一点就选好；点「保存我的选择」后，会给孩子生成一份专属节奏计划。进度不冲突，随时可以改。孩子在页面上就能完成全部确认，不需要打开 IDE 或写代码。</p>
+        <div id="planForm"></div>
+        <button class="mode-btn green" id="planSave" style="margin-top:14px;">★ 保存我的选择</button>
+        <div id="planResult"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>★ 代码小指挥官 · C++ 星际冒险 ★ 所有进度保存在这台设备，不用联网也能玩。</footer>
+
+<div class="backdrop" id="backdrop" onclick="closeLevel()"></div>
+<div class="level-dialog" id="levelDialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+  <div class="dialog-card">
+    <div class="dialog-head">
+      <span class="luno" id="dlgNo">第 1 关</span>
+      <h3 id="dlgTitle">—</h3>
+      <p class="goal" id="dlgGoal">—</p>
+      <button class="dialog-close" onclick="closeLevel()" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body" id="dlgBody"></div>
+  </div>
+</div>
+
+  <script src="scripts/data/levels.js"></script>
+  <script src="scripts/core/state.js"></script>
+  <script src="scripts/modules/map.js"></script>
+  <script src="scripts/modules/keyboard.js"></script>
+  <script src="scripts/modules/focus.js"></script>
+  <script src="scripts/modules/user.js"></script>
+  <script src="scripts/modules/tabs.js"></script>
+  <script src="scripts/modules/errors.js"></script>
+  <script src="scripts/modules/english.js"></script>
+  <script src="scripts/modules/typing.js"></script>
+  <script src="scripts/modules/math.js"></script>
+  <script src="scripts/modules/plan.js"></script>
+  <script src="scripts/modules/road.js"></script>
+  <script src="scripts/modules/log.js"></script>
+  <script src="scripts/core/init.js"></script>
+
+<div id="focusMask" class="focus-mask" aria-modal="true" role="dialog" aria-label="专注练习模式">
+  <div class="focus-bar">
+    <h3 id="focusTitle">专注练习</h3>
+    <button class="focus-close" id="focusClose" type="button">✕ 退出返回主页</button>
+  </div>
+  <div class="focus-body" id="focusBody"></div>
+</div>
+<div class="login-mask" id="loginMask" aria-modal="true" role="dialog" aria-label="指挥官登录">
+  <div class="login-box">
+    <h3>🚀 飞船登录</h3>
+    <p>输入你的指挥官代号，进度会自动保存在这台电脑上。下次打开自动恢复，不会归零！</p>
+    <input class="login-input" id="loginName" placeholder="你的名字" maxlength="12" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" type="button" onclick="doLogin()">登录 / 创建</button>
+    <div class="user-list" id="userList"></div>
+  </div>
+</div>
+</body>
+</html>

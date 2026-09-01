@@ -1,0 +1,67 @@
+{
+ "user_intent": "搭建一个学习系统（不要 Word 文档）：把学校内容与学习要求放进系统里，孩子通过系统循序渐进学习。面向四年级零基础小学生，要求简单易学、有趣、入门容易、不产生抵触心理。远期目标：中山市小学生信息学邀请赛、GESP、CSP-J 入门组，初中冲奖、高中省赛国赛。",
+ "content_facts": {
+  "learner": "四年级零基础小学生",
+  "modules": [
+   "C++基础语法：变量与数据类型、输入输出、条件判断if/switch、循环for/while、数组、字符串，能独立阅读并编写基础程序",
+   "基础竞赛算法：枚举、模拟、简单排序、查找、基础递归、进制转换",
+   "基础数据结构：一维/二维数组、栈、队列、结构体"
+  ],
+  "stages": [
+   "第一阶段语法筑基与逻辑启蒙，约3-6个月，重点程序框架、数据类型、输入输出、顺序/选择/循环，建立结构化思维，不追求难题",
+   "第二阶段算法入门与实战演练，约6-12个月，枚举、模拟、简单排序等，结合中山市邀请赛与GESP真题限时训练，培养错题复盘",
+   "第三阶段小初衔接与竞赛储备，六年级及以后，巩固数组字符串数据结构，接触简单贪心和递归，市级比赛积累经验，为初中CSP-J与科技特长生储备"
+  ],
+  "prerequisites": "打字至少30字/分钟；数学基础四则运算、余数、简单逻辑推理；抗压心态建设，将找Bug视为闯关游戏",
+  "textbooks": "《小学生C++趣味编程》（清华大学出版社，潘洪波）或《青少年C++编程入门》",
+  "fun_design": "趣味化设计、徽章激励、把报错当捉Bug游戏、生活化比喻（变量=收纳盒、数组=电影院座位等）"
+ },
+ "page_task": "editorial-content",
+ "audience": "mixed",
+ "primary_action": "开始闯关学习（孩子）；查看学习进度与规划（家长）",
+ "trust_strategy": "source-authority",
+ "media_strategy": "type-led",
+ "motion_level": "restrained",
+ "content_density": "medium",
+ "generated_media_mode": "disabled",
+ "locale": "zh-CN",
+ "deliverable": "website",
+ "page_context": "website",
+ "design_target": "web",
+ "product_domain": "education-kids-coding",
+ "product_scope": "C++ 信息学三模块三阶段长期学习系统（少儿编程教育内容平台）",
+ "delivery_adapter": "static-export",
+ "delivery_format": "single-html",
+ "asset_policy": "inline-base64",
+ "responsive": {
+  "mobile_layout": "required"
+ },
+ "tech_stack": "vanilla-html-css-js-single-file",
+ "normalization_provenance": {
+  "page_task": "classified-from-request",
+  "audience": "classified-from-request",
+  "primary_action": "classified-from-request",
+  "trust_strategy": "classified-from-request",
+  "media_strategy": "classified-from-request",
+  "motion_level": "compatible-default",
+  "content_density": "compatible-default",
+  "generated_media_mode": "classified-from-request",
+  "locale": "classified-from-request",
+  "deliverable": "classified-from-request",
+  "page_context": "classified-from-request",
+  "design_target": "classified-from-request",
+  "product_domain": "classified-from-request",
+  "product_scope": "classified-from-request",
+  "delivery_adapter": "classified-from-request",
+  "delivery_format": "classified-from-request",
+  "asset_policy": "classified-from-request",
+  "responsive": "classified-from-request",
+  "tech_stack": "classified-from-request",
+  "layout_selection": "classified-from-request",
+  "layout_selection_confirmed": "classified-from-request",
+  "visual_direction": "classified-from-request"
+ },
+ "layout_selection": "game-map",
+ "layout_selection_confirmed": true,
+ "visual_direction": "space-adventure"
+}

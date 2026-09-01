@@ -1,0 +1,22 @@
+# 依赖与缓存
+node_modules/
+.cache/
+*.log
+
+# 构建产物
+cpp-adventure/dist/
+*.tmp
+*.bak
+
+# 工具/流程配套（非应用本体）
+.dumate/
+.codegraph/
+.codeartsdoer/.codebase/
+.tmp/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

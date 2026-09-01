@@ -1,0 +1,247 @@
+{
+ "state": "sector-contract-ready",
+ "sector": "general",
+ "delivery_adapter": "static-export",
+ "export_mode": "single-file",
+ "data_source": "static",
+ "network_dependencies": [],
+ "navigation_mode": "same-document",
+ "source_brief": {
+  "path": "E:/htdocs/studyc/.design-suite/source.json",
+  "preserved": true,
+  "unresolved": [
+   "具体采用哪本教材（《小学生C++趣味编程》或《青少年C++编程入门》）由家庭选择，系统两本都给出对应章节提示",
+   "中山市小学生信息学邀请赛报名细则以官方通知为准",
+   "孩子每周学习天数（建议周三/周六/周日各一次）与打字起点由家庭确认"
+  ]
+ },
+ "references": {
+  "catalog": null,
+  "selection": null,
+  "composition_mode": null,
+  "available_source_count": 0,
+  "min_sources_per_page": 0,
+  "max_sources_per_page": 0,
+  "selected_source_count": 0,
+  "source_ids": []
+ },
+ "deliverable": "website",
+ "page_context": "website",
+ "design_target": "web",
+ "page": {
+  "product_domain": "education-kids-coding",
+  "product_scope": "single-product",
+  "page_task": "editorial-content",
+  "audience": "mixed",
+  "primary_action": "开始闯关学习（孩子）；查看学习进度与规划（家长）",
+  "trust_strategy": "source-authority",
+  "media_strategy": "type-led",
+  "motion_level": "restrained",
+  "content_density": "medium",
+  "locale": "zh-CN",
+  "composition_mode": null
+ },
+ "media": {
+  "generation_mode": "disabled",
+  "media_required": false,
+  "provider": null,
+  "supplied_assets": [],
+  "generated_assets": [],
+  "missing_assets": [],
+  "runtime_status": "not-needed"
+ },
+ "facts": {
+  "supplied": [
+   {
+    "field": "learner",
+    "value": "四年级零基础小学生",
+    "source": "user"
+   },
+   {
+    "field": "modules",
+    "value": "三大模块：C++基础语法（变量与数据类型、输入输出、if/switch、for/while、数组、字符串）；基础竞赛算法（枚举、模拟、简单排序、查找、基础递归、进制转换）；基础数据结构（一维/二维数组、栈、队列、结构体）",
+    "source": "user"
+   },
+   {
+    "field": "stages",
+    "value": "阶段一语法筑基与逻辑启蒙约3-6个月；阶段二算法入门与实战演练约6-12个月；阶段三小初衔接与竞赛储备六年级及以后",
+    "source": "user"
+   },
+   {
+    "field": "prerequisites",
+    "value": "打字至少30字/分钟；数学基础四则运算、余数、简单逻辑推理；抗压心态建设，将找Bug视为闯关游戏",
+    "source": "user"
+   },
+   {
+    "field": "textbooks",
+    "value": "《小学生C++趣味编程》（清华大学出版社，潘洪波）或《青少年C++编程入门》",
+    "source": "user"
+   },
+   {
+    "field": "fun_design",
+    "value": "趣味化设计、徽章激励、把报错当捉Bug游戏、生活化比喻（变量=收纳盒、数组=电影院座位等）",
+    "source": "user"
+   },
+   {
+    "field": "contest_route",
+    "value": "中山市小学生信息学邀请赛→GESP等级认证→CSP-J入门组（12周岁门槛，初一初二首战）→高中省赛国赛冲刺",
+    "source": "user+verified"
+   }
+  ],
+  "unresolved": [
+   "教材版本选择",
+   "每周学习天数与打字起点",
+   "中山市邀请赛报名细则",
+   "organization_name",
+   "services",
+   "locations",
+   "dates",
+   "pricing",
+   "contacts",
+   "customers",
+   "metrics",
+   "credentials",
+   "availability"
+  ],
+  "creative_additions": [
+   {
+    "field": "visual_direction",
+    "value": "星际冒险风：深空蓝背景、星蓝/火箭橙/金星黄/星云紫主色、圆润卡片、SVG星星徽章与灯泡机器人向导，主题「代码小指挥官」",
+    "label": "concept decision"
+   },
+   {
+    "field": "layout_selection",
+    "value": "game-map",
+    "label": "concept decision"
+   }
+  ]
+ },
+ "design": {
+  "thesis": "让四年级零基础孩子在游戏中循序渐进学 C++：用星际冒险地图组织三阶段内容，关卡=知识点，过关=点亮关卡+徽章；把教材内容拆进每个关卡（讲解用生活比喻、例题改错捉 Bug、闯关测验复现竞赛题型），家长面板承担规划与赛事路线，前置区补齐打字与数学基础，全程不用文字吓退孩子",
+  "composition": {
+   "catalog": null,
+   "mode": null,
+   "path": null,
+   "section_contract_loaded": false
+  },
+  "first_viewport": "星际冒险主题首屏：系统名称「代码小指挥官·C++ 星际冒险」、孩子进入行动「开始闯关」与家长入口「学习规划」，并露出下一段冒险地图的一角",
+  "sections": [
+   {
+    "id": "hero",
+    "purpose": "孩子认识这是学习系统并马上能开始",
+    "proof": "系统名称+主行动按钮+地图入口",
+    "layout": "全宽首屏+主行动+下一节提示",
+    "media": "内联SVG星星与火箭插画",
+    "states": [
+     "default",
+     "hover"
+    ]
+   },
+   {
+    "id": "stage-map",
+    "purpose": "三阶段如何循序渐进（3-6个月/6-12个月/六年级起）",
+    "proof": "三阶段标签+关卡路径图",
+    "layout": "阶段切换+蛇形关卡路径",
+    "media": "内联SVG路径与节点",
+    "states": [
+     "locked",
+     "current",
+     "completed"
+    ]
+   },
+   {
+    "id": "level-detail",
+    "purpose": "一个知识点的完整学习（读-敲-改-闯）",
+    "proof": "学习目标+生活比喻讲解+教材章节+示例代码+捉Bug任务+闯关测验+过关徽章",
+    "layout": "关卡详情面板（可内嵌于地图页）",
+    "media": "内联代码高亮",
+    "states": [
+     "not-started",
+     "in-progress",
+     "passed",
+     "retry"
+    ]
+   },
+   {
+    "id": "badge-wall",
+    "purpose": "用徽章与等级让孩子看到成长",
+    "proof": "徽章墙+等级进度（本地保存）",
+    "layout": "成就网格",
+    "media": "内联SVG徽章",
+    "states": [
+     "earned",
+     "locked"
+    ]
+   },
+   {
+    "id": "prerequisites",
+    "purpose": "补齐打字与数学前置能力并做心态建设",
+    "proof": "打字练习（30字/分钟目标）+四则运算/余数热身+捉Bug心态卡",
+    "layout": "练习卡片组",
+    "media": "文本+SGV",
+    "states": [
+     "default",
+     "finished"
+    ]
+   },
+   {
+    "id": "contest-roadmap",
+    "purpose": "让孩子与家长看到赛事节奏和年龄门槛",
+    "proof": "赛事时间轴：中山邀请赛→GESP→CSP-J（满12周岁）→高中省赛国赛",
+    "layout": "时间轴",
+    "media": "内联SVG路径",
+    "states": [
+     "default"
+    ]
+   },
+   {
+    "id": "parent-panel",
+    "purpose": "家长掌握规划、教材与陪跑守则",
+    "proof": "三阶段计划摘要+每周节奏建议（周三/周六/周日）+待确认清单+家庭激励制度",
+    "layout": "家长面板",
+    "media": "文本卡片",
+    "states": [
+     "default"
+    ]
+   }
+  ],
+  "tokens": {
+   "color_background": "深空蓝渐变 #0B1B3B→#1E3A8A，内容卡片=浅色高对比",
+   "color_primary": "星蓝 #3B82F6",
+   "color_action": "火箭橙 #FF8A3D",
+   "color_accent": "金星黄 #FFC94D、星云紫 #8B5CF6、成功绿 #34D399",
+   "typography": "系统字体栈（无外链），标题700阻尼，正文18px+行高1.6",
+   "shape": "圆角卡片18-24px，星星/火箭SVG图标",
+   "motion": "restained：仅在过关时短促发射星星动效，其余静止",
+   "level_system": "20级冒险等级：星星数=经验，过关得星"
+  },
+  "avoid": [
+   "大量纯文字段落（学龄前孩子易弃读）",
+   "深色正文卡（对比度不足）",
+   "外部图片/字体/网络依赖（单文件可离线打开）",
+   "把报错写成失败惩罚（必须是捉Bug游戏）"
+  ]
+ },
+ "responsive": {
+  "mobile_layout": "required",
+  "viewport_matrix": [
+   "320x568",
+   "390x844",
+   "768x1024",
+   "1440x1000",
+   "1920x1080",
+   "2560x1080"
+  ],
+  "container_invariants": [],
+  "geometry_evidence": "E:/htdocs/studyc/.design-suite/geometry-artifact.json"
+ },
+ "accessibility": {
+  "target": "WCAG2.1 AA 语义级",
+  "keyboard": "地图节点可Tab聚焦，Enter激活；按钮、标签、弹层焦点可管理",
+  "focus": "可见焦点环：2px 星蓝描边",
+  "reduced_motion": "prefers-reduced-motion 时禁用全部动效，过关直接显示徽章"
+ },
+ "downstream_capabilities": [],
+ "delivery_format": "single-html",
+ "asset_policy": "inline-base64"
+}

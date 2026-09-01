@@ -1,0 +1,16 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2021": true },
+  "parserOptions": { "ecmaVersion": 2021, "sourceType": "script" },
+  "rules": {
+    "no-undef": "warn",
+    "no-unused-vars": "warn",
+    "no-redeclare": "error",
+    "eqeqeq": ["warn", "smart"],
+    "no-dupe-keys": "error",
+    "no-empty": "warn",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "no-console": "off"
+  }
+}
