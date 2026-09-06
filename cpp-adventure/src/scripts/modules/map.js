@@ -2,6 +2,8 @@ function drawHud(){
   document.getElementById("hudStars").textContent = String(starsOf());
   document.getElementById("hudLevel").textContent = String(lvOf(starsOf()));
   document.getElementById("totalCount").textContent = String(LEVELS.length);
+  var hc = document.getElementById("hudCoins");
+  if (hc) hc.textContent = String(S.coins || 0);
 }
 function renderStage(s){
   var list = LEVELS.filter(function(l){ return l.st === s; });
@@ -44,6 +46,7 @@ function drawPath(s){
   svg.innerHTML = '<path d="' + d + '" stroke="#FFC94D" stroke-width="3" stroke-dasharray="7 6" fill="none" opacity="0.5"/>';
 }
 function openLevel(lv){
+  quizCombo = 0; quizErrors = 0;
   document.getElementById("dlgNo").textContent = "第 " + lv.id + " 关 · " + (lv.st === 1 ? "语法星域" : (lv.st === 2 ? "算法星域" : "数据星域"));
   document.getElementById("dlgTitle").textContent = lv.zi + " " + lv.nm;
   document.getElementById("dlgGoal").textContent = "目标：" + lv.goal;
@@ -125,6 +128,11 @@ function bugBlk(lv){
   var bt = document.createElement("button"); bt.className = "mode-btn"; bt.textContent = "我找到啦";
   bt.onclick = (function(f, lv){ return function() { f.textContent = "明白啦：" + lv.bugAns; f.style.color = "var(--green)"; }; })(f, lv);
   d.appendChild(bt); return d; }
+var quizCombo = 0;
+var quizErrors = 0;
+var PRAISE = ["太棒了！","答对啦！","厉害！","你真聪明！","完美！","继续加油！","好样的！","满分操作！","666！","神仙操作！"];
+var GENTLE = ["没关系，再想想~","差一点点！","别急，慢慢来~","再试一次！","快对了！","换个思路试试~"];
+
 function quizItem(lv, q, qi){
   var d = document.createElement("div"); d.className = "q";
   var t = document.createElement("p"); t.className = "qt"; t.textContent = (qi+1) + ". " + q.q; d.appendChild(t);
@@ -136,11 +144,20 @@ function quizItem(lv, q, qi){
       if (d.dataset.done) return;
       if (q.a === oi){
         b.classList.add("ok"); d.dataset.done = "1";
-        fb.textContent = "答对啦！"; fb.style.color = "var(--green)";
+        quizCombo++;
+        var praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+        var comboTxt = quizCombo >= 2 ? " <b class='combo'>\uD83D\uDD25\u8FDE\u51FB x" + quizCombo + "</b>" : "";
+        fb.innerHTML = "\u2728 " + praise + comboTxt;
+        fb.style.color = "var(--green)";
+        S.coins = (S.coins || 0) + 1 + (quizCombo >= 3 ? 1 : 0);
+        drawHud();
         checkQuiz(lv);
       } else {
         b.classList.add("no");
-        fb.textContent = "不对哦，再想想！"; fb.style.color = "var(--red)";
+        quizCombo = 0; quizErrors++;
+        var gentle = GENTLE[Math.floor(Math.random() * GENTLE.length)];
+        fb.innerHTML = "\uD83D\uD4AA " + gentle;
+        fb.style.color = "var(--red)";
         addError("quiz", {q: lv.nm + " 第" + (qi+1) + "题：" + q.q, ans: q.o[q.a], wrong: q.o[oi], lvId: lv.id, qi: qi});
         setTimeout(function(){ b.classList.remove("no"); }, 1000);
       }
@@ -154,20 +171,33 @@ function checkQuiz(lv){
   qs.forEach(function(q){ if (q.dataset.done) done++; });
   var bt = document.getElementById("passBtn");
   var prog = document.getElementById("quizProg");
-  if (prog) prog.textContent = "已答对 " + done + "/" + qs.length;
-  if (done === qs.length && qs.length > 0){ bt.disabled = false; bt.textContent = "全部答对！点亮这一关 ★"; }
-  else { bt.disabled = true; bt.textContent = "还差 " + (qs.length - done) + " 题答对就能过关"; }
+  var stars = "";
+  for (var i = 0; i < qs.length; i++) stars += (i < done) ? "\u2B50" : "\u2606";
+  if (prog) prog.innerHTML = "<span class='quiz-stars'>" + stars + "</span> <span style='font-size:13px;color:var(--ink-soft)'>\u5DF2\u7B54\u5BF9 " + done + "/" + qs.length + "</span>";
+  if (done === qs.length && qs.length > 0){
+    bt.disabled = false;
+    var s3 = quizErrors === 0 ? 3 : (quizErrors <= 2 ? 2 : 1);
+    bt.innerHTML = "\uD83C\uDF89 \u5168\u90E8\u7B54\u5BF9\uFF01\u70B9\u4EAE\u8FD9\u4E00\u5173 " + "\u2B50".repeat(s3);
+  }
+  else { bt.disabled = true; bt.textContent = "\u8FD8\u5DEE " + (qs.length - done) + " \u9898\u7B54\u5BF9\u5C31\u80FD\u8FC7\u5173"; }
 }
 function winLevel(lv){
-  S.passed[lv.id] = 1; saveS();
+  S.passed[lv.id] = 1;
+  var s3 = quizErrors === 0 ? 3 : (quizErrors <= 2 ? 2 : 1);
+  S.stars = S.stars || {};
+  S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, s3);
+  var coinReward = 10 + s3 * 5;
+  S.coins = (S.coins || 0) + coinReward;
+  saveS();
   fireConfetti();
   document.getElementById("levelDialog").classList.remove("open");
   document.getElementById("backdrop").classList.remove("open");
   document.body.style.overflow = "";
   drawAll();
   var n = LEVELS.length; var cur = curIdx();
-  if (cur >= n){ showToast("你真厉害！点亮全部 " + n + " 关，荣获代码小指挥官终章 ★"); }
-  else { showToast("🎉 过关！下一关：" + LEVELS[cur].nm + " 已经点亮了！"); }
+  var evalTxt = s3 === 3 ? "\uD83C\uDF89\uD83C\uDF89\uD83C\uDF89 \u6EE1\u5206\u901A\u5173\uFF01\u4E09\u661F\u91D1\u724C\uFF01" : (s3 === 2 ? "\uD83C\uDF89\uD83C\uDF89 \u901A\u5173\uFF01\u4E8C\u661F\u94F6\u724C\uFF01" : "\uD83C\uDF89 \u901A\u5173\uFF01\u4E00\u661F\u94DC\u724C\uFF01");
+  if (cur >= n){ showToast(evalTxt + " +" + coinReward + " \u91D1\u5E01\uFF01\u5168\u90E8 " + n + " \u5173\u70B9\u4EAE\uFF0C\u7EC8\u7AE0\u8FBE\u6210 \u2605"); }
+  else { showToast(evalTxt + " +" + coinReward + " \u91D1\u5E01\uFF01\u4E0B\u4E00\u5173\uFF1A" + LEVELS[cur].nm); }
 }
 function showToast(m){
   var t = document.createElement("div");
