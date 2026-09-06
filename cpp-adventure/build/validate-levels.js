@@ -20,11 +20,11 @@ function warn(msg) { console.warn("  WARN:", msg); warnings++; }
 console.log("=== 关卡内容校验 ===\n");
 
 // 1. 数量检查
-console.log(`阶段一: ${LEVELS1.length} 关 (期望 8)`);
+console.log(`阶段一: ${LEVELS1.length} 关 (期望 11)`);
 console.log(`阶段二: ${LEVELS2.length} 关 (期望 9)`);
 console.log(`阶段三: ${LEVELS3.length} 关 (期望 6)`);
-console.log(`总计: ${LEVELS.length} 关 (期望 23)\n`);
-if (LEVELS.length !== 23) fail(`关卡总数 ${LEVELS.length} ≠ 23`);
+console.log(`总计: ${LEVELS.length} 关 (期望 26)\n`);
+if (LEVELS.length !== 26) fail(`关卡总数 ${LEVELS.length} ≠ 26`);
 
 // 2. ID 连续性
 for (let i = 0; i < LEVELS.length; i++) {
@@ -61,7 +61,7 @@ for (const lv of LEVELS) {
 const st1 = LEVELS.filter(l => l.st === 1).length;
 const st2 = LEVELS.filter(l => l.st === 2).length;
 const st3 = LEVELS.filter(l => l.st === 3).length;
-if (st1 !== 8) fail(`阶段一 ${st1} ≠ 8 关`);
+if (st1 !== 11) fail(`阶段一 ${st1} ≠ 11 关`);
 if (st2 !== 9) fail(`阶段二 ${st2} ≠ 9 关`);
 if (st3 !== 6) fail(`阶段三 ${st3} ≠ 6 关`);
 

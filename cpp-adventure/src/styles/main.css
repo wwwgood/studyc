@@ -406,3 +406,69 @@ footer{margin-top:60px; text-align:center; color:rgba(255,255,255,.6); font-size
 .user-list-item{display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:10px; background:var(--card-soft); margin-bottom:6px; font-size:14px;}
 .user-list-item.active{border:2px solid var(--blue);}
 .user-list-item button{font-size:12px; padding:4px 12px; border-radius:999px; background:var(--blue); color:#fff;}
+
+/* === 卡通化增强 === */
+
+/* 吉祥物小火箭 */
+.mascot{position:fixed; bottom:20px; right:20px; z-index:40; font-size:48px; animation:mascotFloat 3s ease-in-out infinite; cursor:pointer; transition:transform .2s; user-select:none;}
+.mascot:hover{transform:scale(1.2) rotate(-10deg);}
+@keyframes mascotFloat{0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-12px) rotate(5deg)}}
+.mascot-bubble{position:fixed; bottom:80px; right:80px; z-index:41; background:#fff; border-radius:18px; padding:12px 16px; font-size:14px; color:var(--ink); box-shadow:var(--shadow); max-width:220px; display:none; border:2px solid var(--gold);}
+.mascot-bubble.show{display:block; animation:bubblePop .3s ease;}
+.mascot-bubble::after{content:""; position:absolute; bottom:-10px; right:20px; border:10px solid transparent; border-top-color:#fff; border-bottom:0;}
+@keyframes bubblePop{0%{transform:scale(0)} 80%{transform:scale(1.1)} 100%{transform:scale(1)}}
+
+/* 过关撒花 */
+.confetti{position:fixed; inset:0; pointer-events:none; z-index:200; overflow:hidden;}
+.confetti span{position:absolute; width:10px; height:10px; border-radius:50%; animation:confettiFall 3s ease-out forwards;}
+@keyframes confettiFall{0%{transform:translateY(-100vh) rotate(0); opacity:1} 100%{transform:translateY(100vh) rotate(720deg); opacity:0}}
+
+/* 关卡节点增强 */
+.level-node{transition:all .2s ease;}
+.level-node:hover{transform:translateY(-6px) scale(1.05);}
+.level-node .ic{font-size:22px; transition:transform .2s;}
+.level-node:hover .ic{transform:scale(1.15) rotate(-5deg);}
+.level-node.passed .ic{animation:badgeBounce .5s ease;}
+@keyframes badgeBounce{0%,100%{transform:scale(1)} 50%{transform:scale(1.3)}}
+.level-node[data-st="1"] .ic{background:linear-gradient(135deg,#3B82F6,#60A5FA);}
+.level-node[data-st="2"] .ic{background:linear-gradient(135deg,#FF8A3D,#FFC94D);}
+.level-node[data-st="3"] .ic{background:linear-gradient(135deg,#8B5CF6,#C4B5FD);}
+.level-node.current .ic{animation:currentPulse 1.5s ease-in-out infinite;}
+@keyframes currentPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,138,61,.4)} 50%{box-shadow:0 0 0 12px rgba(255,138,61,0)}}
+
+/* 测验答对/答错动画 */
+.opt.ok{animation:correctFlash .5s ease;}
+@keyframes correctFlash{0%{transform:scale(1)} 50%{transform:scale(1.15); background:#A7F3D0} 100%{transform:scale(1)}}
+.opt.no{animation:wrongShake .4s ease;}
+@keyframes wrongShake{0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}}
+
+/* 讲解区域增强 */
+.exp-box{font-size:15px; line-height:2;}
+.exp-box .exp-say{font-size:16px; font-weight:800; color:var(--blue-dark); margin-bottom:8px; display:block;}
+
+/* 关卡弹层头部渐变增强 */
+.dialog-head{background:linear-gradient(135deg,var(--bg1),var(--blue-dark),var(--violet));}
+.dialog-head h3{font-size:28px; margin-top:4px;}
+
+/* 徽章发光 */
+.badge .ic{font-size:22px; transition:transform .3s;}
+.badge:hover .ic{transform:scale(1.2) rotate(10deg);}
+.badge:not(.locked){animation:badgeGlow 2s ease-in-out infinite;}
+@keyframes badgeGlow{0%,100%{box-shadow:var(--shadow)} 50%{box-shadow:0 0 20px rgba(255,201,77,.4)}}
+
+/* 进度条流光 */
+.levbar span{background:linear-gradient(90deg,var(--gold),var(--action),var(--violet)); background-size:200% 100%; animation:barShine 2s linear infinite;}
+@keyframes barShine{0%{background-position:0 0} 100%{background-position:200% 0}}
+
+/* hero 渐变增强 */
+.hero{background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(242,246,255,.95),rgba(255,243,224,.3));}
+.hero h1{font-size:clamp(28px,5vw,48px);}
+.hero .tagline{font-size:18px;}
+
+/* 按钮交互增强 */
+.btn{transition:all .2s ease; position:relative; overflow:hidden;}
+.btn:hover{transform:translateY(-3px) scale(1.03);}
+.btn:active{transform:translateY(0) scale(.98);}
+
+/* 关卡数字标签 */
+.level-node .no{font-size:12px; font-weight:800; color:var(--ink-soft); letter-spacing:2px; background:var(--card-soft); padding:2px 8px; border-radius:999px;}

@@ -6,14 +6,14 @@ const mock = createMockDOM();
 const ctx = loadScripts(["data/levels.js"], mock);
 const { LEVELS, LEVELS1, LEVELS2, LEVELS3, STAGE_INFO } = ctx;
 
-test("关卡总数为 23", () => {
-  assert.equal(LEVELS.length, 23);
-  assert.equal(LEVELS1.length, 8);
+test("关卡总数为 26", () => {
+  assert.equal(LEVELS.length, 26);
+  assert.equal(LEVELS1.length, 11);
   assert.equal(LEVELS2.length, 9);
   assert.equal(LEVELS3.length, 6);
 });
 
-test("关卡 ID 连续 1-23", () => {
+test("关卡 ID 连续 1-26", () => {
   for (let i = 0; i < LEVELS.length; i++) {
     assert.equal(LEVELS[i].id, i + 1, `关卡 ${i + 1} id 应为 ${i + 1}`);
   }
@@ -44,7 +44,7 @@ test("quiz 答案索引不越界", () => {
 });
 
 test("阶段归属正确", () => {
-  assert.equal(LEVELS.filter(l => l.st === 1).length, 8);
+  assert.equal(LEVELS.filter(l => l.st === 1).length, 11);
   assert.equal(LEVELS.filter(l => l.st === 2).length, 9);
   assert.equal(LEVELS.filter(l => l.st === 3).length, 6);
 });

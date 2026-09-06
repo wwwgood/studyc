@@ -12,6 +12,7 @@ function renderStage(s){
     var bt = document.createElement("button");
     bt.className = "level-node" + (unlocked ? (passed ? " passed" : " current") : " locked");
     bt.setAttribute("role", "listitem");
+    bt.setAttribute("data-st", String(lv.st));
     bt.setAttribute("aria-label", (unlocked ? "" : "未解锁。") + "第" + lv.id + "关：" + lv.nm + (passed ? "（已过关）" : ""));
     if (unlocked) { bt.onclick = (function(lv){ return function() { openLevel(lv); }; })(lv); }
     else { bt.disabled = true; }
@@ -159,13 +160,14 @@ function checkQuiz(lv){
 }
 function winLevel(lv){
   S.passed[lv.id] = 1; saveS();
+  fireConfetti();
   document.getElementById("levelDialog").classList.remove("open");
   document.getElementById("backdrop").classList.remove("open");
   document.body.style.overflow = "";
   drawAll();
   var n = LEVELS.length; var cur = curIdx();
   if (cur >= n){ showToast("你真厉害！点亮全部 " + n + " 关，荣获代码小指挥官终章 ★"); }
-  else { showToast("下一关：" + LEVELS[cur].nm + " 已经点亮了！"); }
+  else { showToast("🎉 过关！下一关：" + LEVELS[cur].nm + " 已经点亮了！"); }
 }
 function showToast(m){
   var t = document.createElement("div");
@@ -202,3 +204,43 @@ function currentStage(){
   return el ? parseInt(el.dataset.s, 10) : 1;
 }
 function goMap(){ document.getElementById("map").scrollIntoView({behavior:"smooth"}); }
+
+/* 过关撒花动画 */
+function fireConfetti(){
+  var box = document.getElementById("confetti");
+  if (!box) return;
+  var colors = ["#FFC94D","#FF8A3D","#3B82F6","#34D399","#8B5CF6","#F87171"];
+  for (var i = 0; i < 60; i++){
+    var s = document.createElement("span");
+    s.style.left = Math.random() * 100 + "%";
+    s.style.background = colors[Math.floor(Math.random() * colors.length)];
+    s.style.animationDelay = Math.random() * 0.5 + "s";
+    s.style.animationDuration = (2 + Math.random() * 2) + "s";
+    box.appendChild(s);
+  }
+  setTimeout(function(){ box.innerHTML = ""; }, 4000);
+}
+
+/* 吉祥物小火箭对话 */
+var MASCOT_TIPS = [
+  "卡住了？看看讲解里的生活比喻！",
+  "Bug 不是错误，是藏起来的小怪兽，抓住它！",
+  "每过一关就亮一颗星，集满星星你就是指挥官！",
+  "先看懂代码，再自己写，最后教别人——学会的秘诀",
+  "F 和 J 键上有小凸点，摸到就找回手位了",
+  "别怕报错，报错是电脑在跟你说话呢",
+  "一天练一点，比一天练很多更管用",
+  "数学脑力训练能让你的算法更快更准"
+];
+function initMascot(){
+  var m = document.getElementById("mascot");
+  var b = document.getElementById("mascotBubble");
+  if (!m || !b) return;
+  m.onclick = function(){
+    var tip = MASCOT_TIPS[Math.floor(Math.random() * MASCOT_TIPS.length)];
+    b.textContent = "🚀 " + tip;
+    b.classList.add("show");
+    clearTimeout(window._mascotT);
+    window._mascotT = setTimeout(function(){ b.classList.remove("show"); }, 4000);
+  };
+}
