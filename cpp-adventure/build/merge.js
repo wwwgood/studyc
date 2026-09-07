@@ -10,19 +10,21 @@ const SRC_DIR = path.join(__dirname, "..", "src");
 const DIST_DIR = path.join(__dirname, "..", "dist");
 const html = fs.readFileSync(path.join(SRC_DIR, "index.html"), "utf8");
 
-// 收集 <link rel="stylesheet" href="..."> 并内联为 <style>
+// 收集 <link rel="stylesheet" href="..."> 并内联为 <style>（外链 http(s) 资源保持原样）
 const cssInline = html.replace(
   /<link rel="stylesheet" href="([^"]+)">/g,
   (_, href) => {
+    if (/^https?:/i.test(href)) return _;
     const css = fs.readFileSync(path.join(SRC_DIR, href), "utf8");
     return `<style>\n${css}\n</style>`;
   }
 );
 
-// 收集 <script src="..."></script> 并内联为 <script>...</script>
+// 收集 <script src="..."></script> 并内联为 <script>...</script>（外链 http(s) 资源保持原样）
 const jsInline = cssInline.replace(
   /<script src="([^"]+)"><\/script>/g,
   (_, src) => {
+    if (/^https?:/i.test(src)) return _;
     const js = fs.readFileSync(path.join(SRC_DIR, src), "utf8");
     return `<script>\n${js}\n</script>`;
   }

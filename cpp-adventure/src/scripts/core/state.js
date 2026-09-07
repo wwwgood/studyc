@@ -42,6 +42,15 @@ function loadCurrentUser(){
   else S = {passed:{}};
   if (SDB.current) saveS();
 }
+function ensureDefaultUser(){
+  if (!SDB.current || !SDB.users[SDB.current]){
+    var nm = "小指挥官";
+    if (!SDB.users[nm]) SDB.users[nm] = {passed:{}};
+    SDB.current = nm;
+    S = SDB.users[nm];
+    saveS();
+  }
+}
 function saveS(){ if (SDB.current){ SDB.users[SDB.current] = S; } try { localStorage.setItem(KEY, JSON.stringify(SDB)); } catch(e){} }
 loadCurrentUser();
 function starsOf(){ return Object.keys(S.passed).length; }

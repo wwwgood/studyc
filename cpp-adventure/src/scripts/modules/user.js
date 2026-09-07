@@ -17,7 +17,7 @@ function openLogin(){
     item.className = "user-list-item" + (nm === SDB.current ? " active" : "");
     var st = Object.keys(SDB.users[nm].passed || {}).length;
     item.innerHTML = '<span>👤 ' + nm + ' · ★' + st + '</span>' +
-      (nm === SDB.current ? '<span style="color:var(--green);font-weight:700">当前</span>' : '<button type="button" onclick="switchUser(\'' + nm.replace(/'/g,"\\'") + '\')">切换</button>');
+      (nm === SDB.current ? '<button type="button" class="user-continue-btn" onclick="closeLogin()">继续</button>' : '<button type="button" onclick="switchUser(\'' + nm.replace(/'/g,"\\'") + '\')">切换</button>');
     list.appendChild(item);
   });
   mask.classList.add("open");
@@ -51,6 +51,13 @@ function afterUserSwitch(){
   planInit();
   updateTabs();
   renderErr();
+  if (typeof eqRender === "function") eqRender();
+  if (typeof vqRender === "function") vqRender();
+  if (typeof rqRender === "function") rqRender();
+  if (typeof wqRender === "function") wqRender();
+  if (typeof xqRender === "function") xqRender();
+  if (typeof ebRender === "function") ebRender();
+  if (typeof portalRenderTopbar === "function") portalRenderTopbar();
 }
 function exportSave(){
   var data = JSON.stringify(SDB, null, 2);

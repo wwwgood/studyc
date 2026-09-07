@@ -3,31 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>代码小指挥官 · C++ 星际冒险</title>
-<meta name="description" content="面向四年级零基础小学生的 C++ 信息学闯关学习系统：三阶段冒险地图、23 个关卡、徽章鼓励、捉 Bug 游戏与赛事航路。">
+<title>梓煜学习空间站 · 统一学习网站</title>
+<meta name="description" content="梓煜的学习空间站：信息学 C++ 星际冒险、英语语法大冒险 100 例、每日作业打卡，一站式学习网站。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <link rel="stylesheet" href="styles/main.css">
+<link rel="stylesheet" href="styles/portal.css">
+<link rel="stylesheet" href="styles/checkin.css">
+<link rel="stylesheet" href="styles/english.css">
+<link rel="stylesheet" href="styles/awards.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">★ 代码小指挥官<span class="sub">C++ 星际冒险</span></div>
-  <nav class="topnav" aria-label="主导航">
-    <a href="#map" aria-current="true">冒险地图</a>
-    <a href="#badges">徽章墙</a>
-    <a href="#train">训练基地</a>
-    <a href="#road">赛事航路</a>
-    <a href="#parent">家长指挥所</a>
+  <div class="brand">🎓 梓煜学习空间站<span class="sub">统合所有学习</span></div>
+  <nav class="topnav portal-nav" aria-label="学科导航">
+    <a href="#/home" data-view="home">🏠 总览</a>
+    <a href="#/cpp" data-view="cpp">💻 信息学</a>
+    <a href="#/english" data-view="english">🔤 英语</a>
+    <a href="#/checkin" data-view="checkin">📅 每日打卡</a>
   </nav>
-  <div class="hud">★ <b id="hudStars">0</b> · Lv.<b id="hudLevel">1</b> · 🪙<b id="hudCoins">0</b></div>
-  <div class="cmdr" id="cmdrBar" style="display:none">
-    👤 <b id="cmdrName">—</b><span class="save-dot" title="进度已自动保存到本机"></span>
-    <button class="cmdr-btn" type="button" onclick="openLogin()">切换</button>
-    <button class="cmdr-btn" type="button" onclick="exportSave()">导出</button>
-    <button class="cmdr-btn" type="button" onclick="document.getElementById('importFile').click()">导入</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSave(event)">
-  </div>
+  <button class="portal-user" id="portalShopBtn" type="button" onclick="openShop()" title="奖品店">🎁 奖品店</button>
+  <button class="portal-user" id="portalBankBtn" type="button" onclick="baOpen()" title="题库管理">📚 题库管理</button>
+  <button class="portal-user" id="portalSyncBtn" type="button" onclick="syncOpen()" title="数据同步">☁️ 同步</button>
+  <button class="portal-user" id="portalUserBtn" type="button" onclick="openLogin()" title="切换指挥官">👤 指挥官</button>
 </header>
 
 <main>
+  <!-- ============ 门户首页 ============ -->
+  <div id="view-home" class="app-view">
+    <section class="portal-hero">
+      <h1 id="portalWelcome">欢迎回来，<span class="hi">小指挥官</span>！</h1>
+      <p class="tagline">这里是你的<b>学习空间站</b>：三个星球任你闯 —— 写代码、学英语、打卡赚星。选一个出发吧！</p>
+    </section>
+    <div class="portal-grid">
+      <a class="portal-card p-cpp" href="#/cpp">
+        <span class="pc-emoji">🚀</span>
+        <h2>信息学 · C++ 星际冒险</h2>
+        <p>26 关闯关地图：语法筑基 → 算法试炼 → 小初衔接，向着 CSP-J 出发！</p>
+        <span class="pc-stat" id="pcStatCpp">★ 0 关 · Lv.1</span>
+        <span class="pc-go">进入星球 →</span>
+      </a>
+      <a class="portal-card p-eng" href="#/english">
+        <span class="pc-emoji">🔤</span>
+        <h2>英语 · 语法大冒险</h2>
+        <p>《小学英语语法 100 例》章节闯关：边教学边练习，集星星、连击拿金币！</p>
+        <span class="pc-stat" id="pcStatEng">★ 0 / 100 例</span>
+        <span class="pc-go">进入星球 →</span>
+      </a>
+      <a class="portal-card p-ck" href="#/checkin">
+        <span class="pc-emoji">📅</span>
+        <h2>每日打卡 · 作业安排本</h2>
+        <p>语文、英语天天打卡，自定义作业随心加，好习惯一枚一枚攒！</p>
+        <span class="pc-stat" id="pcStatCk">今日 0/0 完成</span>
+        <span class="pc-go">进入星球 →</span>
+      </a>
+    </div>
+    <div class="portal-today" id="portalToday">今天也要加油哦！</div>
+  </div>
+
+  <!-- ============ 信息学 C++ 星际冒险 ============ -->
+  <div id="view-cpp" class="app-view">
+    <div class="subnav" id="cppSubnav">
+      <nav class="topnav" aria-label="信息学子导航">
+        <a href="#map">冒险地图</a>
+        <a href="#badges">徽章墙</a>
+        <a href="#train">训练基地</a>
+        <a href="#road">赛事航路</a>
+        <a href="#parent">家长指挥所</a>
+      </nav>
+      <div class="hud">★ <b id="hudStars">0</b> · Lv.<b id="hudLevel">1</b> · 🪙<b id="hudCoins">0</b></div>
+      <div class="cmdr" id="cmdrBar" style="display:none">
+        👤 <b id="cmdrName">—</b><span class="save-dot" title="进度已自动保存到本机"></span>
+        <button class="cmdr-btn" type="button" onclick="openLogin()">切换</button>
+        <button class="cmdr-btn" type="button" onclick="exportSave()">导出</button>
+        <button class="cmdr-btn" type="button" onclick="document.getElementById('importFile').click()">导入</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSave(event)">
+      </div>
+    </div>
+
   <!-- HERO -->
   <section class="hero" aria-labelledby="heroTitle">
     <h1 id="heroTitle">欢迎登上 C++ <span class="hi">星际飞船</span>，<span class="hi2">小指挥官</span>！</h1>
@@ -321,9 +379,739 @@
       </div>
     </div>
   </section>
+  </div>
+
+  <!-- ============ 英语 · 语法大冒险 ============ -->
+  <div id="view-english" class="app-view">
+    <section class="eq-hero">
+      <h1>🔤 英语 <span class="hi">大冒险</span></h1>
+      <p class="tagline">三个星球任你闯：语法岛屿、词汇宝岛、阅读森林。学一学、练一练，答对拿星星、连击赢金币！</p>
+      <div class="eq-subnav">
+        <button class="eq-tab active" data-tab="grammar" onclick="eqSwitchTab('grammar')">📖 语法闯关</button>
+        <button class="eq-tab" data-tab="vocab" onclick="eqSwitchTab('vocab')">📚 词汇闯关</button>
+        <button class="eq-tab" data-tab="reading" onclick="eqSwitchTab('reading')">📄 阅读理解</button>
+        <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
+        <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
+        <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
+      </div>
+    </section>
+
+    <!-- 语法子模块 -->
+    <div class="eq-subview" id="eqSubGrammar">
+      <div class="eq-progress-bar" aria-label="语法总进度"><span id="eqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="eqTotalTxt">已点亮 0 / 103 例</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 语法金币 <b id="eqCoins">0</b></span>
+        <span class="eq-star-chip">★ 语法星 <b id="eqStars">0</b></span>
+      </div>
+      <div class="eq-chapters" id="eqChapters" role="list"></div>
+    </div>
+
+    <!-- 词汇子模块 -->
+    <div class="eq-subview" id="eqSubVocab" style="display:none">
+      <div class="eq-progress-bar" aria-label="词汇总进度"><span id="vqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="vqTotalTxt">已点亮 0 / 20 个词库岛</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 词汇金币 <b id="vqCoins">0</b></span>
+      </div>
+      <div class="vq-units" id="vqUnits"></div>
+    </div>
+
+    <!-- 阅读子模块 -->
+    <div class="eq-subview" id="eqSubReading" style="display:none">
+      <div class="eq-progress-bar" aria-label="阅读总进度"><span id="rqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="rqTotalTxt">已读完 0 / 100 篇</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 阅读金币 <b id="rqCoins">0</b></span>
+      </div>
+      <div class="rq-passages" id="rqPassages"></div>
+    </div>
+
+    <!-- 作文子模块 -->
+    <div class="eq-subview" id="eqSubWriting" style="display:none">
+      <div class="eq-progress-bar" aria-label="作文总进度"><span id="wqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="wqTotalTxt">已学 0 / 99 篇范文</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 作文金币 <b id="wqCoins">0</b></span>
+      </div>
+      <div class="wq-books" id="wqBooks"></div>
+    </div>
+
+    <!-- 真题演练子模块 -->
+    <div class="eq-subview" id="eqSubExam" style="display:none">
+      <div class="eq-progress-bar" aria-label="真题总进度"><span id="xqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="xqTotalTxt">已完成 0 / 9 套真题</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 真题金币 <b id="xqCoins">0</b></span>
+      </div>
+      <div class="xq-papers" id="xqPapers"></div>
+    </div>
+
+    <!-- 错题本子模块 -->
+    <div class="eq-subview" id="eqSubErrBook" style="display:none">
+      <p class="eq-progress-txt" id="ebTotalTxt">共 0 道错题</p>
+      <div class="eb-list" id="ebList"></div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="eq-mask" id="eqDialogMask">
+      <div class="eq-dialog" id="eqDialog" role="dialog" aria-modal="true" aria-label="语法学习"></div>
+    </div>
+    <div class="eq-mask" id="vqDialogMask">
+      <div class="eq-dialog" id="vqDialog" role="dialog" aria-modal="true" aria-label="词汇学习"></div>
+    </div>
+    <div class="eq-mask" id="rqDialogMask">
+      <div class="eq-dialog" id="rqDialog" role="dialog" aria-modal="true" aria-label="阅读理解"></div>
+    </div>
+    <div class="eq-mask" id="wqDialogMask">
+      <div class="eq-dialog" id="wqDialog" role="dialog" aria-modal="true" aria-label="作文训练"></div>
+    </div>
+    <div class="eq-mask" id="xqDialogMask">
+      <div class="eq-dialog" id="xqDialog" role="dialog" aria-modal="true" aria-label="真题演练"></div>
+    </div>
+    <div class="eq-mask" id="ebDialogMask">
+      <div class="eq-dialog" id="ebDialog" role="dialog" aria-modal="true" aria-label="错题重做"></div>
+    </div>
+    <div class="eq-mask" id="teDialogMask">
+      <div class="eq-dialog" id="teDialog" role="dialog" aria-modal="true" aria-label="专题真题"></div>
+    </div>
+    <div class="ba-mask" id="baDialogMask">
+      <div class="ba-dialog" id="baDialog" role="dialog" aria-modal="true" aria-label="题库管理"></div>
+    </div>
+    <div class="ba-mask" id="syncDialogMask">
+      <div class="ba-dialog" id="syncDialog" role="dialog" aria-modal="true" aria-label="数据同步"></div>
+    </div>
+    <div class="eq-combo" id="eqCombo"></div>
+    <div class="eq-float" id="eqFloat"></div>
+  </div>
+
+  <!-- ============ 每日打卡 · 梓煜作业安排本 ============ -->
+  <div id="view-checkin" class="app-view">
+<div class="auth-screen" id="authScreen">
+        <div class="auth-container">
+            <div class="auth-icon">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="36" fill="#6366F1"/>
+                    <path d="M24 56V32L40 24L56 32V56L40 64L24 56Z" fill="white"/>
+                    <circle cx="40" cy="44" r="8" fill="#F59E0B"/>
+                </svg>
+            </div>
+            <h1 class="auth-title" id="authTitle">梓煜作业安排本</h1>
+            <p class="auth-subtitle" id="authSubtitle">请输入访问密码</p>
+            <form class="auth-form" id="authForm">
+                <input
+                    type="password"
+                    id="authPassword"
+                    class="auth-input"
+                    placeholder="请输入密码"
+                    autocomplete="current-password"
+                    required
+                >
+                <button type="submit" class="auth-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    进入系统
+                </button>
+            </form>
+            <p class="auth-error" id="authError" style="display: none;">密码错误，请重试</p>
+            <p class="auth-hint">默认密码: 123456</p>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <span class="logo-icon">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <circle cx="20" cy="20" r="18" fill="#6366F1"/>
+                            <path d="M12 28V16L20 12L28 16V28L20 32L12 28Z" fill="white"/>
+                            <circle cx="20" cy="22" r="4" fill="#F59E0B"/>
+                        </svg>
+                    </span>
+                    <h1 class="app-title">梓煜作业安排本</h1>
+                </div>
+                <p class="app-subtitle">每日打卡 · 快乐成长</p>
+                <div class="header-actions">
+                    <span class="sync-status" id="syncStatus">● 加载中</span>
+                    <button class="action-btn" id="refreshSyncBtn" title="刷新同步">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                        </svg>
+                        刷新
+                    </button>
+                    <button class="action-btn" id="exportBtn" title="导出数据">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                        导出
+                    </button>
+                    <button class="action-btn" id="importBtn" title="导入数据">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                        导入
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display:none">
+                </div>
+            </div>
+        </header>
+
+        <!-- Calendar Section -->
+        <section class="calendar-section">
+            <!-- Month Navigation -->
+            <div class="month-nav">
+                <button class="nav-btn" id="prevMonth" aria-label="上个月">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <h2 class="current-month" id="currentMonth">2024年1月</h2>
+                <button class="nav-btn" id="nextMonth" aria-label="下个月">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Weekday Headers -->
+            <div class="weekday-header">
+                <span class="weekday">周日</span>
+                <span class="weekday">周一</span>
+                <span class="weekday">周二</span>
+                <span class="weekday">周三</span>
+                <span class="weekday">周四</span>
+                <span class="weekday">周五</span>
+                <span class="weekday">周六</span>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Days will be generated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Task Detail Panel -->
+        <div class="task-panel-overlay" id="taskPanelOverlay"></div>
+        <aside class="task-panel" id="taskPanel">
+            <div class="panel-header">
+                <div class="panel-date">
+                    <span class="date-day" id="panelDay">15</span>
+                    <div class="date-info">
+                        <span class="date-weekday" id="panelWeekday">星期一</span>
+                        <span class="date-month" id="panelMonth">2024年1月</span>
+                    </div>
+                </div>
+                <button class="close-btn" id="closePanel" aria-label="关闭">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="panel-content">
+                <!-- Required Tasks: Chinese -->
+                <div class="task-section">
+                    <div class="task-header required">
+                        <div class="task-icon chinese-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="4" width="20" height="16" rx="2" fill="#EF4444"/>
+                                <text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">语</text>
+                            </svg>
+                        </div>
+                        <h3 class="task-title">语文打卡</h3>
+                        <button class="edit-content-btn" id="editChineseBtn" title="编辑打卡内容">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="task-items" id="chineseTasks">
+                        <!-- Chinese tasks will be generated here -->
+                    </div>
+                    <div class="add-task-mini" id="addChineseTask">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        <span>添加语文任务</span>
+                    </div>
+                </div>
+
+                <!-- Required Tasks: English -->
+                <div class="task-section">
+                    <div class="task-header required">
+                        <div class="task-icon english-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="4" width="20" height="16" rx="2" fill="#3B82F6"/>
+                                <text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">英</text>
+                            </svg>
+                        </div>
+                        <h3 class="task-title">英语打卡</h3>
+                        <button class="edit-content-btn" id="editEnglishBtn" title="编辑打卡内容">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="task-items" id="englishTasks">
+                        <!-- English tasks will be generated here -->
+                    </div>
+                    <div class="add-task-mini" id="addEnglishTask">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        <span>添加英语任务</span>
+                    </div>
+                </div>
+
+                <!-- Custom Tasks -->
+                <div class="task-section">
+                    <div class="task-header custom-header">
+                        <div class="task-icon custom-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="4" width="20" height="16" rx="2" fill="#10B981"/>
+                                <text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
+                            </svg>
+                        </div>
+                        <h3 class="task-title">其他作业</h3>
+                    </div>
+                    <div class="task-items" id="customTasks">
+                        <!-- Custom tasks will be generated here -->
+                    </div>
+                    <div class="empty-state" id="emptyCustomTasks">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                            <path d="M9 12h6M9 16h6"/>
+                        </svg>
+                        <p>今日暂无其他作业</p>
+                        <span>点击下方添加作业</span>
+                    </div>
+                    <div class="add-task-form" id="addCustomTaskForm">
+                        <div class="preset-tasks"></div>
+                        <div class="custom-task-input-row">
+                            <input type="text" class="task-input" id="customTaskInput" placeholder="输入作业...">
+                            <select class="subject-select" id="subjectSelect">
+                                <option value="chinese">语文</option>
+                                <option value="english">英语</option>
+                                <option value="math">数学</option>
+                                <option value="other">其他</option>
+                            </select>
+                            <button class="add-btn" id="addCustomTaskBtn">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Summary -->
+                <div class="daily-summary" id="dailySummary">
+                    <div class="summary-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                            <path d="M22 4L12 14.01l-3-3"/>
+                        </svg>
+                    </div>
+                    <div class="summary-text">
+                        <span class="summary-label">今日完成</span>
+                        <span class="summary-count" id="summaryCount">0/0</span>
+                    </div>
+                    <div class="summary-progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <!-- Motivational Message -->
+                <div class="motivation-section">
+                    <p class="motivation-text" id="motivationText">养成好习惯，天天进步一点点</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Edit Content Modal -->
+        <div class="modal-overlay" id="editModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="editModalTitle">编辑打卡内容</h3>
+                    <button class="modal-close" id="closeModal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="content-list" id="contentList">
+                        <!-- Content items will be generated here -->
+                    </div>
+                    <div class="add-content-form">
+                        <input type="text" class="content-input" id="newContentInput" placeholder="输入新的打卡内容...">
+                        <button class="add-content-btn" id="addContentBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-save-btn" id="saveContentBtn">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Add Task Modal -->
+        <div class="modal-overlay" id="quickAddModal">
+            <div class="modal-content quick-add-modal">
+                <div class="modal-header">
+                    <h3 id="quickAddTitle">添加任务</h3>
+                    <button class="modal-close" id="closeQuickAddModal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="content-input" id="quickAddInput" placeholder="输入任务内容...">
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-save-btn" id="confirmQuickAddBtn">添加</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">
+            <span class="toast-message" id="toastMessage"></span>
+        </div>
+
+        <!-- Book Library Button -->
+        <button class="book-library-btn" id="openBookLibrary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+            </svg>
+            <span>书籍库</span>
+        </button>
+
+        <!-- WeChat Push Button -->
+        <button class="wechat-push-btn" id="openWechatPush">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.173l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.007-.27-.022-.406-.03v-.002z"/>
+            </svg>
+            <span>企微推送</span>
+        </button>
+
+        <!-- Book Library Panel -->
+        <div class="book-library-overlay" id="bookLibraryOverlay"></div>
+        <div class="book-library-panel" id="bookLibraryPanel">
+            <div class="book-library-header">
+                <h2>书籍库</h2>
+                <button class="close-book-library" id="closeBookLibrary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="book-library-toolbar">
+                <div class="search-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="bookSearchInput" placeholder="搜索书名...">
+                </div>
+                <button class="add-book-btn" id="addBookBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    添加书籍
+                </button>
+            </div>
+            <div class="book-filters">
+                <select id="filterCategory" class="filter-select">
+                    <option value="">全部科目</option>
+                    <option value="chinese">语文</option>
+                    <option value="math">数学</option>
+                    <option value="english">英语</option>
+                    <option value="science">科学</option>
+                    <option value="history">历史</option>
+                    <option value="other">其他</option>
+                </select>
+                <select id="filterStatus" class="filter-select">
+                    <option value="">全部状态</option>
+                    <option value="not_started">未开始</option>
+                    <option value="reading">正在进行</option>
+                    <option value="completed">已完成</option>
+                </select>
+                <select id="filterLocation" class="filter-select">
+                    <option value="">全部位置</option>
+                    <option value="east">东区</option>
+                    <option value="south">南区</option>
+                </select>
+            </div>
+            <div class="book-list" id="bookList">
+                <!-- Books will be generated here -->
+            </div>
+        </div>
+
+        <!-- WeChat Push Settings Panel -->
+        <div class="wechat-push-overlay" id="wechatPushOverlay"></div>
+        <div class="wechat-push-panel" id="wechatPushPanel">
+            <div class="wechat-push-header">
+                <h2>企微推送设置</h2>
+                <button class="close-wechat-push" id="closeWechatPush">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="wechat-push-content">
+                <div class="wechat-push-intro">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    <span>配置企业微信机器人Webhook，定时推送每日任务到群聊</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Webhook地址</label>
+                    <input type="text" id="wechatWebhookUrl" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx">
+                    <span class="form-hint">在企业微信群机器人设置中复制Webhook地址</span>
+                </div>
+
+                <div class="form-group">
+                    <label>推送时间</label>
+                    <input type="time" id="wechatPushTime" value="08:00">
+                    <span class="form-hint">每天自动推送任务的时间（基于中国时区）</span>
+                </div>
+
+                <div class="form-group">
+                    <label>推送内容</label>
+                    <div class="wechat-content-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="wechatPushChinese" checked>
+                            <span>语文打卡任务</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="wechatPushEnglish" checked>
+                            <span>英语打卡任务</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="wechatPushCustom" checked>
+                            <span>自定义任务</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>推送日期</label>
+                    <div class="wechat-date-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="wechatPushWeekends" checked>
+                            <span>包含周末</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="wechatPushToday" checked>
+                            <span>仅推送当日任务</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="wechat-push-actions">
+                    <button class="test-push-btn" id="testPushBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                        发送测试推送
+                    </button>
+                </div>
+
+                <div class="wechat-push-status" id="wechatPushStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">未配置</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Book Modal -->
+        <div class="modal-overlay" id="bookModal">
+            <div class="modal-content book-modal">
+                <div class="modal-header">
+                    <h3 id="bookModalTitle">添加书籍</h3>
+                    <button class="modal-close" id="closeBookModal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="book-cover-section">
+                        <div class="book-cover-preview" id="bookCoverPreview">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <span>上传封面</span>
+                        </div>
+                        <div class="book-cover-actions">
+                            <label class="upload-cover-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                                </svg>
+                                选择图片
+                                <input type="file" id="bookCoverInput" accept="image/*" style="display:none">
+                            </label>
+                            <button class="remove-cover-btn" id="removeCoverBtn" style="display:none">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+                                </svg>
+                                移除
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>科目</label>
+                        <select id="bookCategory" class="form-select">
+                            <option value="chinese">语文</option>
+                            <option value="math">数学</option>
+                            <option value="english">英语</option>
+                            <option value="science">科学</option>
+                            <option value="history">历史</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>书名</label>
+                        <input type="text" id="bookName" class="form-input" placeholder="输入书名，或上传封面后自动识别">
+                    </div>
+                    <div class="form-group">
+                        <label>册数</label>
+                        <input type="number" id="bookVolumes" class="form-input" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>完成情况</label>
+                        <select id="bookStatus" class="form-select">
+                            <option value="not_started">未开始</option>
+                            <option value="reading">正在进行</option>
+                            <option value="completed">已完成</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>来源</label>
+                        <select id="bookSource" class="form-select">
+                            <option value="published">出版</option>
+                            <option value="homemade">自制</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>拥有</label>
+                        <select id="bookOwned" class="form-select">
+                            <option value="owned">已购买</option>
+                            <option value="not_owned">未购买</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>放置地</label>
+                        <select id="bookLocation" class="form-select">
+                            <option value="east">东区</option>
+                            <option value="south">南区</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-cancel-btn" id="cancelBookBtn">取消</button>
+                    <button class="modal-save-btn" id="saveBookBtn">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Tasks Button -->
+        <button class="plan-tasks-btn" id="openPlanTasks">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+            <span>计划任务</span>
+        </button>
+
+        <!-- Plan Tasks Panel -->
+        <div class="plan-tasks-overlay" id="planTasksOverlay"></div>
+        <div class="plan-tasks-panel" id="planTasksPanel">
+            <div class="plan-tasks-header">
+                <h2>计划任务</h2>
+                <button class="close-plan-tasks" id="closePlanTasks">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="plan-tasks-toolbar">
+                <button class="add-plan-btn" id="addPlanBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    添加计划
+                </button>
+            </div>
+            <div class="ck-plan-list" id="planList">
+                <!-- Plans will be generated here -->
+            </div>
+        </div>
+
+        <!-- Add/Edit Plan Modal -->
+        <div class="modal-overlay" id="planModal">
+            <div class="modal-content plan-modal">
+                <div class="modal-header">
+                    <h3 id="planModalTitle">添加计划</h3>
+                    <button class="modal-close" id="closePlanModal">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>项目（科目）</label>
+                        <select id="planSubject" class="form-select">
+                            <option value="chinese">语文</option>
+                            <option value="math">数学</option>
+                            <option value="english">英语</option>
+                            <option value="science">科学</option>
+                            <option value="history">历史</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>内容</label>
+                        <input type="text" id="planName" class="form-input" placeholder="输入计划内容，如：四年级数学上学期练习册">
+                    </div>
+                    <div class="form-group">
+                        <label>开始日期</label>
+                        <input type="date" id="planStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>结束日期</label>
+                        <input type="date" id="planEndDate" class="form-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-cancel-btn" id="cancelPlanBtn">取消</button>
+                    <button class="modal-save-btn" id="savePlanBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+  </div>
 </main>
 
-<footer>★ 代码小指挥官 · C++ 星际冒险 ★ 所有进度保存在这台设备，不用联网也能玩。</footer>
+<footer>🎓 梓煜学习空间站 · 信息学 + 英语 + 每日打卡 · 所有进度保存在这台设备，不用联网也能玩。</footer>
 
 <div class="backdrop" id="backdrop" onclick="closeLevel()"></div>
 <div class="level-dialog" id="levelDialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
@@ -339,6 +1127,27 @@
 </div>
 
   <script src="scripts/data/levels.js"></script>
+  <script src="scripts/data/english-grammar.js"></script>
+  <script src="scripts/data/english-grammar-extra.js"></script>
+  <script src="scripts/data/english-vocab.js"></script>
+  <script src="scripts/data/english-reading.js"></script>
+  <script src="scripts/data/english-writing.js"></script>
+  <script src="scripts/data/english-exam.js"></script>
+  <script src="scripts/data/english-topic-exam.js"></script>
+  <script src="scripts/data/question-bank.js"></script>
+  <script src="scripts/modules/portal.js"></script>
+  <script src="scripts/modules/english-quest.js"></script>
+  <script src="scripts/modules/vocab-quest.js"></script>
+  <script src="scripts/modules/reading-quest.js"></script>
+  <script src="scripts/modules/writing-quest.js"></script>
+  <script src="scripts/modules/exam-quest.js"></script>
+  <script src="scripts/modules/err-book.js"></script>
+  <script src="scripts/modules/question-bank.js"></script>
+  <script src="scripts/modules/topic-exam.js"></script>
+  <script src="scripts/modules/bank-admin.js"></script>
+  <script src="scripts/modules/sync.js"></script>
+  <script src="scripts/modules/awards.js"></script>
+  <script src="scripts/modules/checkin.js"></script>
   <script src="scripts/core/state.js"></script>
   <script src="scripts/modules/map.js"></script>
   <script src="scripts/modules/keyboard.js"></script>
@@ -361,8 +1170,9 @@
   </div>
   <div class="focus-body" id="focusBody"></div>
 </div>
-<div class="login-mask" id="loginMask" aria-modal="true" role="dialog" aria-label="指挥官登录">
+<div class="login-mask" id="loginMask" aria-modal="true" role="dialog" aria-label="指挥官登录" onclick="if(event.target===this)closeLogin()">
   <div class="login-box">
+    <button class="login-close" type="button" onclick="closeLogin()" title="关闭">×</button>
     <h3>🚀 飞船登录</h3>
     <p>输入你的指挥官代号，进度会自动保存在这台电脑上。下次打开自动恢复，不会归零！</p>
     <input class="login-input" id="loginName" placeholder="你的名字" maxlength="12" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
@@ -373,5 +1183,10 @@
 <div class="mascot" id="mascot" title="点我有提示！">🚀</div>
 <div class="mascot-bubble" id="mascotBubble"></div>
 <div class="confetti" id="confetti"></div>
+
+<!-- ============ 奖品店弹窗 ============ -->
+<div class="aw-mask" id="awMask" aria-modal="true" role="dialog" aria-label="奖品店">
+  <div class="aw-box" id="awBox"></div>
+</div>
 </body>
 </html>

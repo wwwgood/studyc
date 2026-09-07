@@ -1,0 +1,58 @@
+/* ---------------- 门户：视图切换 + 学科导航 ---------------- */
+
+/* 视图显隐：body[data-view] 控制 */
+.app-view{display:none;}
+body[data-view="home"]    #view-home,
+body[data-view="cpp"]     #view-cpp,
+body[data-view="english"] #view-english,
+body[data-view="checkin"] #view-checkin{display:block;}
+
+/* 顶部学科导航 */
+.portal-nav a{cursor:pointer;}
+.portal-nav a[aria-current="true"]{background:rgba(255,255,255,.16);}
+
+/* 吉祥物只在信息学视图出现 */
+body:not([data-view="cpp"]) .mascot,
+body:not([data-view="cpp"]) .mascot-bubble{display:none;}
+.portal-user{margin-left:auto; background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:6px 14px; font-size:14px; cursor:pointer; transition:background .2s;}
+.portal-user:hover{background:rgba(255,255,255,.26);}
+
+/* 信息学视图子导航条 */
+.subnav{display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:rgba(11,27,59,.85); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:8px 12px; margin:14px 0 18px;}
+.subnav .topnav{border-bottom:none; padding:0; gap:4px; flex-wrap:wrap;}
+.subnav .hud{margin-left:auto; color:#FFD86B; font-weight:700; font-size:14px; background:rgba(255,255,255,.08); border-radius:999px; padding:6px 12px;}
+
+/* 门户首页 */
+.portal-hero{text-align:center; padding:46px 16px 10px;}
+.portal-hero h1{font-size:clamp(26px,4.6vw,44px); color:#fff; text-shadow:0 3px 12px rgba(0,0,0,.4);}
+.portal-hero .tagline{color:rgba(255,255,255,.92); font-size:16px; max-width:640px; margin:10px auto 0;}
+
+.portal-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; max-width:1020px; margin:34px auto 10px; padding:0 16px;}
+.portal-card{position:relative; display:block; background:#fff; border-radius:22px; padding:26px 22px 20px; text-decoration:none; color:var(--ink,#1F2937); box-shadow:0 10px 26px rgba(0,0,0,.18); border-bottom:6px solid rgba(0,0,0,.12); transition:transform .22s ease, box-shadow .22s ease; overflow:hidden;}
+.portal-card:hover{transform:translateY(-6px) rotate(-.4deg); box-shadow:0 18px 38px rgba(0,0,0,.26);}
+.portal-card .pc-emoji{display:inline-block; font-size:44px; margin-bottom:8px; filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));}
+.portal-card:hover .pc-emoji{animation:pcBounce .5s ease;}
+@keyframes pcBounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px) scale(1.15)}}
+.portal-card h2{font-size:20px; margin:2px 0 8px;}
+.portal-card p{font-size:14px; color:#5B6472; line-height:1.65; margin-bottom:12px;}
+.portal-card .pc-stat{display:inline-block; font-size:13px; font-weight:700; border-radius:999px; padding:4px 12px; margin-right:8px;}
+.portal-card .pc-go{display:inline-block; font-size:13px; font-weight:800;}
+.portal-card.p-cpp{background:linear-gradient(160deg,#EAF2FF 0%,#FFFFFF 55%);}
+.portal-card.p-cpp h2{color:#1D4ED8;}
+.portal-card.p-cpp .pc-stat{background:#DBEAFE; color:#1D4ED8;}
+.portal-card.p-cpp .pc-go{color:#2563EB;}
+.portal-card.p-eng{background:linear-gradient(160deg,#FFF6E5 0%,#FFFFFF 55%);}
+.portal-card.p-eng h2{color:#B45309;}
+.portal-card.p-eng .pc-stat{background:#FEF3C7; color:#B45309;}
+.portal-card.p-eng .pc-go{color:#D97706;}
+.portal-card.p-ck{background:linear-gradient(160deg,#EAFBF2 0%,#FFFFFF 55%);}
+.portal-card.p-ck h2{color:#047857;}
+.portal-card.p-ck .pc-stat{background:#D1FAE5; color:#047857;}
+.portal-card.p-ck .pc-go{color:#059669;}
+
+.portal-today{text-align:center; color:rgba(255,255,255,.9); font-size:14px; margin:18px auto 34px;}
+
+@media (max-width:640px){
+  .subnav{gap:8px;}
+  .portal-grid{gap:14px;}
+}

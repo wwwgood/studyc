@@ -1,8 +1,9 @@
 window.addEventListener("load", function(){
+  ensureDefaultUser();
   drawCmdr();
   drawAll(); drawRoad(); mtNew(); kbRender(); planInit(); bindFocus();
   updateTabs(); renderErr(); logRender(); initMascot();
-  if (!SDB.current) openLogin();
+  if (typeof eqRender === "function") eqRender();
 });
 /* 静态导出门禁探针 */
 window.__DESIGN_STATIC_ERRORS__ = [];
