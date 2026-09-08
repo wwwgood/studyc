@@ -5,7 +5,8 @@
 body[data-view="home"]    #view-home,
 body[data-view="cpp"]     #view-cpp,
 body[data-view="english"] #view-english,
-body[data-view="checkin"] #view-checkin{display:block;}
+body[data-view="checkin"] #view-checkin,
+body[data-view="notes"]   #view-notes{display:block;}
 
 /* 顶部学科导航 */
 .portal-nav a{cursor:pointer;}
@@ -68,16 +69,15 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .nt-banner-close{margin-left:auto; background:rgba(255,255,255,.5); border:none; border-radius:999px; width:28px; height:28px; font-size:16px; cursor:pointer; color:#92400E;}
 .nt-banner-close:hover{background:rgba(255,255,255,.8);}
 
-/* 弹窗复用 ba-mask/ba-dialog，内部样式自定义 */
-#ntDialogMask.open{display:flex;}
-#ntDialog{max-width:680px; max-height:85vh; overflow-y:auto;}
+/* 页面容器 */
+.nt-hero{text-align:center; padding:36px 16px 10px;}
+.nt-hero h1{font-size:clamp(24px,4vw,38px); color:#fff; text-shadow:0 3px 12px rgba(0,0,0,.4);}
+.nt-hero .tagline{color:rgba(255,255,255,.92); font-size:15px; max-width:600px; margin:8px auto 0;}
 
-.nt-head{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:2px solid #F3F4F6; position:sticky; top:0; background:#fff; z-index:2;}
-.nt-title{font-size:20px; font-weight:800; color:#1F2937;}
-.nt-close{background:rgba(0,0,0,.06); border:none; border-radius:999px; width:32px; height:32px; font-size:20px; cursor:pointer; color:#6B7280;}
-.nt-close:hover{background:rgba(0,0,0,.12);}
+.nt-page{max-width:860px; margin:20px auto; padding:0 16px 40px;}
 
-.nt-body{padding:16px 20px;}
+/* 导航红点 */
+.nt-nav-dot{display:inline-block; min-width:18px; height:18px; line-height:18px; text-align:center; font-size:11px; font-weight:700; background:#EF4444; color:#fff; border-radius:999px; padding:0 5px; margin-left:4px; vertical-align:top;}
 
 /* 表单 */
 .nt-form{background:#F9FAFB; border-radius:14px; padding:16px; margin-bottom:16px; border:1px solid #E5E7EB;}

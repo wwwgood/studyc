@@ -3,6 +3,8 @@
  * 按预计时间提前触发提醒。
  * 数据存 localStorage["importantNotes"]，随「☁️ 同步」跨设备。
  * 提醒机制：打开页面时检查 + 每30分钟检查一次（页面开着才有效，纯前端无后台推送）。
+ *
+ * 交互模式：独立视图页面（非弹窗），通过顶栏导航 #/notes 进入。
  */
 var NOTES_KEY = "importantNotes";
 var NOTE_SUBJECTS = [
@@ -30,7 +32,6 @@ function ntSave(list){
   try { localStorage.setItem(NOTES_KEY, JSON.stringify(list)); } catch(e){}
 }
 
-/* 预置示例（仅第一次使用时写入一次） */
 function ntDefaults(){
   return [
     { id: "nt_def1", subjects: ["chinese", "math"], title: "纪中少科院考试", content: "以前是考语文数学，奥数题18题", eventDate: "2026-09-13", timeNote: "", remindDays: 3, done: false, created: Date.now() },
@@ -69,7 +70,6 @@ function ntDueBadge(it){
   return '<span class="nt-due soon">📅 还有 ' + left + ' 天</span>';
 }
 
-/* 是否处于提醒窗口：未完成 + 有日期 + 已进入提前期（过期未完成也持续提醒） */
 function ntIsDue(it){
   if (it.done) return false;
   var left = ntDaysLeft(it.eventDate);
@@ -78,27 +78,21 @@ function ntIsDue(it){
   return left <= rd;
 }
 
-/* ---------- 弹窗 UI ---------- */
+/* ---------- 视图入口 ---------- */
 function ntOpen(){
-  var mask = document.getElementById("ntDialogMask");
-  if (!mask) return;
-  mask.classList.add("open");
-  document.body.style.overflow = "hidden";
+  location.hash = "#/notes";
+}
+
+function ntOnEnter(){
   NT_EDIT_ID = null;
   ntRender();
+  ntRefreshNavBadge();
 }
 
-function ntClose(){
-  var mask = document.getElementById("ntDialogMask");
-  if (mask) mask.classList.remove("open");
-  document.body.style.overflow = "";
-  NT_EDIT_ID = null;
-  ntRenderBanner();
-}
-
+/* ---------- 页面渲染 ---------- */
 function ntRender(){
-  var dialog = document.getElementById("ntDialog");
-  if (!dialog) return;
+  var container = document.getElementById("ntPageContent");
+  if (!container) return;
   var list = ntState().slice();
   list.sort(function(a, b){
     if (!!a.done !== !!b.done) return a.done ? 1 : -1;
@@ -126,16 +120,14 @@ function ntRender(){
     return '<option value="' + p[0] + '"' + (rd === p[0] ? " selected" : "") + '>' + p[1] + '</option>';
   }).join("");
 
+  var dueCount = list.filter(ntIsDue).length;
+
   var html =
-    '<div class="nt-head">' +
-      '<span class="nt-title">📌 重要消息</span>' +
-      '<button class="nt-close" type="button" onclick="ntClose()">×</button>' +
-    '</div>' +
-    '<div class="nt-body">' +
+    '<div class="nt-page">' +
       '<div class="nt-form">' +
         '<div class="nt-form-cap">' + formTitle + '</div>' +
         '<input class="nt-f-title" id="ntFTitle" type="text" placeholder="标题（必填），如：纪中少科院考试" value="' + (f.title || "").replace(/"/g, "&quot;") + '" maxlength="60">' +
-        '<textarea class="nt-f-content" id="ntFContent" rows="3" placeholder="内容/来源详情，如：以前是考语文数学，奥数题18题">' + (f.content || "") + '</textarea>' +
+        '<textarea class="nt-f-content" id="ntFContent" rows="4" placeholder="内容/来源详情，如：以前是考语文数学，奥数题18题">' + (f.content || "") + '</textarea>' +
         '<div class="nt-form-row"><label>挂接科目：</label>' + subjectChecks + '</div>' +
         '<div class="nt-form-row">' +
           '<label>预计时间：</label><input class="nt-f-date" id="ntFDate" type="date" value="' + (f.eventDate || "") + '">' +
@@ -148,7 +140,7 @@ function ntRender(){
           (NT_EDIT_ID ? '<button class="nt-cancel-btn" type="button" onclick="ntCancelEdit()">取消</button>' : '') +
         '</div>' +
       '</div>' +
-      '<div class="nt-list-cap">📋 全部消息（' + list.length + ' 条）</div>' +
+      '<div class="nt-list-cap">📋 全部消息（' + list.length + ' 条' + (dueCount > 0 ? ' · 🔔 ' + dueCount + ' 条待提醒' : '') + '）</div>' +
       '<div class="nt-list">' +
         (list.length === 0 ? '<div class="nt-empty">还没有重要消息，先在上面录入一条吧！</div>' :
         list.map(function(it, idx){
@@ -161,7 +153,7 @@ function ntRender(){
             '<div class="nt-item-foot">' +
               '<span class="nt-item-subs">' + ntSubjectBadges(it.subjects) + '</span>' +
               '<span class="nt-item-ops">' +
-                (it.done ? "" : '<button class="nt-op done" type="button" onclick="ntToggleDone(\'' + it.id + '\')">✔️ 完成</button>') +
+                (it.done ? '<button class="nt-op" type="button" onclick="ntToggleDone(\'' + it.id + '\')">↩️ 取消完成</button>' : '<button class="nt-op done" type="button" onclick="ntToggleDone(\'' + it.id + '\')">✔️ 完成</button>') +
                 '<button class="nt-op" type="button" onclick="ntEdit(\'' + it.id + '\')">✏️ 编辑</button>' +
                 '<button class="nt-op del" type="button" onclick="ntDel(\'' + it.id + '\')">🗑️</button>' +
               '</span>' +
@@ -170,7 +162,7 @@ function ntRender(){
         }).join("")) +
       '</div>' +
     '</div>';
-  dialog.innerHTML = html;
+  container.innerHTML = html;
 }
 
 function ntSubmit(){
@@ -202,7 +194,7 @@ function ntSubmit(){
   ntSave(list);
   ntRender();
   ntRenderBanner();
-  ntRefreshTopBtn();
+  ntRefreshNavBadge();
 }
 
 function ntCancelEdit(){
@@ -218,14 +210,13 @@ function ntToggleDone(id){
   ntSave(list);
   ntRender();
   ntRenderBanner();
-  ntRefreshTopBtn();
+  ntRefreshNavBadge();
 }
 
 function ntEdit(id){
   NT_EDIT_ID = id;
   ntRender();
-  var dialog = document.getElementById("ntDialog");
-  if (dialog) dialog.scrollTop = 0;
+  window.scrollTo(0, 0);
 }
 
 function ntDel(id){
@@ -235,10 +226,10 @@ function ntDel(id){
   if (NT_EDIT_ID === id) NT_EDIT_ID = null;
   ntRender();
   ntRenderBanner();
-  ntRefreshTopBtn();
+  ntRefreshNavBadge();
 }
 
-/* ---------- 提醒横幅（弹窗外部，页面顶部常驻） ---------- */
+/* ---------- 提醒横幅 ---------- */
 function ntRenderBanner(){
   var box = document.getElementById("ntBanner");
   if (!box) return;
@@ -266,12 +257,17 @@ function ntDismissBanner(){
   try { sessionStorage.setItem(NT_DISMISS_KEY, "1"); } catch(e){}
 }
 
-/* 顶栏按钮红点 */
-function ntRefreshTopBtn(){
-  var btn = document.getElementById("portalNotesBtn");
-  if (!btn) return;
+/* 导航栏红点 */
+function ntRefreshNavBadge(){
+  var links = document.querySelectorAll('.portal-nav a[data-view="notes"]');
   var due = ntState().filter(ntIsDue).length;
-  btn.textContent = due > 0 ? "📌 消息🔴" + due : "📌 消息";
+  for (var i = 0; i < links.length; i++){
+    if (due > 0){
+      links[i].innerHTML = '📌 重要消息<span class="nt-nav-dot">' + due + '</span>';
+    } else {
+      links[i].innerHTML = '📌 重要消息';
+    }
+  }
 }
 
 /* ---------- 提醒检查 ---------- */
@@ -283,7 +279,7 @@ function ntCheck(){
   var canBanner = true;
   try { if (sessionStorage.getItem(NT_DISMISS_KEY) === "1") canBanner = false; } catch(e){}
   if (canBanner) ntRenderBanner();
-  ntRefreshTopBtn();
+  ntRefreshNavBadge();
 }
 
 window.addEventListener("load", function(){
