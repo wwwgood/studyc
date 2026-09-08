@@ -29,9 +29,11 @@
   </nav>
   <button class="portal-user" id="portalShopBtn" type="button" onclick="openShop()" title="奖品店">🎁 奖品店</button>
   <button class="portal-user" id="portalBankBtn" type="button" onclick="baOpen()" title="题库管理">📚 题库管理</button>
+  <button class="portal-user" id="portalNotesBtn" type="button" onclick="ntOpen()" title="重要消息">📌 消息</button>
   <button class="portal-user" id="portalSyncBtn" type="button" onclick="syncOpen()" title="数据同步">☁️ 同步</button>
   <button class="portal-user" id="portalUserBtn" type="button" onclick="openLogin()" title="切换指挥官">👤 指挥官</button>
 </header>
+<div id="ntBanner"></div>
 
 <main>
   <!-- ============ 门户首页 ============ -->
@@ -480,6 +482,9 @@
     </div>
     <div class="ba-mask" id="syncDialogMask">
       <div class="ba-dialog" id="syncDialog" role="dialog" aria-modal="true" aria-label="数据同步"></div>
+    </div>
+    <div class="ba-mask" id="ntDialogMask">
+      <div class="ba-dialog" id="ntDialog" role="dialog" aria-modal="true" aria-label="重要消息"></div>
     </div>
     <div class="eq-combo" id="eqCombo"></div>
     <div class="eq-float" id="eqFloat"></div>
@@ -1146,6 +1151,7 @@
   <script src="scripts/modules/topic-exam.js"></script>
   <script src="scripts/modules/bank-admin.js"></script>
   <script src="scripts/modules/sync.js"></script>
+  <script src="scripts/modules/notes.js"></script>
   <script src="scripts/modules/awards.js"></script>
   <script src="scripts/modules/checkin.js"></script>
   <script src="scripts/core/state.js"></script>
