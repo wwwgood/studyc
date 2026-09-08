@@ -311,7 +311,9 @@
 .eb-empty-icon{font-size:64px; margin-bottom:16px;}
 .eb-empty p{font-size:16px; margin:4px 0;}
 .eb-empty-sub{font-size:13px; color:#9CA3AF;}
-.eb-toolbar{display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;}
+.eb-toolbar{display:flex; gap:10px; justify-content:center; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
+.eb-filter{padding:8px 12px; border-radius:8px; border:2px solid #E5E7EB; font-size:14px; cursor:pointer; background:#fff;}
+.eb-filter:focus{border-color:#F59E0B; outline:none;}
 .eb-practice-all{background:#F59E0B; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;}
 .eb-practice-all:hover{background:#D97706;}
 .eb-clear{background:#FEE2E2; color:#DC2626; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;}
@@ -328,6 +330,15 @@
 .eb-item-btn:hover{background:#059669;}
 .eb-item-del{font-size:12px; padding:4px 8px; border-radius:6px; background:#F3F4F6; color:#6B7280; border:none; cursor:pointer; white-space:nowrap;}
 .eb-item-del:hover{background:#FEE2E2; color:#DC2626;}
+.eb-item-ops{display:inline-flex; gap:4px; align-items:center;}
+.eb-item-resolve{font-size:12px; padding:4px 8px; border-radius:6px; background:#D1FAE5; color:#059669; border:none; cursor:pointer; white-space:nowrap;}
+.eb-item-resolve:hover{background:#A7F3D0;}
+.eb-item-revive{font-size:12px; padding:4px 8px; border-radius:6px; background:#FEF3C7; color:#D97706; border:none; cursor:pointer; white-space:nowrap;}
+.eb-item-revive:hover{background:#FDE68A;}
+.eb-st-dormant{display:inline-block; font-size:11px; font-weight:600; border-radius:4px; padding:1px 6px; background:#E0E7FF; color:#4338CA;}
+.eb-st-resolved{display:inline-block; font-size:11px; font-weight:600; border-radius:4px; padding:1px 6px; background:#D1FAE5; color:#059669;}
+.eb-dormant-notice{display:block; margin-top:6px; font-size:13px; color:#4338CA; font-weight:600;}
+.eb-streak-notice{display:block; margin-top:4px; font-size:12px; color:#6B7280;}
 
 .eb-dlg-head{display:flex; align-items:center; gap:10px; padding:16px 18px 6px; position:sticky; top:0; background:#FFFDF7; border-radius:24px 24px 0 0; z-index:10;}
 .eb-dlg-head .eb-cap{flex:1; font-size:14px; font-weight:700; color:#1F2937;}
