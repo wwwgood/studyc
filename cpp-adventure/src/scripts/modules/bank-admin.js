@@ -942,11 +942,6 @@ function baParseAndPreview(){
   questions.forEach(function(q, i){
     var qType = q.qType || "single";
     var typeLabel = BA_QTYPE_LABELS[qType] || qType;
-    var optsHtml = q.o.map(function(opt, j){
-      var letter = String.fromCharCode(65 + j);
-      var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);
-      return '<span class="ba-preview-opt' + (isAns ? " ans" : "") + '">' + letter + '. ' + opt + '</span>';
-    }).join("");
     var ansBadge = q.ansSource ? '<span class="ba-ans-badge src-' + q.ansSource + '">' + q.ansSource + '</span>' : '';
     var whyAutoBadge = q.whyAuto ? '<span class="ba-why-auto">⚡自动解析</span>' : '';
     var kpHtml = "";
@@ -954,13 +949,16 @@ function baParseAndPreview(){
       kpHtml = '<div class="ba-preview-kp">🎯 考点：' + q.kp[0] + (q.kpConfidence ? '<span class="ba-kp-src">' + q.kpConfidence + '</span>' : '') + '</div>';
     }
     var kpSelect = '<div class="ba-kp-edit"><label>手动归类：</label><select class="ba-kp-select" onchange="baSetKp(' + i + ', this)">' + baKpSelectOptions(q.kp && q.kp[0] ? q.kp[0] : "") + '</select></div>';
-    html += '<div class="ba-preview-item">' +
+    var ansEditor = baAnsEditorFor(q, i);
+    var whyEditor = '<div class="ba-why-edit"><label>解析：</label><textarea class="ba-why-input" rows="2" placeholder="粘贴或录入解析（可留空）" onchange="baSetWhy(' + i + ', this.value)">' + baEsc(q.why || "") + '</textarea></div>';
+    html += '<div class="ba-preview-item" id="ba-item-' + i + '">' +
       '<div class="ba-preview-q"><span class="ba-qtype-tag">' + typeLabel + '</span>' + (i + 1) + '. ' + q.q + '</div>' +
-      '<div class="ba-preview-opts">' + optsHtml + '</div>' +
+      '<div class="ba-preview-opts">' + baRenderOptsHtml(q) + '</div>' +
       '<div class="ba-preview-badges">' + ansBadge + whyAutoBadge + '</div>' +
+      ansEditor +
+      whyEditor +
       kpHtml +
       kpSelect +
-      (q.why ? '<div class="ba-preview-why">解析：' + q.why + '</div>' : '') +
     '</div>';
   });
   html += '</div>';
@@ -973,6 +971,107 @@ function baApplySubject(subject){
   var sel = document.getElementById("baSubject");
   if (sel){ sel.value = subject; baUpdateModules(); }
   baToast("已应用科目：" + subject);
+}
+
+/* ---------- 预览界面手工编辑：答案 + 解析 ---------- */
+function baEsc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function baRenderOptsHtml(q){
+  var qType = q.qType || "single";
+  return q.o.map(function(opt, j){
+    var letter = String.fromCharCode(65 + j);
+    var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);
+    return '<span class="ba-preview-opt' + (isAns ? " ans" : "") + '">' + letter + '. ' + opt + '</span>';
+  }).join("");
+}
+
+function baGetQ(i){
+  var preview = document.getElementById("baPreview");
+  if (!preview._questions || !preview._questions[i]) return null;
+  return preview._questions[i];
+}
+
+function baHasRealOpts(q){
+  return q.o && q.o.length >= 2 && q.o[0] !== "（主观题，需人工评分）";
+}
+
+function baAnsEditorFor(q, i){
+  var qType = q.qType || "single";
+  var realOpts = baHasRealOpts(q);
+  if (qType === "judge"){
+    var curJ = q.a === 0 ? "对" : "错";
+    return '<span class="ba-ans-edit"><label>答案：</label><select onchange="baSetAnsJudge(' + i + ', this.value)">' +
+      '<option value="对"' + (curJ === "对" ? " selected" : "") + '>对 ✓</option>' +
+      '<option value="错"' + (curJ === "错" ? " selected" : "") + '>错 ✗</option></select></span>';
+  }
+  if (qType === "multi" && realOpts){
+    var curM = Array.isArray(q.a) ? q.a.map(function(x){ return String.fromCharCode(65 + x); }).join("") : "";
+    return '<span class="ba-ans-edit"><label>答案：</label><input type="text" value="' + baEsc(curM) + '" placeholder="如：AB" onchange="baSetAnsMulti(' + i + ', this.value)"></span>';
+  }
+  if (realOpts && (qType === "single" || qType === "phonics" || qType === "listening" || qType === "dialogue" || qType === "complete")){
+    var n = q.o.length;
+    var cur = (typeof q.a === "number" && q.a >= 0 && q.a < n) ? String.fromCharCode(65 + q.a) : "";
+    var options = "";
+    for (var j = 0; j < n; j++){
+      var letter = String.fromCharCode(65 + j);
+      options += '<option value="' + letter + '"' + (letter === cur ? " selected" : "") + '>' + letter + '</option>';
+    }
+    return '<span class="ba-ans-edit"><label>答案：</label><select onchange="baSetAnsSingle(' + i + ', this.value)">' + options + '</select></span>';
+  }
+  return '<span class="ba-ans-edit wide"><label>标准答案：</label><input type="text" value="' + baEsc(q.ansText || "") + '" placeholder="系统未识别答案，可粘贴或录入（可留空）" onchange="baSetAnsText(' + i + ', this.value)"></span>';
+}
+
+function baUpdateItem(i, q){
+  var item = document.getElementById("ba-item-" + i);
+  if (!item) return;
+  var optsEl = item.querySelector(".ba-preview-opts");
+  var badgesEl = item.querySelector(".ba-preview-badges");
+  if (optsEl) optsEl.innerHTML = baRenderOptsHtml(q);
+  if (badgesEl){
+    var ansBadge = q.ansSource ? '<span class="ba-ans-badge src-' + q.ansSource + '">' + q.ansSource + '</span>' : '';
+    var whyAutoBadge = q.whyAuto ? '<span class="ba-why-auto">⚡自动解析</span>' : '';
+    badgesEl.innerHTML = ansBadge + whyAutoBadge;
+  }
+}
+
+function baSetAnsSingle(i, letter){
+  var q = baGetQ(i); if (!q) return;
+  q.a = letter.charCodeAt(0) - 65;
+  q.ansSource = "手工录入";
+  baUpdateItem(i, q);
+}
+
+function baSetAnsJudge(i, val){
+  var q = baGetQ(i); if (!q) return;
+  q.a = (val === "对") ? 0 : 1;
+  q.ansSource = "手工录入";
+  baUpdateItem(i, q);
+}
+
+function baSetAnsMulti(i, val){
+  var q = baGetQ(i); if (!q) return;
+  var letters = String(val || "").toUpperCase().replace(/[^A-D]/g, "").split("").filter(function(c, idx, arr){ return arr.indexOf(c) === idx; });
+  q.a = letters.map(function(c){ return c.charCodeAt(0) - 65; });
+  q.ansSource = "手工录入";
+  baUpdateItem(i, q);
+}
+
+function baSetAnsText(i, val){
+  var q = baGetQ(i); if (!q) return;
+  q.ansText = val;
+  if (val) q.ansSource = "手工录入";
+  baUpdateItem(i, q);
+}
+
+function baSetWhy(i, val){
+  var q = baGetQ(i); if (!q) return;
+  q.why = val;
+  q.whyAuto = false;
+  baUpdateItem(i, q);
 }
 
 function baKpSelectOptions(currentKp){
@@ -1110,6 +1209,7 @@ function baDoImport(){
       id: "qb" + String(maxId).padStart(5, "0"),
       subject: subject, module: useModule, topicId: useTopicId,
       kp: q.kp || [], q: q.q, o: q.o, a: q.a, why: q.why,
+      ansText: q.ansText || "",
       source: source, sourceDetail: sourceDetail,
       difficulty: difficulty, year: year, region: region
     };
