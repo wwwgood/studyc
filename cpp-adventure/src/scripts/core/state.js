@@ -51,7 +51,16 @@ function ensureDefaultUser(){
     saveS();
   }
 }
-function saveS(){ if (SDB.current){ SDB.users[SDB.current] = S; } try { localStorage.setItem(KEY, JSON.stringify(SDB)); } catch(e){} }
+function saveS(){
+  if (SDB.current){ SDB.users[SDB.current] = S; }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(SDB));
+    window.__SAVE_FAIL__ = false;
+  } catch(e){
+    window.__SAVE_FAIL__ = true;
+    try { console.error("存档保存失败（存储空间不足？）", e); } catch(_){}
+  }
+}
 loadCurrentUser();
 function starsOf(){ return Object.keys(S.passed).length; }
 function lvOf(n){ return Math.min(8, 1 + Math.floor(n / 5)); }

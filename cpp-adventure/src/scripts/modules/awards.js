@@ -175,7 +175,7 @@ function awRenderParent(){
       '<button class="aw-close" type="button" onclick="awParentClose()">×</button>' +
     '</div>' +
     '<div class="aw-body">' +
-      '<p class="aw-parent-tip">💡 在这里配置奖品名称和金币价格。孩子学习赚够金币就能兑换，每级解锁更多奖品。</p>' +
+      '<p class="aw-parent-tip">💡 在这里配置奖品名称和金币价格。孩子学习赚够金币就能兑换，每级解锁更多奖品。<br>⚠️ 注意：本地文件和网页版（github.io）的存储互相独立，请固定在一处设置；也别开多个标签页同时改。</p>' +
       '<div class="aw-parent-list">';
   cfg.forEach(function(a, i){
     html += '<div class="aw-parent-row">' +
@@ -198,9 +198,22 @@ function awRenderParent(){
     '<div class="aw-parent-stats">' +
       '<h4>📊 全局统计</h4>' +
       awParentGlobalStats() +
+      awStorageInfo() +
     '</div>' +
   '</div>';
   document.getElementById("awBox").innerHTML = html;
+}
+
+function awStorageInfo(){
+  var used = 0;
+  try {
+    for (var i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      used += (localStorage.getItem(k) || "").length;
+    }
+  } catch(e){}
+  var warn = window.__SAVE_FAIL__ ? ' <b style="color:#DC2626">⚠️ 上次保存失败！</b>' : "";
+  return '<div class="aw-storage" style="font-size:12px;color:#6B7280;margin-top:8px;">💾 本机存储用量：约 ' + Math.round(used / 1024) + ' KB / 5120 KB' + warn + '</div>';
 }
 
 function awParentGlobalStats(){
@@ -253,6 +266,15 @@ function awParentSave(){
   });
   SDB.awardConfig = cfg;
   saveS();
+  var ok = false;
+  try {
+    var back = JSON.parse(localStorage.getItem(KEY) || "{}");
+    ok = JSON.stringify(back.awardConfig) === JSON.stringify(cfg);
+  } catch(e){}
+  if (!ok){
+    alert("⚠️ 保存未生效！可能原因：\n\n1. 浏览器存储空间已满（导入题目太多）\n2. 同一网页开了多个标签页，互相覆盖数据\n3. 本地文件和网页版（github.io）存储是独立的，别在两处交替设置\n\n请关闭本网页的其他标签页后重试；若仍失败，先到「☁️ 同步」导出一份备份再排查。");
+    return;
+  }
   awToast("✅ 奖品配置已保存");
   awRenderParent();
 }
