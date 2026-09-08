@@ -1,78 +1,110 @@
-# 代码小指挥官 · C++ 星际冒险
+# 梓煜学习空间站
 
-面向四年级零基础小学生的 C++ 信息学闯关学习系统。三阶段冒险地图、23 个关卡、徽章鼓励、捉 Bug 游戏与赛事航路。
+面向四年级小学生的**统一本地学习网站**：信息学 C++ 星际冒险、英语语法大冒险、每日作业打卡、重要消息提醒，一站式门户。
+
+- 核心：C++ 星际冒险（26 关闯关地图、徽章鼓励、捉 Bug 游戏、赛事航路、家长指挥所）
+- 扩展：英语六模块（语法/词汇/阅读/作文/真题/错题本）、每日打卡（日历/书籍库/企微推送）、奖品店、题库管理、数据同步
 
 ## 快速开始
 
-```bash
+```powershell
 # 开发期：直接用浏览器打开多文件版本
 cpp-adventure/src/index.html
 
-# 交付合并：生成单文件产物到 dist/
-node cpp-adventure/build/merge.js
-# → dist/index.html（单文件、零依赖、离线可打开）
+# 交付合并：生成单文件产物到 dist/，并同步到 docs/（供 GitHub Pages 部署）
+cd cpp-adventure
+node build/merge.js
+# → dist/index.html（单文件，核心功能离线可打开）
+Copy-Item dist/index.html docs/index.html
+
+# 运行全部单元测试（Windows/Linux 通用）
+npm test
 ```
 
-## 目录结构
+## 功能总览（门户 5 视图）
+
+| 视图 | 内容 |
+|------|------|
+| 🏠 总览 | 三科进度汇总、今日打卡状态 |
+| 💻 信息学 | 26 关闯关地图、徽章墙、训练基地 7 面板、赛事航路、家长指挥所、**实战特训**（11 道机考真题 + 半年航线 + 作战手册） |
+| 🔤 英语 | 语法闯关（103 例）/ 词汇（20 词库岛）/ 阅读（100 篇）/ 作文（99 篇范文）/ 真题演练（9 套）/ 错题本 |
+| 📅 每日打卡 | 家长锁（密码）、月历、语文/英语/自定义任务、书籍库、计划任务、企业微信推送、Supabase 云同步 |
+| 📌 重要消息 | 考试活动安排、独立视图 + 顶栏红点提醒 |
+
+## 目录结构（实际）
 
 ```
-cpp-adventure/
-├── src/                        # 开发期源码（多文件）
-│   ├── index.html              # HTML 骨架，引用外部 css/js
-│   ├── styles/
-│   │   └── main.css            # 全部样式（CSS 变量主题化）
-│   └── scripts/
-│       ├── data/
-│       │   └── levels.js       # 23 关数据（三阶段）
-│       ├── core/
-│       │   ├── state.js        # 多用户状态 + localStorage 持久化
-│       │   └── init.js         # 启动入口
-│       └── modules/
-│           ├── map.js          # 冒险地图渲染 + 关卡弹层
-│           ├── keyboard.js     # 键盘指法训练
-│           ├── focus.js        # 专注模式
-│           ├── user.js         # 登录/切换/存档导入导出
-│           ├── tabs.js         # 训练面板 Tab 切换
-│           ├── errors.js       # 错题本
-│           ├── english.js     # 编程英文（27 个 C++ 关键字）
-│           ├── typing.js       # 打字热身
-│           ├── math.js         # 数学脑力
-│           ├── plan.js         # 家长规划问卷
-│           ├── road.js         # 赛事航路
-│           └── log.js          # 学习记录
-├── build/
-│   ├── split.js                # 拆分脚本（单文件 → 多文件）
-│   └── merge.js                # 合并脚本（多文件 → 单文件）
-└── dist/                       # 交付产物（单文件）
-    └── index.html
+studyc/
+├── README.md
+├── .design-suite/            # 设计契约（产品定位/设计令牌/WCAG/响应式矩阵）
+├── cpp-adventure/
+│   ├── src/                  # 开发期源码（多文件）
+│   │   ├── index.html        # 单页门户骨架（5 视图 + 弹窗层）
+│   │   ├── vendor/           # 本地化的 pdf.js / mammoth / tesseract.js（构建时内联）
+│   │   ├── styles/           # main/portal/checkin/english/awards/oj 6 个 CSS
+│   │   └── scripts/
+│   │       ├── core/         # config.js（全局配置）/ state.js（存档 v3+迁移）/ init.js
+│   │       ├── data/         # 10 个数据文件（关卡/题库/英语六库/实战特训真题库）
+│   │       └── modules/      # 27 个业务模块（portal/map/checkin/sync/awards/oj/...）
+│   ├── build/                # 14 个脚本：merge/split/validate-levels/validate-oj/gen-*/import-questions
+│   ├── tests/                # 10 个测试文件（82 个用例，node:test + vm mock DOM）
+│   ├── dist/                 # 交付产物（单文件，git 忽略）
+│   ├── docs/                 # GitHub Pages 部署文件（= dist/index.html 同步副本）
+│   ├── package.json
+│   └── .eslintrc.json / .prettierrc.json
+└── 小学生C++信息学学习系统方案.docx   # 早期需求方案稿
 ```
 
-## 关卡内容
+## 关卡内容（26 关）
 
 | 阶段 | 关卡数 | 内容 |
 |------|--------|------|
-| 一 · 语法筑基 | 8 | 飞船/变量/cin/算术/if/switch/for/while |
-| 二 · 算法入门 | 9 | 数组/字符串/枚举/模拟/排序/查找/进制/递归/模拟赛 |
-| 三 · 小初衔接 | 6 | 找最大/二维数组/栈/队列/结构体/贪心 |
+| 一 · 语法筑基 | 11 | 什么是编程 / cout / 算术 / 程序框架 / 变量 / cin / 四则运算 / if-else / switch / for / while |
+| 二 · 算法入门 | 9 | 一维数组 / 字符串 / 枚举 / 模拟 / 冒泡排序 / 顺序查找 / 进制转换 / 递归 / 模拟赛 |
+| 三 · 小初衔接 | 6 | 找最大 / 二维数组 / 栈 / 队列 / 结构体 / 贪心 |
 
-每关含：生活比喻讲解 + 教材对应 + 示例代码 + 捉 Bug 任务 + 10 题闯关测验。
+每关含：生活比喻讲解 + 教材对应 + 示例代码 + 捉 Bug 任务 + 闯关测验。
+
+## 实战特训（信息学 · 对标两校机考 / CSP-J 第二轮 · 互动教学）
+
+信息学板块新增「实战特训」区（子导航 ⚔️ 实战特训），四个面板：
+
+| 面板 | 内容 |
+|------|------|
+| ⚔️ 真题训练 | **互动答题闯关**（默认训练模式）：读题 → 答考点选择题 → 即时反馈讲解（对/错都有 why）→ 全部答完出本关小结（题目/考点/参考代码/解析），答对一半自动标记「已掌握」。11 道真题 × 3 道测验题 = 33 道考点选择题。也可切「学习模式」直接看解析 |
+| 🗺️ 半年航线 | **按周任务清单**：5 阶段 24 周任务，每周给具体做法（学什么 + 练哪几道题 + 过关标准），可勾选完成（⬜→✅）、阶段进度条、关联真题可一键跳转训练 |
+| 📖 作战手册 | **策略闯关**：6 道考试情景选择题（取舍策略/Debug/编码习惯），答完评定「战术等级」+ 考场速查手册 |
+| ➕ 加题 | 两步加题：上面粘「题目」、下面粘「答案解析」（参考代码可一起粘，用 ``` 包起来自动识别），点「保存这道题」即入库；自定义题与内置题合并显示，可随时删除 |
+
+- 难度分级：★ 基础 60-70 分 / ★★ 中等 70-85 / ★★★ 拔高 85-95 / ★★★★ 压轴 95-100
+- 训练方法：先独立写 → 再对照参考代码 → 变形训练 → 限时 15-20 分钟/题
+- 数据与逻辑全部新增（`data/oj-bank.js` + `modules/oj.js` + `styles/oj.css`），不影响原有闯关、徽章、训练基地等模块
 
 ## 设计契约
 
 详见 `.design-suite/contract.json`：产品定位、7 区段规范、设计令牌（色彩/字体/形状/动效）、WCAG2.1 AA 无障碍目标、6 档响应式视口矩阵。
 
-## 技术栈
+## 技术栈与依赖边界（如实说明）
 
-- 原生 HTML + CSS + JavaScript（无框架、无构建依赖）
-- 浏览器 localStorage 多用户持久化
-- 零运行时依赖，离线可用
+- 原生 HTML + CSS + JavaScript，无框架、无构建依赖
+- 浏览器 localStorage 多用户持久化 + 存档版本迁移（SCHEMA_VERSION + MIGRATIONS 链）
+- **页面加载零外链**：字体用系统字体栈；pdf.js / mammoth / tesseract.js 已本地化到 `src/vendor/`，构建时内联进单文件
+- 以下为**运行时可选依赖**（不影响页面打开与核心功能）：
+  - Tesseract OCR：首次识别图片时联网下载 worker 与语言包（约 2MB），之后浏览器缓存；断网时 OCR 不可用，PDF/Word 解析不受影响
+  - Supabase：打卡模块可选云同步；URL / anon key 为公开的 publishable 配置，集中定义在 `src/scripts/core/config.js`，数据安全依赖服务端 RLS 行级策略
 
 ## 验证
 
 ```bash
+# 单元测试（89 用例）
+cd cpp-adventure && npm test
+
 # 语法检查所有 JS 模块
 Get-ChildItem cpp-adventure/src/scripts -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName }
 
-# 关卡内容校验
+# 关卡内容校验（26 关，阶段 11/9/6）
 node cpp-adventure/build/validate-levels.js
+
+# 实战特训数据校验（11 真题 + 33 考点测验 / 5 阶段 24 周任务 / 6 策略题）
+node cpp-adventure/build/validate-oj.js
 ```

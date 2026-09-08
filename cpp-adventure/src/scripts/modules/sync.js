@@ -82,7 +82,6 @@ function syncCalcSize(){
 
 function syncCollectData(){
   var data = {};
-  var data = {};
   try {
     for (var i = 0; i < localStorage.length; i++){
       var key = localStorage.key(i);

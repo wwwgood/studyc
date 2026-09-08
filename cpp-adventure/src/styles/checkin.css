@@ -27,8 +27,8 @@
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 20px;
-    --font-display: 'ZCOOL KuaiLe', 'Comic Sans MS', cursive;
-    --font-body: 'Noto Sans SC', 'PingFang SC', -apple-system, sans-serif;
+    --font-display: 'PingFang SC', 'Microsoft YaHei', 'Comic Sans MS', system-ui, sans-serif;
+    --font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
     --transition-fast: 150ms ease-out;
     --transition-normal: 300ms ease-out;
 }

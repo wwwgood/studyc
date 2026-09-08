@@ -5,17 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>梓煜学习空间站 · 统一学习网站</title>
 <meta name="description" content="梓煜的学习空间站：信息学 C++ 星际冒险、英语语法大冒险 100 例、每日作业打卡，一站式学习网站。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="vendor/mammoth.browser.min.js"></script>
+<script src="vendor/tesseract.min.js"></script>
 <link rel="stylesheet" href="styles/main.css">
 <link rel="stylesheet" href="styles/portal.css">
 <link rel="stylesheet" href="styles/checkin.css">
 <link rel="stylesheet" href="styles/english.css">
 <link rel="stylesheet" href="styles/awards.css">
+<link rel="stylesheet" href="styles/oj.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
 <body>
@@ -76,6 +74,7 @@
         <a href="#map">冒险地图</a>
         <a href="#badges">徽章墙</a>
         <a href="#train">训练基地</a>
+        <a href="#oj">⚔️ 实战特训</a>
         <a href="#road">赛事航路</a>
         <a href="#parent">家长指挥所</a>
       </nav>
@@ -382,6 +381,80 @@
       </div>
     </div>
   </section>
+
+  <!-- ============ 实战特训（新增，对标两校机考/CSP-J） ============ -->
+  <section id="oj" aria-labelledby="ojTitle">
+    <div class="oj-head">
+      <span class="oj-kicker">⚔️ REAL BATTLE · 实战特训</span>
+      <div class="oj-stats">
+        <span class="oj-stat">📚 核心真题 <b id="ojStatTotal">11</b></span>
+        <span class="oj-stat">➕ 自定义 <b id="ojStatCustom">0</b></span>
+        <span class="oj-stat">✅ 已掌握 <b id="ojStatMastered">0</b></span>
+        <span class="oj-stat">🗺️ 航线 <b id="ojStatPlan">0 / 5 阶段</b></span>
+      </div>
+    </div>
+    <p class="desc" style="font-size:14px; color:var(--ink-soft); margin-bottom:14px;">
+      两校信息学自主招生机考回忆版核心题型，难度对标 CSP-J 第二轮中高难度。先独立写 → 再对照参考代码 → 变形训练 → 限时 15-20 分钟完成。
+    </p>
+    <div class="oj-tabs" role="tablist" aria-label="实战特训子页">
+      <button class="oj-tab active" type="button" onclick="ojSwitchTab(0)">⚔️ 真题训练</button>
+      <button class="oj-tab" type="button" onclick="ojSwitchTab(1)">🗺️ 半年航线</button>
+      <button class="oj-tab" type="button" onclick="ojSwitchTab(2)">📖 作战手册</button>
+      <button class="oj-tab" type="button" onclick="ojSwitchTab(3)">➕ 加题</button>
+    </div>
+
+    <div class="oj-panel active" id="ojPanel0">
+      <div class="oj-mode" role="group" aria-label="练习模式">
+        <button class="oj-mode-btn active" id="ojModeTrain" type="button" onclick="ojSetMode('train')">⚔️ 训练模式（答题闯关）</button>
+        <button class="oj-mode-btn" id="ojModeLearn" type="button" onclick="ojSetMode('learn')">📖 学习模式（直接看解析）</button>
+        <span class="oj-mode-tip">训练模式：读题 → 答考点选择题 → 即时讲解 → 全对自动标记掌握</span>
+      </div>
+      <div class="oj-legend" aria-label="难度图例">
+        <span><span class="oj-stars">★</span> 基础 · 60-70 分</span>
+        <span><span class="oj-stars">★★</span> 中等 · 70-85 分</span>
+        <span><span class="oj-stars">★★★</span> 拔高 · 85-95 分</span>
+        <span><span class="oj-stars">★★★★</span> 压轴 · 95-100 分</span>
+      </div>
+      <div class="oj-layout">
+        <div class="oj-side" id="ojList" aria-label="真题列表"></div>
+        <div class="oj-main" id="ojDetail" aria-label="训练/题目详情"><div class="oj-empty">点左边一道真题，先读题，再答考点选择题闯关 →</div></div>
+      </div>
+    </div>
+
+    <div class="oj-panel" id="ojPanel1">
+      <div class="oj-add-tip">🗓️ 半年航线 = 每周任务清单。点 ⬜ 完成一项就变 ✅，练完关联真题可直接点「去练这道真题」跳转训练。每周任务都打勾，阶段就达标了。</div>
+      <div class="oj-plan-list" id="ojPlanList" aria-label="按周任务清单"></div>
+    </div>
+
+    <div class="oj-panel" id="ojPanel2">
+      <div class="oj-strategy" id="ojStrategy" aria-label="策略闯关"></div>
+      <div class="oj-sec-title" style="margin-top:16px;">📖 考场速查手册</div>
+      <div class="oj-hb-grid" id="ojHandbook" aria-label="机考作战手册速查"></div>
+    </div>
+
+    <div class="oj-panel" id="ojPanel3" aria-label="加题界面">
+      <div class="oj-add-box">
+        <div class="oj-add-tip">📝 <b>两步加题</b>：上面粘「题目」，下面粘「答案解析」（参考代码也可以一起粘，用 ``` 围起来会自动识别）。点「保存这道题」，题目就进下面的列表了，随时能点开看。</div>
+        <div class="oj-add-field">
+          <div class="oj-add-label">📋 题目</div>
+          <textarea class="oj-add-ta" id="ojAddTitle" rows="5" placeholder="把题目粘在这里，例如：&#10;输入一个正整数 n，输出 1 到 n 中能被 3 整除但不能被 5 整除的数，每行 5 个。"></textarea>
+        </div>
+        <div class="oj-add-field">
+          <div class="oj-add-label">💡 答案解析（可含参考代码）</div>
+          <textarea class="oj-add-ta" id="ojAddAnswer" rows="8" placeholder="把答案、解析、参考代码粘在这里…&#10;&#10;代码可以用 ``` 包起来，像这样：&#10;```cpp&#10;#include <iostream>&#10;using namespace std;&#10;int main() { return 0; }&#10;```"></textarea>
+        </div>
+        <div class="oj-add-actions">
+          <button class="oj-btn primary" type="button" onclick="ojSaveCustom()">💾 保存这道题</button>
+          <button class="oj-btn ghost" type="button" onclick="ojClearAdd()">清空</button>
+        </div>
+      </div>
+
+      <div class="oj-custom-sec">
+        <h4>我的自定义题</h4>
+        <div class="oj-custom-list" id="ojCustomList"></div>
+      </div>
+    </div>
+  </section>
   </div>
 
   <!-- ============ 英语 · 语法大冒险 ============ -->
@@ -560,7 +633,7 @@
                         </svg>
                         导入
                     </button>
-                    <input type="file" id="importFile" accept=".json" style="display:none">
+                    <input type="file" id="ckImportFile" accept=".json" style="display:none">
                 </div>
             </div>
         </header>
@@ -1139,6 +1212,7 @@
   </div>
 </div>
 
+  <script src="scripts/core/config.js"></script>
   <script src="scripts/data/levels.js"></script>
   <script src="scripts/data/english-grammar.js"></script>
   <script src="scripts/data/english-grammar-extra.js"></script>
@@ -1148,6 +1222,7 @@
   <script src="scripts/data/english-exam.js"></script>
   <script src="scripts/data/english-topic-exam.js"></script>
   <script src="scripts/data/question-bank.js"></script>
+  <script src="scripts/data/oj-bank.js"></script>
   <script src="scripts/modules/portal.js"></script>
   <script src="scripts/modules/english-quest.js"></script>
   <script src="scripts/modules/vocab-quest.js"></script>
@@ -1175,6 +1250,7 @@
   <script src="scripts/modules/plan.js"></script>
   <script src="scripts/modules/road.js"></script>
   <script src="scripts/modules/log.js"></script>
+  <script src="scripts/modules/oj.js"></script>
   <script src="scripts/core/init.js"></script>
 
 <div id="focusMask" class="focus-mask" aria-modal="true" role="dialog" aria-label="专注练习模式">

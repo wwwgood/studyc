@@ -28,9 +28,9 @@ const state = {
     syncStatus: 'local' // 'local' | 'syncing' | 'synced'
 };
 
-// Supabase 配置
-const SUPABASE_URL = 'https://coqsxhwdnbjptnqelwld.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Vf2RzEmduPF6H2wCdPUTpg_EnF17J5I';
+// Supabase 配置（集中管理于 core/config.js，此处仅为兼容引用）
+const SUPABASE_URL = (typeof APP_CONFIG !== "undefined" && APP_CONFIG.supabase) ? APP_CONFIG.supabase.url : 'https://coqsxhwdnbjptnqelwld.supabase.co';
+const SUPABASE_ANON_KEY = (typeof APP_CONFIG !== "undefined" && APP_CONFIG.supabase) ? APP_CONFIG.supabase.anonKey : 'sb_publishable_Vf2RzEmduPF6H2wCdPUTpg_EnF17J5I';
 
 // 带超时的 fetch：离线/网络不通时 6 秒自动放弃，不阻塞渲染
 function ckFetch(url, opts, ms) {
@@ -185,7 +185,7 @@ const elements = {
     refreshSyncBtn: document.getElementById('refreshSyncBtn'),
     exportBtn: document.getElementById('exportBtn'),
     importBtn: document.getElementById('importBtn'),
-    importFile: document.getElementById('importFile'),
+    importFile: document.getElementById('ckImportFile'),
     // Quick Add Modal
     quickAddModal: document.getElementById('quickAddModal'),
     quickAddTitle: document.getElementById('quickAddTitle'),

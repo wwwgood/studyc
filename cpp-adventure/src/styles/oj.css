@@ -1,0 +1,172 @@
+/* ---------------- 实战特训 oj.css（新增，与 main.css 主题一致） ---------------- */
+/* 区段头 */
+.oj-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+.oj-head h2{font-size:26px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.oj-head .oj-kicker{font-size:11px; letter-spacing:2px; color:var(--blue-dark); font-weight:800; background:var(--card-soft); padding:3px 10px; border-radius:999px;}
+.oj-stats{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto;}
+.oj-stat{font-size:13px; font-weight:700; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:5px 12px; color:var(--ink);}
+.oj-stat b{color:var(--action-dark);}
+
+/* 顶部导航 tab */
+.oj-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.oj-tab{font-size:15px; font-weight:700; padding:9px 18px; border-radius:999px; background:var(--card); border:2px solid var(--line); color:var(--ink-soft); cursor:pointer; transition:all .2s;}
+.oj-tab:hover{border-color:var(--blue); color:var(--blue-dark);}
+.oj-tab.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,130,246,.3);}
+
+/* 真题训练面板 */
+.oj-panel{display:none;}
+.oj-panel.active{display:block;}
+.oj-layout{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;}
+.oj-side{flex:1 1 300px; min-width:0;}
+.oj-main{flex:2 1 460px; min-width:0;}
+
+/* 题型分组 */
+.oj-group{margin-bottom:16px;}
+.oj-group-title{font-size:15px; font-weight:800; color:var(--blue-dark); margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+.oj-group-title .oj-cnt{font-size:12px; color:var(--ink-soft); font-weight:600;}
+.oj-list{display:flex; flex-direction:column; gap:8px;}
+.oj-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:11px 14px; cursor:pointer; transition:all .15s; text-align:left; width:100%;}
+.oj-item:hover{border-color:var(--blue); transform:translateX(3px);}
+.oj-item.mastered{background:linear-gradient(135deg, rgba(52,211,153,.10), rgba(52,211,153,.02)); border-color:rgba(52,211,153,.5);}
+.oj-item .oj-no{flex:0 0 auto; width:34px; height:34px; border-radius:10px; background:var(--card-soft); color:var(--blue-dark); font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line);}
+.oj-item .oj-item-info{flex:1 1 auto; min-width:0;}
+.oj-item .oj-item-title{font-size:15px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.oj-item .oj-item-meta{font-size:12px; color:var(--ink-soft); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.oj-stars{color:var(--gold); font-size:13px; letter-spacing:1px;}
+.oj-item .oj-master-mark{flex:0 0 auto; font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--card-soft); color:var(--ink-soft); border:1px solid var(--line);}
+.oj-item.mastered .oj-master-mark{background:var(--green); color:#06321F; border-color:var(--green);}
+
+/* 详情卡 */
+.oj-card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 20px; box-shadow:var(--shadow);}
+.oj-card-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--line);}
+.oj-card-head h3{font-size:20px; color:var(--ink);}
+.oj-tag{font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; background:var(--card-soft); color:var(--blue-dark); border:1px solid var(--line);}
+.oj-tag.band{color:var(--action-dark); background:#FFF4EA; border-color:#FFD9B8;}
+.oj-desc{font-size:15px; color:var(--ink); line-height:1.8; background:var(--card-soft); border-radius:12px; padding:12px 14px; margin-bottom:12px; white-space:pre-wrap;}
+.oj-io{font-size:13px; color:var(--ink-soft); line-height:1.8; background:#F8FAFF; border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin-bottom:12px; white-space:pre-wrap;}
+.oj-sec-title{font-size:13px; font-weight:800; color:var(--blue-dark); margin:12px 0 6px; display:flex; align-items:center; gap:6px;}
+.oj-points{display:flex; gap:6px; flex-wrap:wrap;}
+.oj-point{font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; background:#EAF1FF; color:var(--blue-dark);}
+.oj-code-wrap{position:relative; background:#0B1B3B; border-radius:12px; overflow:hidden; margin-bottom:10px;}
+.oj-code-head{display:flex; align-items:center; justify-content:space-between; padding:8px 14px; background:rgba(255,255,255,.06); color:#AFC6E8; font-size:12px; font-weight:700;}
+.oj-copy-btn{font-size:12px; font-weight:700; padding:4px 12px; border-radius:999px; background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.25); cursor:pointer;}
+.oj-copy-btn:hover{background:rgba(255,255,255,.28);}
+.oj-code{display:block; padding:12px 14px; color:#E6EDFF; font-family:Consolas,"Courier New",monospace; font-size:13px; line-height:1.6; white-space:pre; overflow-x:auto; max-height:420px; overflow-y:auto;}
+.oj-explain{font-size:14px; color:var(--ink); line-height:1.8; background:#F0F9F2; border:1px solid rgba(52,211,153,.35); border-radius:12px; padding:10px 14px; margin-bottom:12px;}
+.oj-variant{font-size:13px; color:var(--ink-soft); line-height:1.7; background:#FFF8E6; border:1px solid #FFE3A8; border-radius:12px; padding:10px 14px;}
+.oj-actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+.oj-btn{font-size:14px; font-weight:700; padding:9px 20px; border-radius:999px; cursor:pointer; transition:all .2s;}
+.oj-btn.primary{background:var(--action); color:#fff; border:none; box-shadow:0 4px 12px rgba(255,138,61,.3);}
+.oj-btn.primary:hover{background:var(--action-dark);}
+.oj-btn.done{background:var(--green); color:#06321F; border:none;}
+.oj-btn.ghost{border:2px solid var(--line); background:var(--card); color:var(--ink-soft);}
+.oj-btn.ghost:hover{border-color:var(--blue); color:var(--blue-dark);}
+.oj-empty{font-size:14px; color:var(--ink-soft); text-align:center; padding:24px; background:var(--card); border:1px dashed var(--line); border-radius:14px;}
+
+/* 半年航线 */
+.oj-plan-list{display:flex; flex-direction:column; gap:12px;}
+.oj-plan{display:flex; gap:14px; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 16px; align-items:flex-start; flex-wrap:wrap;}
+.oj-plan.done{background:linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.02)); border-color:rgba(52,211,153,.5);}
+.oj-plan-no{flex:0 0 auto; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#fff; background:linear-gradient(135deg, var(--blue), var(--violet));}
+.oj-plan.done .oj-plan-no{background:linear-gradient(135deg, #10B981, #34D399);}
+.oj-plan-body{flex:1 1 320px; min-width:0;}
+.oj-plan-body h4{font-size:16px; color:var(--ink); margin-bottom:2px;}
+.oj-plan-body .oj-plan-span{font-size:12px; font-weight:700; color:var(--action-dark);}
+.oj-plan-row{font-size:13px; color:var(--ink-soft); line-height:1.7; margin-top:6px;}
+.oj-plan-row b{color:var(--ink);}
+.oj-plan-tick{flex:0 0 auto; align-self:center;}
+.oj-plan-btn{font-size:13px; font-weight:700; padding:7px 16px; border-radius:999px; border:2px solid var(--line); background:var(--card); color:var(--ink-soft); cursor:pointer;}
+.oj-plan-btn:hover{border-color:var(--green); color:#06321F;}
+.oj-plan.done .oj-plan-btn{background:var(--green); border-color:var(--green); color:#06321F;}
+
+/* 作战手册 */
+.oj-hb-grid{display:flex; gap:12px; flex-wrap:wrap;}
+.oj-hb-card{flex:1 1 280px; min-width:0; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:16px;}
+.oj-hb-card h4{font-size:16px; color:var(--ink); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.oj-hb-card ul{list-style:none; padding:0; margin:0;}
+.oj-hb-card li{font-size:13.5px; color:var(--ink-soft); line-height:1.7; padding:5px 0 5px 18px; position:relative;}
+.oj-hb-card li::before{content:"▸"; position:absolute; left:0; color:var(--action); font-weight:800;}
+
+/* 难度图例 */
+.oj-legend{font-size:12px; color:var(--ink-soft); display:flex; gap:12px; flex-wrap:wrap; margin:10px 0;}
+.oj-legend span{white-space:nowrap;}
+
+/* 训练/学习模式切换 */
+.oj-mode{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;}
+.oj-mode-btn{font-size:14px; font-weight:700; padding:8px 16px; border-radius:999px; background:var(--card); border:2px solid var(--line); color:var(--ink-soft); cursor:pointer; transition:all .2s;}
+.oj-mode-btn.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,130,246,.3);}
+.oj-mode-btn:hover:not(.active){border-color:var(--blue); color:var(--blue-dark);}
+.oj-mode-tip{font-size:12px; color:var(--ink-soft);}
+
+/* 进度条 */
+.oj-progress{height:10px; background:var(--card-soft); border:1px solid var(--line); border-radius:999px; overflow:hidden; margin:10px 0 4px; position:relative;}
+.oj-progress-bar{height:100%; background:linear-gradient(90deg, var(--blue), var(--violet)); border-radius:999px; transition:width .3s;}
+.oj-progress-txt{font-size:12px; color:var(--ink-soft); font-weight:700;}
+
+/* 训练答题卡 */
+.oj-train-q{font-size:16px; font-weight:700; color:var(--ink); line-height:1.7; margin:12px 0;}
+.oj-opts{display:flex; flex-direction:column; gap:9px; margin-bottom:12px;}
+.oj-opt{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:var(--card); border:1.5px solid var(--line); border-radius:12px; padding:11px 14px; cursor:pointer; transition:all .15s; font-size:14px; color:var(--ink);}
+.oj-opt:hover:not(.no-click){border-color:var(--blue); background:#F5F9FF; transform:translateX(2px);}
+.oj-opt.no-click{cursor:default;}
+.oj-opt-key{flex:0 0 auto; width:28px; height:28px; border-radius:8px; background:var(--card-soft); color:var(--blue-dark); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line);}
+.oj-opt.right{border-color:var(--green); background:rgba(52,211,153,.12);}
+.oj-opt.right .oj-opt-key{background:var(--green); color:#06321F; border-color:var(--green);}
+.oj-opt.wrong{border-color:var(--red); background:rgba(248,113,113,.12);}
+.oj-opt.wrong .oj-opt-key{background:var(--red); color:#fff; border-color:var(--red);}
+.oj-fb{font-size:14px; font-weight:700; line-height:1.7; border-radius:12px; padding:11px 14px; margin-bottom:12px;}
+.oj-fb.ok{background:rgba(52,211,153,.14); border:1px solid rgba(52,211,153,.5); color:#065F46;}
+.oj-fb.err{background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.5); color:#9B1C1C;}
+.oj-fb-why{font-size:13px; font-weight:400; margin-top:6px; color:var(--ink); line-height:1.7;}
+.oj-train-foot{display:flex; gap:10px; margin-top:6px; flex-wrap:wrap;}
+.oj-finish{font-size:15px; font-weight:700; line-height:1.8; border-radius:12px; padding:12px 14px; margin-bottom:12px;}
+.oj-finish.ok{background:rgba(52,211,153,.14); border:1px solid rgba(52,211,153,.5); color:#065F46;}
+.oj-finish.warn{background:#FFF8E6; border:1px solid #FFE3A8; color:#7A5C00;}
+
+/* 半年航线：按周任务清单 */
+.oj-task-list{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.oj-task{display:flex; gap:10px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
+.oj-task.done{background:rgba(52,211,153,.06); border-color:rgba(52,211,153,.4);}
+.oj-task-tick{flex:0 0 auto; font-size:18px; width:36px; height:36px; border-radius:10px; background:var(--card-soft); border:1px solid var(--line); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.oj-task-tick:hover{border-color:var(--green);}
+.oj-task.done .oj-task-tick{background:rgba(52,211,153,.2); border-color:var(--green);}
+.oj-task-body{flex:1 1 auto; min-width:0;}
+.oj-task-title{font-size:14px; font-weight:800; color:var(--ink); margin-bottom:3px;}
+.oj-task-do{font-size:13px; color:var(--ink); line-height:1.7; margin-bottom:3px;}
+.oj-task-check{font-size:12.5px; color:var(--action-dark); line-height:1.6; margin-bottom:5px;}
+.oj-task-link{margin-top:2px;}
+
+/* 加题界面 */
+.oj-add-box{background:var(--card); border:1.5px dashed var(--blue); border-radius:16px; padding:16px; margin-bottom:14px;}
+.oj-add-tip{font-size:13px; color:var(--ink-soft); line-height:1.7; background:var(--card-soft); border-radius:10px; padding:9px 12px; margin-bottom:12px;}
+.oj-add-field{margin-bottom:12px;}
+.oj-add-label{font-size:13px; font-weight:800; color:var(--blue-dark); margin-bottom:6px;}
+.oj-add-ta{width:100%; box-sizing:border-box; min-height:120px; font-size:14px; font-family:Consolas,"Courier New",monospace; line-height:1.6; color:var(--ink); background:#F8FAFF; border:1px solid var(--line); border-radius:12px; padding:12px; resize:vertical;}
+.oj-add-ta:focus{outline:2px solid var(--blue);}
+.oj-add-actions{display:flex; gap:10px; margin-top:4px; flex-wrap:wrap;}
+
+/* 解析预览表单 */
+.oj-form{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow);}
+.oj-form-title{font-size:16px; font-weight:800; color:var(--blue-dark); margin-bottom:12px;}
+.oj-form-grid{display:flex; gap:10px 14px; flex-wrap:wrap;}
+.oj-form-grid label{flex:1 1 200px; min-width:0; font-size:12px; font-weight:700; color:var(--ink-soft); display:flex; flex-direction:column; gap:5px;}
+.oj-form-grid label.oj-form-wide{flex:1 1 100%;}
+.oj-form-grid input[type=text], .oj-form-grid select, .oj-form-grid textarea{
+  font-family:inherit; font-size:14px; color:var(--ink); background:#F8FAFF; border:1px solid var(--line);
+  border-radius:10px; padding:8px 10px; box-sizing:border-box; width:100%; resize:vertical; line-height:1.5;
+}
+.oj-form-grid input:focus, .oj-form-grid select:focus, .oj-form-grid textarea:focus{outline:2px solid var(--blue);}
+.oj-form-grid textarea{font-family:Consolas,"Courier New",monospace; font-size:13px;}
+.oj-form-actions{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+
+/* 自定义题列表 */
+.oj-custom-sec{margin-top:6px;}
+.oj-custom-sec h4{font-size:15px; color:var(--blue-dark); margin-bottom:8px;}
+.oj-custom-list{display:flex; flex-direction:column; gap:8px;}
+.oj-custom-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 14px; flex-wrap:wrap;}
+.oj-custom-no{flex:0 0 auto; width:30px; height:30px; border-radius:9px; background:var(--violet); color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center;}
+.oj-custom-title{flex:1 1 200px; min-width:0; font-size:14px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.oj-custom-cat{flex:0 0 auto; font-size:12px; font-weight:700; color:var(--blue-dark); background:var(--card-soft); border:1px solid var(--line); border-radius:999px; padding:3px 10px;}
+.oj-btn-s{font-size:12px; padding:5px 12px; border-radius:999px;}
+.oj-btn.danger{background:#FDECEC; color:#C0392B; border:1px solid #F5C6C6;}
+.oj-btn.danger:hover{background:#F5C6C6;}
