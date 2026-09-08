@@ -625,7 +625,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .nt-due.soon{background:#FEF3C7; color:#D97706;}
 @keyframes ntPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
-.nt-item-content{font-size:14px; color:#4B5563; line-height:1.6; margin-bottom:8px;}
+.nt-item-content{font-size:14px; color:#4B5563; line-height:1.8; margin-bottom:8px; word-break:break-word;}
 
 .nt-item-foot{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;}
 .nt-item-subs{display:inline-flex; gap:4px; flex-wrap:wrap;}
@@ -51589,7 +51589,7 @@ function ntRender(){
               '<span class="nt-item-title">' + (it.done ? "✅ " : "") + it.title + '</span>' +
               ntDueBadge(it) +
             '</div>' +
-            (it.content ? '<div class="nt-item-content">' + it.content + '</div>' : "") +
+            (it.content ? '<div class="nt-item-content">' + it.content.replace(/\n/g, "<br>") + '</div>' : "") +
             '<div class="nt-item-foot">' +
               '<span class="nt-item-subs">' + ntSubjectBadges(it.subjects) + '</span>' +
               '<span class="nt-item-ops">' +

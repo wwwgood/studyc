@@ -157,7 +157,7 @@ function ntRender(){
               '<span class="nt-item-title">' + (it.done ? "✅ " : "") + it.title + '</span>' +
               ntDueBadge(it) +
             '</div>' +
-            (it.content ? '<div class="nt-item-content">' + it.content + '</div>' : "") +
+            (it.content ? '<div class="nt-item-content">' + it.content.replace(/\n/g, "<br>") + '</div>' : "") +
             '<div class="nt-item-foot">' +
               '<span class="nt-item-subs">' + ntSubjectBadges(it.subjects) + '</span>' +
               '<span class="nt-item-ops">' +
