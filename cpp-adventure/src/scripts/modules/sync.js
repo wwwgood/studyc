@@ -82,21 +82,14 @@ function syncCalcSize(){
 
 function syncCollectData(){
   var data = {};
-  var keysToSync = [
-    "sdb_data", "studentCheckIn", "ba_imported_questions",
-    "ba_baidu_api_key", "ba_baidu_secret_key", "ba_ocr_engine",
-    "portalLastView"
-  ];
-  keysToSync.forEach(function(key){
-    var val = localStorage.getItem(key);
-    if (val !== null) data[key] = val;
-  });
-  for (var i = 0; i < localStorage.length; i++){
-    var key = localStorage.key(i);
-    if (key && key.indexOf("sdb_") === 0 && !data[key]){
+  var data = {};
+  try {
+    for (var i = 0; i < localStorage.length; i++){
+      var key = localStorage.key(i);
+      if (!key) continue;
       data[key] = localStorage.getItem(key);
     }
-  }
+  } catch(e){}
   return data;
 }
 
