@@ -1012,7 +1012,7 @@ function baParseAndPreview(){
     var curModule = document.getElementById("baModule").value;
     var curTopicId = parseInt(document.getElementById("baModuleTopic").value) || 0;
     var topicLabel = baTopicLabel(q.kpModule || q.kpOverrideModule || curModule, q.kpTopicId || q.kpOverrideTopicId || curTopicId);
-    var assignHtml = '<div class="ba-preview-assign">📌 归入：' + (q.kpOverride ? ('<b>' + q.kpOverride + '</b>（手动）') : (q.kp ? ('<b>' + q.kp[0] + '</b>（自动）') : '<i>未识别</i>')) + ' → 专题章节 <b>' + topicLabel + '</b></div>';'
+    var assignHtml = '<div class="ba-preview-assign">📌 归入：' + (q.kpOverride ? ('<b>' + q.kpOverride + '</b>（手动）') : (q.kp ? ('<b>' + q.kp[0] + '</b>（自动）') : '<i>未识别</i>')) + ' → 专题章节 <b>' + topicLabel + '</b></div>';
     var ansEditor = baAnsEditorFor(q, i);
     var whyEditor = '<div class="ba-why-edit"><label>解析：</label><textarea class="ba-why-input" rows="2" placeholder="粘贴或录入解析（可留空）" onchange="baSetWhy(' + i + ', this.value)">' + baEsc(q.why || "") + '</textarea></div>';
     html += '<div class="ba-preview-item" id="ba-item-' + i + '">' +
