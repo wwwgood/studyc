@@ -13,28 +13,67 @@ var BA_SUBJECTS = [
 
 var BA_MODULES = {
   english: [
-    {id: "grammar", name: "语法闯关"},
-    {id: "vocab", name: "词汇闯关"},
-    {id: "reading", name: "阅读理解"},
-    {id: "writing", name: "作文训练"},
-    {id: "exam", name: "真题演练"}
+    { id: "grammar", name: "语法闯关" },
+    { id: "vocab", name: "词汇闯关" },
+    { id: "reading", name: "阅读理解" },
+    { id: "writing", name: "作文训练" },
+    { id: "exam", name: "真题演练" }
   ],
   math: [
-    {id: "arithmetic", name: "计算题"},
-    {id: "geometry", name: "几何题"},
-    {id: "wordproblem", name: "应用题"},
-    {id: "exam", name: "真题演练"}
+    { id: "arithmetic", name: "计算题" },
+    { id: "geometry", name: "几何题" },
+    { id: "wordproblem", name: "应用题" },
+    { id: "exam", name: "真题演练" }
   ],
   chinese: [
-    {id: "pinyin", name: "拼音字词"},
-    {id: "reading", name: "阅读理解"},
-    {id: "composition", name: "作文"},
-    {id: "exam", name: "真题演练"}
+    { id: "pinyin", name: "拼音字词" },
+    { id: "reading", name: "阅读理解" },
+    { id: "composition", name: "作文" },
+    { id: "exam", name: "真题演练" }
   ],
   other: [
-    {id: "general", name: "综合题"}
+    { id: "general", name: "综合题" }
   ]
 };
+
+/* 语法12章 + 词汇20单元：用于导入归属下拉（替代看不懂的数字topicId） */
+var BA_CHAPTERS = [
+  { id: 1,  name: "🏝️ 名词（可数/不可数/复数/所有格）" },
+  { id: 2,  name: "⛵ 冠词（a / an / the）" },
+  { id: 3,  name: "🌳 代词（人称/物主/指示/不定）" },
+  { id: 4,  name: "⛏️ 数词（基数词/序数词）" },
+  { id: 5,  name: "🏔️ 形容词（比较级/最高级）" },
+  { id: 6,  name: "🐎 副词（频度/方式）" },
+  { id: 7,  name: "🌀 介词（时间/地点）" },
+  { id: 8,  name: "🌉 连词（并列/从属）" },
+  { id: 9,  name: "🏰 动词（be动词/三单/情态/现在时）" },
+  { id: 10, name: "⚓ 进行时（现在进行时/ing形式）" },
+  { id: 11, name: "🚂 过去将来时（一般过去/将来）" },
+  { id: 12, name: "👑 句型（疑问句/祈使句/感叹句）" }
+];
+
+var BA_UNITS = [
+  { id: 1,  name: "👨‍👩‍👧 家庭与人物" },
+  { id: 2,  name: "🏫 学校与学习" },
+  { id: 3,  name: "🐶 动物与宠物" },
+  { id: 4,  name: "🍎 食物与饮料" },
+  { id: 5,  name: "🌈 颜色与衣服" },
+  { id: 6,  name: "🔢 数字与时间" },
+  { id: 7,  name: "🏠 房间与家具" },
+  { id: 8,  name: "🚗 交通与地点" },
+  { id: 9,  name: "🌦 天气与季节" },
+  { id: 10, name: "💬 日常活动" },
+  { id: 11, name: "🎪 兴趣与爱好" },
+  { id: 12, name: "🛒 购物与数量" },
+  { id: 13, name: "🏥 身体与健康" },
+  { id: 14, name: "🎒 文具与用品" },
+  { id: 15, name: "🌍 自然与环境" },
+  { id: 16, name: "🎉 节日与庆祝" },
+  { id: 17, name: "🤔 情感与感受" },
+  { id: 18, name: "✈️ 旅行与方位" },
+  { id: 19, name: "🎵 艺术与娱乐" },
+  { id: 20, name: "📚 综合复习" }
+];
 
 /* ---------- 打开/关闭 ---------- */
 function baOpen(){
@@ -148,8 +187,9 @@ function baRenderImport(){
       '<span class="ba-config-tip">题库无自动识别考点时，归到此模块</span>' +
     '</div>' +
     '<div class="ba-config-row">' +
-      '<label>专题ID</label><input type="number" id="baTopicId" value="0" min="0" placeholder="如：1">' +
-      '<span class="ba-config-tip">语法1-12章 / 词汇1-20单元，0=不指定</span>' +
+      '<label>专题章节</label>' +
+      '<select id="baModuleTopic" onchange="baUpdateModuleTopic()"></select>' +
+      '<span class="ba-config-tip">选语法→对应12章，选词汇→对应20单元，其他模块不指定</span>' +
     '</div>' +
     '<div class="ba-config-row">' +
       '<label>来源</label><select id="baSource"><option value="真题" selected>真题</option><option value="自编">自编</option></select>' +
@@ -179,6 +219,26 @@ function baUpdateModules(){
   }).join("");
   var sel = document.getElementById("baModule");
   if (sel) sel.innerHTML = opts;
+  baUpdateModuleTopic();
+}
+
+/* 根据选中的模块，动态生成「专题章节」下拉：语法→12章 / 词汇→20单元 / 其他→不指定 */
+function baUpdateModuleTopic(){
+  var sel = document.getElementById("baModule");
+  var topicSel = document.getElementById("baModuleTopic");
+  if (!sel || !topicSel) return;
+  var module = sel.value;
+  var opts = '<option value="0">— 不指定 —</option>';
+  if (module === "grammar"){
+    BA_CHAPTERS.forEach(function(c){
+      opts += '<option value="' + c.id + '">' + c.name + '</option>';
+    });
+  } else if (module === "vocab"){
+    BA_UNITS.forEach(function(u){
+      opts += '<option value="' + u.id + '">' + u.name + '</option>';
+    });
+  }
+  topicSel.innerHTML = opts;
 }
 
 /* ---------- 文件处理（支持多文件） ---------- */
@@ -935,7 +995,7 @@ function baParseAndPreview(){
     });
     if (kpUnknown > 0) html += '<span class="ba-kp-chip unknown">❓ 未识别 ×' + kpUnknown + '</span>';
     html += '</div>';
-    if (kpUnknown > 0) html += '<div class="ba-kp-hint">💡 未识别考点的题将按上方「专题ID」导入；带解析的试卷识别率更高。</div>';
+    if (kpUnknown > 0) html += '<div class="ba-kp-hint">💡 未识别考点的题将按上方「专题章节」导入；带解析的试卷识别率更高。</div>';
   }
 
   html += '<div class="ba-preview-list">';
@@ -949,6 +1009,10 @@ function baParseAndPreview(){
       kpHtml = '<div class="ba-preview-kp">🎯 考点：' + q.kp[0] + (q.kpConfidence ? '<span class="ba-kp-src">' + q.kpConfidence + '</span>' : '') + '</div>';
     }
     var kpSelect = '<div class="ba-kp-edit"><label>手动归类：</label><select class="ba-kp-select" onchange="baSetKp(' + i + ', this)">' + baKpSelectOptions(q.kp && q.kp[0] ? q.kp[0] : "") + '</select></div>';
+    var curModule = document.getElementById("baModule").value;
+    var curTopicId = parseInt(document.getElementById("baModuleTopic").value) || 0;
+    var topicLabel = baTopicLabel(q.kpModule || q.kpOverrideModule || curModule, q.kpTopicId || q.kpOverrideTopicId || curTopicId);
+    var assignHtml = '<div class="ba-preview-assign">📌 归入：' + (q.kpOverride ? ('<b>' + q.kpOverride + '</b>（手动）') : (q.kp ? ('<b>' + q.kp[0] + '</b>（自动）') : '<i>未识别</i>')) + ' → 专题章节 <b>' + topicLabel + '</b></div>';'
     var ansEditor = baAnsEditorFor(q, i);
     var whyEditor = '<div class="ba-why-edit"><label>解析：</label><textarea class="ba-why-input" rows="2" placeholder="粘贴或录入解析（可留空）" onchange="baSetWhy(' + i + ', this.value)">' + baEsc(q.why || "") + '</textarea></div>';
     html += '<div class="ba-preview-item" id="ba-item-' + i + '">' +
@@ -958,6 +1022,7 @@ function baParseAndPreview(){
       ansEditor +
       whyEditor +
       kpHtml +
+      assignHtml +
       kpSelect +
     '</div>';
   });
@@ -1074,6 +1139,19 @@ function baSetWhy(i, val){
   baUpdateItem(i, q);
 }
 
+function baTopicLabel(module, topicId){
+  if (topicId === 0 || !topicId) return "不指定";
+  if (module === "grammar" || !module){
+    var c = BA_CHAPTERS.find(function(x){ return x.id === topicId; });
+    return c ? c.name.replace(/^[^\s]+\s/, "") : "第" + topicId + "章";
+  }
+  if (module === "vocab"){
+    var u = BA_UNITS.find(function(x){ return x.id === topicId; });
+    return u ? u.name.replace(/^[^\s]+\s/, "") : "第" + topicId + "单元";
+  }
+  return "第" + topicId + "章/单元";
+}
+
 function baKpSelectOptions(currentKp){
   var html = '<option value="">— 自动识别 —</option>';
   var seen = {};
@@ -1173,7 +1251,7 @@ function baDoImport(){
   }
   var subject = document.getElementById("baSubject").value;
   var module = document.getElementById("baModule").value;
-  var topicId = parseInt(document.getElementById("baTopicId").value) || 0;
+  var topicId = parseInt(document.getElementById("baModuleTopic").value) || 0;
   var source = document.getElementById("baSource").value;
   var sourceDetail = document.getElementById("baSourceDetail").value;
   var year = parseInt(document.getElementById("baYear").value) || 0;
