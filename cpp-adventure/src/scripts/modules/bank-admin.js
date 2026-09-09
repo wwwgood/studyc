@@ -218,7 +218,10 @@ function baUpdateModules(){
     return '<option value="' + m.id + '">' + m.name + '</option>';
   }).join("");
   var sel = document.getElementById("baModule");
-  if (sel) sel.innerHTML = opts;
+  if (sel){
+    sel.innerHTML = opts;
+    if (sel.options.length > 0 && !sel.value) sel.value = sel.options[0].value;
+  }
   baUpdateModuleTopic();
 }
 
@@ -228,6 +231,7 @@ function baUpdateModuleTopic(){
   var topicSel = document.getElementById("baModuleTopic");
   if (!sel || !topicSel) return;
   var module = sel.value;
+  if (!module && sel.options.length > 0) module = sel.options[0].value;
   var opts = '<option value="0">— 不指定 —</option>';
   if (module === "grammar"){
     BA_CHAPTERS.forEach(function(c){
