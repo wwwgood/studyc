@@ -51201,7 +51201,7 @@ function baRenderImport(){
       '<label>科目</label><select id="baSubject" onchange="baUpdateModules()">' + subjectOpts + '</select>' +
     '</div>' +
     '<div class="ba-config-row">' +
-      '<label>模块</label><select id="baModule"></select>' +
+      '<label>模块</label><select id="baModule" onchange="baUpdateModuleTopic()"></select>' +
       '<span class="ba-config-tip">题库无自动识别考点时，归到此模块</span>' +
     '</div>' +
     '<div class="ba-config-row">' +
