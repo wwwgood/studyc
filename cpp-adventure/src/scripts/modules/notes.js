@@ -1,15 +1,13 @@
 /* ---------------- 重要消息 notes.js ----------------
  * 录入重要安排/消息，挂接科目，支持「日历式」定时提醒：
  *   不提醒 / 只提醒一次(指定日期+时间) / 每天 / 工作日(周一~五) / 休息日(周六日)
- * 到点会：弹提示框 + 系统通知(需授权) + 震动。
+ * 到点会：弹出网页内提示框 + 震动。
  * 数据存 localStorage["importantNotes"]，随「☁️ 同步」跨设备。
  *
  * 提醒机制说明（重要）：
  *   纯前端、无服务端推送。只有「页面开着」时才会检查并触发提醒；
  *   关掉网页 / 平板锁屏 / 浏览器被系统回收后，无法触发。
  *   每 30 秒检查一次；一次性提醒若错过超过 12 小时，不再补提醒。
- *   安卓平板：Chrome/Edge 浏览器可弹提示框；授权后还能弹系统通知；
- *   建议「添加到主屏幕」当 PWA 用，体验更接近 App。
  */
 var NOTES_KEY = "importantNotes";
 var NOTE_SUBJECTS = [
@@ -222,7 +220,7 @@ function ntRender(){
           '<input class="nt-f-time" id="ntFTime" type="time" value="' + rTime + '"' + (showTime ? '' : ' style="display:none"') + '>' +
           '<input class="nt-f-reminddate" id="ntFRemindDate" type="date" value="' + rDate + '"' + (showDate ? '' : ' style="display:none"') + '>' +
         '</div>' +
-        '<div class="nt-form-row"><span class="nt-tip">💡 到点会弹提示框 + 系统通知（首次保存时请点「允许」）。⚠️ 只有页面开着时才有效，关掉网页/锁屏无法触发；建议「添加到主屏幕」当 App 用。</span></div>' +
+        '<div class="nt-form-row"><span class="nt-tip">💡 到点会在网页里弹出提示框并震动。⚠️ 只有网页开着时才有效，关掉网页/锁屏无法触发。</span></div>' +
         '<div class="nt-form-btns">' +
           '<button class="nt-save-btn" type="button" onclick="ntSubmit()">' + (NT_EDIT_ID ? "💾 保存修改" : "✅ 添加") + '</button>' +
           (NT_EDIT_ID ? '<button class="nt-cancel-btn" type="button" onclick="ntCancelEdit()">取消</button>' : '') +
@@ -299,7 +297,6 @@ function ntSubmit(){
   ntSuppressIfPast(it);
   delete it.remindDays;
   ntSave(list);
-  if (mode !== "none") ntAskNotify();
   ntRender();
   ntRenderBanner();
   ntRefreshNavBadge();
@@ -354,7 +351,6 @@ function ntEnsureRemindUI(){
 
 function ntFire(it){
   NT_FIRE_QUEUE.push(it);
-  ntSystemNotify(it);
   try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e){}
   if (!NT_DIALOG_OPEN) ntShowNextRemind();
 }
@@ -391,26 +387,6 @@ function ntGoView(){
   NT_FIRE_QUEUE = [];
   NT_DIALOG_OPEN = false;
   ntOpen();
-}
-
-/* ---------- 系统通知 ---------- */
-function ntAskNotify(){
-  if (!("Notification" in window)) return;
-  try { if (Notification.permission === "default") Notification.requestPermission(); } catch(e){}
-}
-
-function ntSystemNotify(it){
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  try {
-    var n = new Notification("🔔 " + it.title, {
-      body: it.content || "到点提醒",
-      tag: it.id + "-" + (it.lastFired || ""),
-      renotify: true
-    });
-    setTimeout(function(){ n.close(); }, 20000);
-    n.onclick = function(){ try { window.focus(); } catch(e){} ntOpen(); n.close(); };
-  } catch(e){}
 }
 
 /* ---------- 今日提醒横幅 ---------- */

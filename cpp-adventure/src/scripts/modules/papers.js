@@ -58,6 +58,28 @@ function ppDBDelRange(prefix){
   });
 }
 
+/* ---------- 存储兼容工具 ----------
+ * 老版本把 Blob 直接存进 IndexedDB：安卓浏览器（或清理工具清缓存）可能丢掉 Blob
+ * 底层文件，读取时报「NotFoundError: 需要的文件或目录不能被找到」。
+ * 新版本统一存 ArrayBuffer / 字符串（内联存储，不依赖 Blob 文件），
+ * 读取时向下兼容两种格式。 */
+function ppAsBlob(rec, mime){
+  if (!rec) return null;
+  if (rec instanceof Blob) return rec;
+  if (rec instanceof ArrayBuffer) return new Blob([rec], { type: mime });
+  if (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView && ArrayBuffer.isView(rec)) return new Blob([rec], { type: mime });
+  if (rec && rec.buf instanceof ArrayBuffer) return new Blob([rec.buf], { type: rec.mime || mime });
+  return null;
+}
+function ppErrText(err){
+  var name = (err && err.name) || "";
+  var msg = (err && err.message) || "";
+  if (name === "NotFoundError" || /file or directory|找不到|不能被找到|could not be found/i.test(msg)){
+    return "本试卷的本地数据已丢失或被浏览器清理，请删除后重新上传一次（新版不会再出现这个问题）";
+  }
+  return msg || "未知错误";
+}
+
 /* ---------- 元数据 ---------- */
 var PP_META_KEY = "sc_papers";
 var PP_CATS_KEY = "sc_paper_cats";
@@ -319,6 +341,7 @@ function ppSaveBatch(){
   var meta = ppMeta();
   var chain = Promise.resolve();
   var saved = 0;
+  var failed = 0;
 
   batch.forEach(function(item, _idx){
     chain = chain.then(function(){
@@ -327,22 +350,24 @@ function ppSaveBatch(){
         var audioList = item.audios.map(function(f){ return { name: f.name }; });
         var r = new FileReader();
         r.onload = function(){
-          ppDBPut(pid + ":pdf", new Blob([r.result], {type: "application/pdf"}))
+          /* 存原始 ArrayBuffer（不用 Blob：安卓上 Blob 文件可能被系统清理导致读不出） */
+          ppDBPut(pid + ":pdf", r.result)
             .then(function(){
               var aChain = Promise.resolve();
               item.audios.forEach(function(f, i){
                 aChain = aChain.then(function(){
                   return new Promise(function(ares){
                     var r2 = new FileReader();
-                    r2.onload = function(){ ppDBPut(pid + ":audio:" + i, new Blob([r2.result], {type: "audio/mpeg"})).then(ares); };
-                    r2.onerror = function(){ ares(); };
+                    r2.onload = function(){ ppDBPut(pid + ":audio:" + i, r2.result).then(function(){ ares(true); }, function(){ ares(false); }); };
+                    r2.onerror = function(){ ares(false); };
                     r2.readAsArrayBuffer(f);
                   });
                 });
               });
               return aChain;
             })
-            .then(function(){
+            .then(function(ok){
+              if (ok === false){ failed++; resolve(); return; }
               meta.push({
                 id: pid, name: item.name, catId: catId,
                 pages: 0, pdfSize: item.pdfSize, audios: audioList, created: Date.now()
@@ -352,9 +377,9 @@ function ppSaveBatch(){
               if (btn) btn.textContent = "💾 保存中 " + saved + " / " + batch.length + "…";
               resolve();
             })
-            .catch(function(){ resolve(); });
+            .catch(function(){ failed++; resolve(); });
         };
-        r.onerror = function(){ resolve(); };
+        r.onerror = function(){ failed++; resolve(); };
         r.readAsArrayBuffer(item.pdf);
       });
     });
@@ -362,7 +387,11 @@ function ppSaveBatch(){
 
   chain.then(function(){
     ppSaveMeta(meta);
-    ppToast("✅ 已保存 " + saved + " 套试卷到「" + catName + "」");
+    if (failed > 0){
+      ppToast("⚠️ 已保存 " + saved + " 套，" + failed + " 套写入失败（本地存储空间不足？），建议重试");
+    } else {
+      ppToast("✅ 已保存 " + saved + " 套试卷到「" + catName + "」");
+    }
     ppClose();
     ppRender();
     if (typeof xqRender === "function") xqRender();
@@ -519,11 +548,19 @@ function ppOpen(pid){
 
 /* 读取 PDF 并渲染 */
 function ppLoadPDF(pid, p){
-  /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
-  if (location.protocol === "file:" && typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
-    try { pdfjsLib.GlobalWorkerOptions.workerSrc = ""; } catch(e) {}
+  /* 显式配置 pdf.js worker：https 下必须指定，否则部分浏览器找不到 worker 脚本会报错 */
+  if (typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
+    try {
+      if (location.protocol === "file:"){
+        /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+      } else if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    } catch(e) {}
   }
-  ppDBGet(pid + ":pdf").then(function(blob){
+  ppDBGet(pid + ":pdf").then(function(rec){
+    var blob = ppAsBlob(rec, "application/pdf");
     if (!blob){ ppToast("试卷文件丢失，请重新添加"); ppClose(); return; }
     return blob.arrayBuffer();
   }).then(function(buf){
@@ -546,7 +583,7 @@ function ppLoadPDF(pid, p){
     if (location.protocol === "file:"){
       ppToast("本地 file:// 打开不支持 PDF 渲染，请用 https://wwwgood.github.io/studyc/ 访问");
     } else {
-      ppToast("打开 PDF 失败：" + (err && err.message || "未知错误"));
+      ppToast("打开 PDF 失败：" + ppErrText(err));
     }
     ppClose();
   });
@@ -650,9 +687,11 @@ function ppLoadInk(canvas){
   var pg = parseInt(canvas.getAttribute("data-pg"), 10);
   if (!PP_SESSION) return;
   PP_SESSION.pages[pg].strokes = [];
-  ppDBGet(PP_SESSION.pid + ":ink:" + pg).then(function(blob){
-    if (!blob) return;
-    return blob.text();
+  ppDBGet(PP_SESSION.pid + ":ink:" + pg).then(function(rec){
+    if (!rec) return;
+    if (typeof rec === "string") return rec;
+    if (rec instanceof Blob) return rec.text();
+    return null;
   }).then(function(text){
     if (!text || !PP_SESSION) return;
     var strokes;
@@ -726,8 +765,8 @@ function ppStrokeLine(canvas, st, color, width){
 
 function ppSaveInk(pg){
   var strokes = PP_SESSION.pages[pg].strokes;
-  var blob = new Blob([JSON.stringify(strokes)], {type: "application/json"});
-  ppDBPut(PP_SESSION.pid + ":ink:" + pg, blob).catch(function(){});
+  /* 存字符串（不用 Blob）：安卓上 Blob 文件可能被系统清理导致读不出 */
+  ppDBPut(PP_SESSION.pid + ":ink:" + pg, JSON.stringify(strokes)).catch(function(){});
 }
 
 function ppClearPage(){
@@ -760,7 +799,8 @@ function ppPlayAudio(idx){
     ppRenderAudioBar(ppFind(pid));
     return;
   }
-  ppDBGet(pid + ":audio:" + idx).then(function(blob){
+  ppDBGet(pid + ":audio:" + idx).then(function(rec){
+    var blob = ppAsBlob(rec, "audio/mpeg");
     if (!blob){ ppToast("音频文件丢失"); return; }
     var url = URL.createObjectURL(blob);
     if (PP_SESSION._audio){
@@ -844,14 +884,14 @@ function ppExportPack(){
           pdfSize: p.pdfSize || 0, audios: p.audios || []
         };
         var tasks = [];
-        tasks.push(ppBlobToB64(ppDBGet(p.id + ":pdf"), "pdf"));
+        tasks.push(ppRecToB64(ppDBGet(p.id + ":pdf"), "pdf"));
         (p.audios || []).forEach(function(a, i){
-          tasks.push(ppBlobToB64(ppDBGet(p.id + ":audio:" + i), "a" + i));
+          tasks.push(ppRecToB64(ppDBGet(p.id + ":audio:" + i), "a" + i));
         });
         var pgCount = p.pages || 0;
         for (var pg = 0; pg < pgCount; pg++){
           (function(pgIndex){
-            tasks.push(ppBlobToB64(ppDBGet(p.id + ":ink:" + pgIndex), "ink" + pgIndex));
+            tasks.push(ppRecToB64(ppDBGet(p.id + ":ink:" + pgIndex), "ink" + pgIndex));
           })(pg);
         }
         return Promise.all(tasks).then(function(results){
@@ -881,10 +921,12 @@ function ppExportPack(){
   });
 }
 
-function ppBlobToB64(promise, tag){
-  return promise.then(function(blob){
+function ppRecToB64(promise, tag){
+  return promise.then(function(rec){
+    if (!rec) return { tag: tag, data: "" };
+    var blob = (typeof rec === "string") ? new Blob([rec], {type: "application/json"}) : ppAsBlob(rec, "");
     if (!blob) return { tag: tag, data: "" };
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve){
       var r = new FileReader();
       r.onload = function(){
         var base64 = String(r.result).split(",")[1] || "";
@@ -931,16 +973,16 @@ function ppRestorePack(pack){
     chain = chain.then(function(){
       return (function(){
         var writes = [];
-        if (p.pdf) writes.push(ppB64ToBlob(p.pdf).then(function(b){ return ppDBPut(pid + ":pdf", b); }));
+        if (p.pdf) writes.push(ppB64ToBuf(p.pdf).then(function(buf){ return ppDBPut(pid + ":pdf", buf); }));
         (p.audios || []).forEach(function(a, i){
           var key = "audio" + i;
-          if (p[key]) writes.push(ppB64ToBlob(p[key]).then(function(b){ return ppDBPut(pid + ":audio:" + i, b); }));
+          if (p[key]) writes.push(ppB64ToBuf(p[key]).then(function(buf){ return ppDBPut(pid + ":audio:" + i, buf); }));
         });
         for (var pg = 0; pg < (p.pages || 0); pg++){
           var ikey = "ink" + pg;
-          if (p[ikey]) (function(pgI){
-            writes.push(ppB64ToBlob(p[ikey]).then(function(b){ return ppDBPut(pid + ":ink:" + pgI, b); }));
-          })(pg);
+          if (p[ikey]) (function(pgI, inkStr){
+            writes.push(ppDBPut(pid + ":ink:" + pgI, ppB64ToStr(inkStr)));
+          })(pg, p[ikey]);
         }
         return Promise.all(writes).then(function(){
           var exists = meta.filter(function(m){ return m.id === pid; })[0];
@@ -959,15 +1001,18 @@ function ppRestorePack(pack){
   }).catch(function(){ return false; });
 }
 
-function ppB64ToBlob(b64){
+function ppB64ToBuf(b64){
   return new Promise(function(resolve, reject){
     try {
       var bin = atob(b64);
       var arr = new Uint8Array(bin.length);
       for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-      resolve(new Blob([arr]));
+      resolve(arr.buffer);
     } catch(e){ reject(e); }
   });
+}
+function ppB64ToStr(b64){
+  try { return atob(b64); } catch(e){ return ""; }
 }
 
 /* ---------- 关闭 ---------- */

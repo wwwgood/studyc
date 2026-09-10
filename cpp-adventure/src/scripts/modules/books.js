@@ -101,6 +101,28 @@ function bkTypeEmoji(ft){
   return "📖";
 }
 
+/* ---------- 存储兼容工具 ----------
+ * 老版本把 Blob 直接存进 IndexedDB：安卓浏览器（或清理工具清缓存）可能丢掉 Blob
+ * 底层文件，读取时报「NotFoundError: 需要的文件或目录不能被找到」。
+ * 新版本统一存 ArrayBuffer / 字符串（内联存储，不依赖 Blob 文件），
+ * 读取时向下兼容两种格式。 */
+function bkAsBlob(rec, mime){
+  if (!rec) return null;
+  if (rec instanceof Blob) return rec;
+  if (rec instanceof ArrayBuffer) return new Blob([rec], { type: mime });
+  if (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView && ArrayBuffer.isView(rec)) return new Blob([rec], { type: mime });
+  if (rec && rec.buf instanceof ArrayBuffer) return new Blob([rec.buf], { type: rec.mime || mime });
+  return null;
+}
+function bkErrText(err){
+  var name = (err && err.name) || "";
+  var msg = (err && err.message) || "";
+  if (name === "NotFoundError" || /file or directory|找不到|不能被找到|could not be found/i.test(msg)){
+    return "这本课本的本地数据已丢失或被浏览器清理，请删除后重新上传一次（新版不会再出现这个问题）";
+  }
+  return msg || "未知错误";
+}
+
 /* ---------- 渲染课本列表（按分类分组） ---------- */
 function bkRender(){
   var wrap = document.getElementById("bkList");
@@ -324,43 +346,41 @@ function bkSaveBatch(){
   var meta = bkMeta();
   var chain = Promise.resolve();
   var saved = 0;
+  var failed = 0;
 
   batch.forEach(function(item, _idx){
     chain = chain.then(function(){
       return new Promise(function(resolve){
         var bid = bkUid();
-        /* 读取所有文件为 ArrayBuffer 并存入 IndexedDB */
+        /* 读取文件为 ArrayBuffer 存入 IndexedDB（不用 Blob：安卓上 Blob 文件可能被系统清理导致读不出） */
         var fchain = Promise.resolve();
         if (item.fileType === "pdf" || item.fileType === "docx"){
-          /* 单文件：存为 content */
+          /* 单文件：存原始 ArrayBuffer */
           fchain = fchain.then(function(){
             return new Promise(function(r){
               var r0 = new FileReader();
-              r0.onload = function(){
-                var mime = item.fileType === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-                bkDBPut(bid + ":content", new Blob([r0.result], {type: mime})).then(r);
-              };
-              r0.onerror = function(){ r(); };
+              r0.onload = function(){ bkDBPut(bid + ":content", r0.result).then(function(){ r(true); }, function(){ r(false); }); };
+              r0.onerror = function(){ r(false); };
               r0.readAsArrayBuffer(item.files[0]);
             });
           });
         } else if (item.fileType === "img"){
-          /* 多图片：存为 content:0, content:1, ... */
+          /* 多图片：存为 content:0, content:1, ...（{buf, mime} 对象） */
           item.files.forEach(function(f, i){
-            fchain = fchain.then(function(){
+            fchain = fchain.then(function(ok){
+              if (ok === false) return false;
               return new Promise(function(r){
                 var ri = new FileReader();
-                ri.onload = function(){
-                  bkDBPut(bid + ":content:" + i, new Blob([ri.result], {type: f.type || "image/jpeg"})).then(r);
-                };
-                ri.onerror = function(){ r(); };
+                ri.onload = function(){ bkDBPut(bid + ":content:" + i, { buf: ri.result, mime: f.type || "image/jpeg" }).then(function(){ r(true); }, function(){ r(false); }); };
+                ri.onerror = function(){ r(false); };
                 ri.readAsArrayBuffer(f);
               });
             });
           });
         }
 
-        fchain.then(function(){
+        fchain.then(function(ok){
+          if (ok === false){ failed++; resolve(); return; }
           meta.push({
             id: bid, name: item.name, catId: catId,
             fileType: item.fileType, pages: item.pages || 0, fileSize: item.fileSize,
@@ -370,15 +390,19 @@ function bkSaveBatch(){
           var btn = document.getElementById("bkSaveBatchBtn");
           if (btn) btn.textContent = "💾 保存中 " + saved + " / " + batch.length + "…";
           resolve();
-        }).catch(function(){ resolve(); });
+        }).catch(function(){ failed++; resolve(); });
       });
     });
   });
 
   chain.then(function(){
     bkSaveMeta(meta);
-    console.log("[bk] bkSaveBatch 完成：saved=", saved, "meta.length=", meta.length, "localStorage sc_books=", localStorage.getItem(BK_META_KEY));
-    bkToast("✅ 已保存 " + saved + " 本课本到「" + catName + "」");
+    console.log("[bk] bkSaveBatch 完成：saved=", saved, "failed=", failed, "meta.length=", meta.length, "localStorage sc_books=", localStorage.getItem(BK_META_KEY));
+    if (failed > 0){
+      bkToast("⚠️ 已保存 " + saved + " 本，" + failed + " 本写入失败（本地存储空间不足？），建议重试");
+    } else {
+      bkToast("✅ 已保存 " + saved + " 本课本到「" + catName + "」");
+    }
     bkRender();
     bkClose();
   }).catch(function(err){
@@ -543,12 +567,21 @@ function bkOpen(bid){
 /* 读取 PDF 并渲染 */
 function bkLoadPDF(bid, b){
   console.log("[bk] bkLoadPDF 开始：bid=", bid, "fileType=", b.fileType, "pages=", b.pages, "protocol=", location.protocol);
-  /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
-  if (location.protocol === "file:" && typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
-    try { pdfjsLib.GlobalWorkerOptions.workerSrc = ""; console.log("[bk] file:// 协议：已禁用 pdf.js worker"); } catch(e) {}
+  /* 显式配置 pdf.js worker：https 下必须指定，否则部分浏览器找不到 worker 脚本会报错 */
+  if (typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
+    try {
+      if (location.protocol === "file:"){
+        /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+        console.log("[bk] file:// 协议：已禁用 pdf.js worker");
+      } else if (!pdfjsLib.GlobalWorkerOptions.workerSrc){
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      }
+    } catch(e) {}
   }
-  bkDBGet(bid + ":content").then(function(blob){
-    console.log("[bk] bkLoadPDF blob=", blob ? blob.size + " bytes" : "null");
+  bkDBGet(bid + ":content").then(function(rec){
+    var blob = bkAsBlob(rec, "application/pdf");
+    console.log("[bk] bkLoadPDF blob=", blob ? blob.size + " bytes" : "null", "存储类型=", (rec && rec.constructor && rec.constructor.name) || typeof rec);
     if (!blob){ bkToast("课本文件丢失，请重新添加"); bkClose(); return; }
     return blob.arrayBuffer();
   }).then(function(buf){
@@ -572,12 +605,11 @@ function bkLoadPDF(bid, b){
     }
     bkRenderPDFPages(pdf);
   }).catch(function(err){
-    console.error("[bk] bkLoadPDF 失败:", err);
-    var msg = err && err.message || "未知错误";
+    console.error("[bk] bkLoadPDF 失败:", err, err && err.name);
     if (location.protocol === "file:"){
       bkToast("本地 file:// 打开不支持 PDF 渲染，请用 https://wwwgood.github.io/studyc/ 访问");
     } else {
-      bkToast("打开 PDF 失败：" + msg);
+      bkToast("打开 PDF 失败：" + bkErrText(err));
     }
     bkClose();
   });
@@ -651,7 +683,8 @@ function bkLoadImages(bid, b){
   for (var i = 0; i < count; i++){
     (function(idx){
       chain = chain.then(function(){
-        return bkDBGet(bid + ":content:" + idx).then(function(blob){
+        return bkDBGet(bid + ":content:" + idx).then(function(rec){
+          var blob = bkAsBlob(rec, "image/jpeg");
           if (!blob) return;
           var url = URL.createObjectURL(blob);
           var img = document.querySelector('.bk-img-canvas[data-pg="' + idx + '"]');
@@ -687,7 +720,8 @@ function bkLoadImages(bid, b){
 /* 读取 Word 并渲染 */
 function bkLoadDocx(bid, b){
   console.log("[bk] bkLoadDocx 开始：bid=", bid);
-  bkDBGet(bid + ":content").then(function(blob){
+  bkDBGet(bid + ":content").then(function(rec){
+    var blob = bkAsBlob(rec, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     console.log("[bk] bkLoadDocx blob=", blob ? blob.size + " bytes" : "null");
     if (!blob){ bkToast("课本文件丢失，请重新添加"); bkClose(); return; }
     return blob.arrayBuffer();
@@ -772,9 +806,11 @@ function bkLoadInk(canvas){
   var pg = parseInt(canvas.getAttribute("data-pg"), 10);
   if (!BK_SESSION) return;
   BK_SESSION.pages[pg].strokes = [];
-  bkDBGet(BK_SESSION.bid + ":ink:" + pg).then(function(blob){
-    if (!blob) return;
-    return blob.text();
+  bkDBGet(BK_SESSION.bid + ":ink:" + pg).then(function(rec){
+    if (!rec) return;
+    if (typeof rec === "string") return rec;
+    if (rec instanceof Blob) return rec.text();
+    return null;
   }).then(function(text){
     if (!text || !BK_SESSION) return;
     var strokes;
@@ -848,8 +884,8 @@ function bkStrokeLine(canvas, st, color, width){
 
 function bkSaveInk(pg){
   var strokes = BK_SESSION.pages[pg].strokes;
-  var blob = new Blob([JSON.stringify(strokes)], {type: "application/json"});
-  bkDBPut(BK_SESSION.bid + ":ink:" + pg, blob).catch(function(){});
+  /* 存字符串（不用 Blob）：安卓上 Blob 文件可能被系统清理导致读不出 */
+  bkDBPut(BK_SESSION.bid + ":ink:" + pg, JSON.stringify(strokes)).catch(function(){});
 }
 
 function bkClearPage(){
@@ -910,19 +946,19 @@ function bkExportPack(){
         };
         var tasks = [];
         if (b.fileType === "pdf" || b.fileType === "docx"){
-          tasks.push(bkBlobToB64(bkDBGet(b.id + ":content"), "content"));
+          tasks.push(bkRecToB64(bkDBGet(b.id + ":content"), "content"));
         } else if (b.fileType === "img"){
           var fc = b.fileCount || b.pages || 1;
           for (var i = 0; i < fc; i++){
             (function(imgIdx){
-              tasks.push(bkBlobToB64(bkDBGet(b.id + ":content:" + imgIdx), "content" + imgIdx));
+              tasks.push(bkRecToB64(bkDBGet(b.id + ":content:" + imgIdx), "content" + imgIdx));
             })(i);
           }
         }
         var pgCount = b.pages || 0;
         for (var pg = 0; pg < pgCount; pg++){
           (function(pgIndex){
-            tasks.push(bkBlobToB64(bkDBGet(b.id + ":ink:" + pgIndex), "ink" + pgIndex));
+            tasks.push(bkRecToB64(bkDBGet(b.id + ":ink:" + pgIndex), "ink" + pgIndex));
           })(pg);
         }
         return Promise.all(tasks).then(function(results){
@@ -950,10 +986,12 @@ function bkExportPack(){
   });
 }
 
-function bkBlobToB64(promise, tag){
-  return promise.then(function(blob){
+function bkRecToB64(promise, tag){
+  return promise.then(function(rec){
+    if (!rec) return { tag: tag, data: "" };
+    var blob = (typeof rec === "string") ? new Blob([rec], {type: "application/json"}) : bkAsBlob(rec, "");
     if (!blob) return { tag: tag, data: "" };
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve){
       var r = new FileReader();
       r.onload = function(){
         var base64 = String(r.result).split(",")[1] || "";
@@ -999,21 +1037,21 @@ function bkRestorePack(pack){
       return (function(){
         var writes = [];
         if (b.fileType === "pdf" || b.fileType === "docx"){
-          if (b.content) writes.push(bkB64ToBlob(b.content).then(function(bl){ return bkDBPut(bid + ":content", bl); }));
+          if (b.content) writes.push(bkB64ToBuf(b.content).then(function(buf){ return bkDBPut(bid + ":content", buf); }));
         } else if (b.fileType === "img"){
           var fc = b.fileCount || b.pages || 1;
           for (var i = 0; i < fc; i++){
             var key = "content" + i;
             if (b[key]) (function(imgIdx, imgData){
-              writes.push(bkB64ToBlob(imgData).then(function(bl){ return bkDBPut(bid + ":content:" + imgIdx, bl); }));
+              writes.push(bkB64ToBuf(imgData).then(function(buf){ return bkDBPut(bid + ":content:" + imgIdx, buf); }));
             })(i, b[key]);
           }
         }
         for (var pg = 0; pg < (b.pages || 0); pg++){
           var ikey = "ink" + pg;
-          if (b[ikey]) (function(pgI){
-            writes.push(bkB64ToBlob(b[ikey]).then(function(bl){ return bkDBPut(bid + ":ink:" + pgI, bl); }));
-          })(pg);
+          if (b[ikey]) (function(pgI, inkStr){
+            writes.push(bkDBPut(bid + ":ink:" + pgI, bkB64ToStr(inkStr)));
+          })(pg, b[ikey]);
         }
         return Promise.all(writes).then(function(){
           var exists = meta.filter(function(m){ return m.id === bid; })[0];
@@ -1032,15 +1070,18 @@ function bkRestorePack(pack){
   }).catch(function(){ return false; });
 }
 
-function bkB64ToBlob(b64){
+function bkB64ToBuf(b64){
   return new Promise(function(resolve, reject){
     try {
       var bin = atob(b64);
       var arr = new Uint8Array(bin.length);
       for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-      resolve(new Blob([arr]));
+      resolve(arr.buffer);
     } catch(e){ reject(e); }
   });
+}
+function bkB64ToStr(b64){
+  try { return atob(b64); } catch(e){ return ""; }
 }
 
 /* ---------- 关闭 ---------- */
