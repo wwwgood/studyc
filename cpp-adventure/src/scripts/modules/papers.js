@@ -519,6 +519,10 @@ function ppOpen(pid){
 
 /* 读取 PDF 并渲染 */
 function ppLoadPDF(pid, p){
+  /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
+  if (location.protocol === "file:" && typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
+    try { pdfjsLib.GlobalWorkerOptions.workerSrc = ""; } catch(e) {}
+  }
   ppDBGet(pid + ":pdf").then(function(blob){
     if (!blob){ ppToast("试卷文件丢失，请重新添加"); ppClose(); return; }
     return blob.arrayBuffer();
@@ -539,7 +543,11 @@ function ppLoadPDF(pid, p){
     }
     ppRenderPages(pdf);
   }).catch(function(err){
-    ppToast("打开 PDF 失败：" + (err && err.message || "未知错误"));
+    if (location.protocol === "file:"){
+      ppToast("本地 file:// 打开不支持 PDF 渲染，请用 https://wwwgood.github.io/studyc/ 访问");
+    } else {
+      ppToast("打开 PDF 失败：" + (err && err.message || "未知错误"));
+    }
     ppClose();
   });
 }

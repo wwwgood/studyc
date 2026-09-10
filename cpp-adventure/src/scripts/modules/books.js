@@ -542,7 +542,11 @@ function bkOpen(bid){
 
 /* 读取 PDF 并渲染 */
 function bkLoadPDF(bid, b){
-  console.log("[bk] bkLoadPDF 开始：bid=", bid, "fileType=", b.fileType, "pages=", b.pages);
+  console.log("[bk] bkLoadPDF 开始：bid=", bid, "fileType=", b.fileType, "pages=", b.pages, "protocol=", location.protocol);
+  /* file:// 协议下 pdf.js Worker 被安全策略阻止，禁用 worker 使用主线程 fake worker */
+  if (location.protocol === "file:" && typeof pdfjsLib !== "undefined" && pdfjsLib.GlobalWorkerOptions){
+    try { pdfjsLib.GlobalWorkerOptions.workerSrc = ""; console.log("[bk] file:// 协议：已禁用 pdf.js worker"); } catch(e) {}
+  }
   bkDBGet(bid + ":content").then(function(blob){
     console.log("[bk] bkLoadPDF blob=", blob ? blob.size + " bytes" : "null");
     if (!blob){ bkToast("课本文件丢失，请重新添加"); bkClose(); return; }
@@ -568,7 +572,13 @@ function bkLoadPDF(bid, b){
     }
     bkRenderPDFPages(pdf);
   }).catch(function(err){
-    bkToast("打开 PDF 失败：" + (err && err.message || "未知错误"));
+    console.error("[bk] bkLoadPDF 失败:", err);
+    var msg = err && err.message || "未知错误";
+    if (location.protocol === "file:"){
+      bkToast("本地 file:// 打开不支持 PDF 渲染，请用 https://wwwgood.github.io/studyc/ 访问");
+    } else {
+      bkToast("打开 PDF 失败：" + msg);
+    }
     bkClose();
   });
 }
