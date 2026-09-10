@@ -4314,6 +4314,9 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .pp-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
 .pp-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
 .pp-back:hover,.pp-back:active{background:rgba(255,255,255,.3);}
+.pp-fab{position:fixed; right:22px; bottom:96px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#F59E0B,#EF4444); color:#fff; font-size:26px; border:none; cursor:pointer; z-index:200; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(239,68,68,.5); animation:ppFabPulse 1.8s ease infinite;}
+.pp-fab.active{background:linear-gradient(135deg,#10B981,#059669); animation:none; box-shadow:0 6px 20px rgba(16,185,129,.55);}
+@keyframes ppFabPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .pp-close:hover{background:#FEE2E2; color:#DC2626;}
 .pp-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .pp-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#FFFBEB; border:1px solid #FDE68A; border-radius:10px; padding:10px 12px; margin-bottom:14px;}
@@ -4407,6 +4410,9 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bk-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
 .bk-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
 .bk-back:hover,.bk-back:active{background:rgba(255,255,255,.3);}
+.bk-fab{position:fixed; right:22px; bottom:96px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#F59E0B,#EF4444); color:#fff; font-size:26px; border:none; cursor:pointer; z-index:200; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(239,68,68,.5); animation:bkFabPulse 1.8s ease infinite;}
+.bk-fab.active{background:linear-gradient(135deg,#10B981,#059669); animation:none; box-shadow:0 6px 20px rgba(16,185,129,.55);}
+@keyframes bkFabPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .bk-close:hover{background:#FEE2E2; color:#DC2626;}
 .bk-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .bk-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:10px; padding:10px 12px; margin-bottom:14px;}
@@ -58539,7 +58545,6 @@ function ppOpen(pid){
       '<span class="pp-tb-zoom" id="ppZoomInfo">100%</span>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'zoomin\')">＋</button>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'fit\')">🖼 适配</button>' +
-      '<button type="button" class="pp-tb" id="ppBtnWrite" onclick="ppToggleWrite()">✍️ 书写</button>' +
     '</div>' +
     '<div class="pp-reader-tools2" id="ppTools2" style="display:none">' +
       '<span class="pp-t2-label">✏️ 颜色</span>' +
@@ -58549,10 +58554,11 @@ function ppOpen(pid){
       '<button type="button" class="pp-color" data-c="#000000" style="background:#000" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-tb" id="ppBtnEraser" onclick="ppPickColor({eraser:true});">🧽 橡皮</button>' +
       '<button type="button" class="pp-tb" onclick="ppClearPage()">🗑 清空本页</button>' +
-      '<span class="pp-t2-hint">书写模式：手指直接写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
+      '<span class="pp-t2-hint">书写模式已开启：手指直接写字，自动保存；点右下角 🖐️ 按钮退出书写后，才能滑动翻页</span>' +
     '</div>' +
     '<div class="pp-audio-panel" id="ppAudioPanel" style="display:none"></div>' +
-    '<div class="pp-pages" id="ppPages"><div class="pp-loading">⏳ 正在打开试卷…</div></div>';
+    '<div class="pp-pages" id="ppPages"><div class="pp-loading">⏳ 正在打开试卷…</div></div>' +
+    '<button class="pp-fab" id="ppBtnWrite" type="button" onclick="ppToggleWrite()" title="书写/操作切换">✍️</button>';
   mask.classList.add("open");
 
   PP_SESSION = {
@@ -58697,7 +58703,7 @@ function ppToggleWrite(){
   var btn = document.getElementById("ppBtnWrite");
   if (btn){
     btn.classList.toggle("active", PP_SESSION.writing);
-    btn.textContent = PP_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+    btn.textContent = PP_SESSION.writing ? "🖐️" : "✍️";
   }
   var t2 = document.getElementById("ppTools2");
   if (t2) t2.style.display = PP_SESSION.writing ? "" : "none";
@@ -59621,7 +59627,7 @@ function bkOpen(bid){
   var writeBtn = "";
   var inkTools = "";
   if (b.fileType !== "docx"){
-    writeBtn = '<button type="button" class="bk-tb" id="bkBtnWrite" onclick="bkToggleWrite()">✍️ 书写</button>';
+    writeBtn = '<button class="bk-fab" id="bkBtnWrite" type="button" onclick="bkToggleWrite()" title="书写/操作切换">✍️</button>';
     inkTools =
       '<div class="bk-reader-tools2" id="bkTools2" style="display:none">' +
         '<span class="bk-t2-label">✏️ 颜色</span>' +
@@ -59631,7 +59637,7 @@ function bkOpen(bid){
         '<button type="button" class="bk-color" data-c="#000000" style="background:#000" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-tb" id="bkBtnEraser" onclick="bkPickColor({eraser:true});">🧽 橡皮</button>' +
         '<button type="button" class="bk-tb" onclick="bkClearPage()">🗑 清空本页</button>' +
-        '<span class="bk-t2-hint">书写模式：手指直接在页面上写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
+        '<span class="bk-t2-hint">书写模式已开启：手指直接写字，自动保存；点右下角 🖐️ 按钮退出书写后，才能滑动翻页</span>' +
       '</div>';
   }
 
@@ -59898,7 +59904,7 @@ function bkToggleWrite(){
   var btn = document.getElementById("bkBtnWrite");
   if (btn){
     btn.classList.toggle("active", BK_SESSION.writing);
-    btn.textContent = BK_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+    btn.textContent = BK_SESSION.writing ? "🖐️" : "✍️";
   }
   var t2 = document.getElementById("bkTools2");
   if (t2) t2.style.display = BK_SESSION.writing ? "" : "none";

@@ -835,6 +835,9 @@
 .pp-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
 .pp-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
 .pp-back:hover,.pp-back:active{background:rgba(255,255,255,.3);}
+.pp-fab{position:fixed; right:22px; bottom:96px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#F59E0B,#EF4444); color:#fff; font-size:26px; border:none; cursor:pointer; z-index:200; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(239,68,68,.5); animation:ppFabPulse 1.8s ease infinite;}
+.pp-fab.active{background:linear-gradient(135deg,#10B981,#059669); animation:none; box-shadow:0 6px 20px rgba(16,185,129,.55);}
+@keyframes ppFabPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .pp-close:hover{background:#FEE2E2; color:#DC2626;}
 .pp-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .pp-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#FFFBEB; border:1px solid #FDE68A; border-radius:10px; padding:10px 12px; margin-bottom:14px;}
@@ -928,6 +931,9 @@
 .bk-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
 .bk-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
 .bk-back:hover,.bk-back:active{background:rgba(255,255,255,.3);}
+.bk-fab{position:fixed; right:22px; bottom:96px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#F59E0B,#EF4444); color:#fff; font-size:26px; border:none; cursor:pointer; z-index:200; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(239,68,68,.5); animation:bkFabPulse 1.8s ease infinite;}
+.bk-fab.active{background:linear-gradient(135deg,#10B981,#059669); animation:none; box-shadow:0 6px 20px rgba(16,185,129,.55);}
+@keyframes bkFabPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .bk-close:hover{background:#FEE2E2; color:#DC2626;}
 .bk-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .bk-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:10px; padding:10px 12px; margin-bottom:14px;}

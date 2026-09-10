@@ -523,7 +523,6 @@ function ppOpen(pid){
       '<span class="pp-tb-zoom" id="ppZoomInfo">100%</span>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'zoomin\')">＋</button>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'fit\')">🖼 适配</button>' +
-      '<button type="button" class="pp-tb" id="ppBtnWrite" onclick="ppToggleWrite()">✍️ 书写</button>' +
     '</div>' +
     '<div class="pp-reader-tools2" id="ppTools2" style="display:none">' +
       '<span class="pp-t2-label">✏️ 颜色</span>' +
@@ -533,10 +532,11 @@ function ppOpen(pid){
       '<button type="button" class="pp-color" data-c="#000000" style="background:#000" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-tb" id="ppBtnEraser" onclick="ppPickColor({eraser:true});">🧽 橡皮</button>' +
       '<button type="button" class="pp-tb" onclick="ppClearPage()">🗑 清空本页</button>' +
-      '<span class="pp-t2-hint">书写模式：手指直接写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
+      '<span class="pp-t2-hint">书写模式已开启：手指直接写字，自动保存；点右下角 🖐️ 按钮退出书写后，才能滑动翻页</span>' +
     '</div>' +
     '<div class="pp-audio-panel" id="ppAudioPanel" style="display:none"></div>' +
-    '<div class="pp-pages" id="ppPages"><div class="pp-loading">⏳ 正在打开试卷…</div></div>';
+    '<div class="pp-pages" id="ppPages"><div class="pp-loading">⏳ 正在打开试卷…</div></div>' +
+    '<button class="pp-fab" id="ppBtnWrite" type="button" onclick="ppToggleWrite()" title="书写/操作切换">✍️</button>';
   mask.classList.add("open");
 
   PP_SESSION = {
@@ -681,7 +681,7 @@ function ppToggleWrite(){
   var btn = document.getElementById("ppBtnWrite");
   if (btn){
     btn.classList.toggle("active", PP_SESSION.writing);
-    btn.textContent = PP_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+    btn.textContent = PP_SESSION.writing ? "🖐️" : "✍️";
   }
   var t2 = document.getElementById("ppTools2");
   if (t2) t2.style.display = PP_SESSION.writing ? "" : "none";

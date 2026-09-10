@@ -524,7 +524,7 @@ function bkOpen(bid){
   var writeBtn = "";
   var inkTools = "";
   if (b.fileType !== "docx"){
-    writeBtn = '<button type="button" class="bk-tb" id="bkBtnWrite" onclick="bkToggleWrite()">✍️ 书写</button>';
+    writeBtn = '<button class="bk-fab" id="bkBtnWrite" type="button" onclick="bkToggleWrite()" title="书写/操作切换">✍️</button>';
     inkTools =
       '<div class="bk-reader-tools2" id="bkTools2" style="display:none">' +
         '<span class="bk-t2-label">✏️ 颜色</span>' +
@@ -534,7 +534,7 @@ function bkOpen(bid){
         '<button type="button" class="bk-color" data-c="#000000" style="background:#000" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-tb" id="bkBtnEraser" onclick="bkPickColor({eraser:true});">🧽 橡皮</button>' +
         '<button type="button" class="bk-tb" onclick="bkClearPage()">🗑 清空本页</button>' +
-        '<span class="bk-t2-hint">书写模式：手指直接在页面上写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
+        '<span class="bk-t2-hint">书写模式已开启：手指直接写字，自动保存；点右下角 🖐️ 按钮退出书写后，才能滑动翻页</span>' +
       '</div>';
   }
 
@@ -801,7 +801,7 @@ function bkToggleWrite(){
   var btn = document.getElementById("bkBtnWrite");
   if (btn){
     btn.classList.toggle("active", BK_SESSION.writing);
-    btn.textContent = BK_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+    btn.textContent = BK_SESSION.writing ? "🖐️" : "✍️";
   }
   var t2 = document.getElementById("bkTools2");
   if (t2) t2.style.display = BK_SESSION.writing ? "" : "none";
