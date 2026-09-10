@@ -59081,8 +59081,9 @@ function bkTypeEmoji(ft){
 /* ---------- 渲染课本列表（按分类分组） ---------- */
 function bkRender(){
   var wrap = document.getElementById("bkList");
-  if (!wrap) return;
+  if (!wrap){ console.warn("[bk] bkRender: #bkList 元素不存在"); return; }
   var list = bkMeta();
+  console.log("[bk] bkRender 被调用：list.length=", list.length, "cats.length=", bkCats().length);
   if (list.length === 0){
     wrap.innerHTML = '<div class="bk-empty">📖 还没有电子课本。<br>点右上「＋ 添加课本」，上传 PDF / 图片 / Word 就能直接看，还能手写标注。</div>' +
       (bkCats().length > 0 ? '<div class="bk-empty-cats">🗂 已建分类：' + bkCats().map(function(c){ return bkEsc(c.name); }).join("、") + '</div>' : '');
@@ -59105,6 +59106,7 @@ function bkRender(){
     list.slice().reverse().forEach(function(b){ html += bkRenderCard(b); });
   }
   wrap.innerHTML = html;
+  console.log("[bk] bkRender 渲染完成：html.length=", html.length);
 }
 
 function bkRenderCatBlock(c, bs){
@@ -59255,6 +59257,7 @@ function bkScanFolder(){
 
   BK_SESSION._batch = batch;
   BK_SESSION._catName = folderName;
+  console.log("[bk] bkScanFolder: folderName=", folderName, "batch=", batch.length, "本 (pdf=", pdfs.length, "docx=", docxs.length, "img=", images.length, ")");
 
   /* 4. 渲染预览列表 */
   var preview = document.getElementById("bkFolderPreview");
@@ -59281,9 +59284,11 @@ function bkScanFolder(){
 
 /* 批量保存：逐本写入 IndexedDB */
 function bkSaveBatch(){
+  if (!BK_SESSION || !BK_SESSION._batch){ bkToast("请先选择文件夹并扫描"); console.warn("[bk] bkSaveBatch: BK_SESSION 或 _batch 为空"); return; }
   var batch = BK_SESSION._batch || [];
   if (batch.length === 0){ bkToast("没有可保存的课本"); return; }
   var catName = BK_SESSION._catName || "未命名分类";
+  console.log("[bk] bkSaveBatch 开始：batch=", batch.length, "本, catName=", catName);
 
   /* 分类：建或找已有 */
   var cats = bkCats();
@@ -59349,9 +59354,13 @@ function bkSaveBatch(){
 
   chain.then(function(){
     bkSaveMeta(meta);
+    console.log("[bk] bkSaveBatch 完成：saved=", saved, "meta.length=", meta.length, "localStorage sc_books=", localStorage.getItem(BK_META_KEY));
     bkToast("✅ 已保存 " + saved + " 本课本到「" + catName + "」");
-    bkClose();
     bkRender();
+    bkClose();
+  }).catch(function(err){
+    console.error("[bk] bkSaveBatch chain 失败:", err);
+    bkToast("保存失败：" + (err && err.message || "未知错误"));
   });
 }
 
@@ -59457,7 +59466,8 @@ var BK_SESSION = null;   // { bid, name, fileType, scale, fit, pageCount, color,
 
 function bkOpen(bid){
   var b = bkFind(bid);
-  if (!b) return;
+  if (!b){ console.warn("[bk] bkOpen: 找不到 bid=", bid); return; }
+  console.log("[bk] bkOpen：", b.name, "fileType=", b.fileType, "pages=", b.pages);
   var mask = document.getElementById("bkMask");
   var dlg = document.getElementById("bkDialog");
   if (!mask || !dlg) return;
@@ -59509,10 +59519,14 @@ function bkOpen(bid){
 
 /* 读取 PDF 并渲染 */
 function bkLoadPDF(bid, b){
+  console.log("[bk] bkLoadPDF 开始：bid=", bid, "fileType=", b.fileType, "pages=", b.pages);
   bkDBGet(bid + ":content").then(function(blob){
+    console.log("[bk] bkLoadPDF blob=", blob ? blob.size + " bytes" : "null");
     if (!blob){ bkToast("课本文件丢失，请重新添加"); bkClose(); return; }
     return blob.arrayBuffer();
   }).then(function(buf){
+    if (!buf){ console.warn("[bk] bkLoadPDF: buf 为空"); return; }
+    console.log("[bk] bkLoadPDF buf.size=", buf.byteLength, "pdfjsLib=", typeof pdfjsLib);
     if (typeof pdfjsLib === "undefined"){
       bkToast("PDF 组件未加载，请刷新页面重试");
       bkClose();
@@ -59520,6 +59534,8 @@ function bkLoadPDF(bid, b){
     }
     return pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
   }).then(function(pdf){
+    if (!pdf){ console.warn("[bk] bkLoadPDF: pdf 为空"); return; }
+    console.log("[bk] bkLoadPDF pdf.numPages=", pdf.numPages);
     BK_SESSION.pdf = pdf;
     BK_SESSION.pageCount = pdf.numPages;
     var meta = bkFind(bid);
@@ -59536,7 +59552,8 @@ function bkLoadPDF(bid, b){
 
 function bkRenderPDFPages(pdf){
   var wrap = document.getElementById("bkPages");
-  if (!wrap) return;
+  if (!wrap){ console.warn("[bk] bkRenderPDFPages: #bkPages 不存在"); return; }
+  console.log("[bk] bkRenderPDFPages: 渲染", pdf.numPages, "页");
   var html = "";
   for (var i = 0; i < pdf.numPages; i++){
     html += '<div class="bk-page" data-pg="' + i + '">' +
@@ -59549,9 +59566,10 @@ function bkRenderPDFPages(pdf){
   var tasks = [];
   for (var i = 0; i < pdf.numPages; i++) tasks.push(bkDrawPage(pdf, i));
   Promise.all(tasks).then(function(){
+    console.log("[bk] bkRenderPDFPages: 所有页渲染完成");
     bkBindInk();
     bkApplyScale();
-  });
+  }).catch(function(err){ console.error("[bk] bkRenderPDFPages 渲染失败:", err); });
 }
 
 function bkDrawPage(pdf, idx){
@@ -59582,6 +59600,7 @@ function bkDrawPage(pdf, idx){
 /* 读取图片集并渲染 */
 function bkLoadImages(bid, b){
   var count = b.fileCount || b.pages || 1;
+  console.log("[bk] bkLoadImages 开始：bid=", bid, "count=", count);
   BK_SESSION.pageCount = count;
   var wrap = document.getElementById("bkPages");
   if (!wrap) return;
@@ -59626,6 +59645,7 @@ function bkLoadImages(bid, b){
     })(i);
   }
   chain.then(function(){
+    console.log("[bk] bkLoadImages: 所有图片加载完成");
     bkBindInk();
     bkApplyScale();
   });
@@ -59633,10 +59653,14 @@ function bkLoadImages(bid, b){
 
 /* 读取 Word 并渲染 */
 function bkLoadDocx(bid, b){
+  console.log("[bk] bkLoadDocx 开始：bid=", bid);
   bkDBGet(bid + ":content").then(function(blob){
+    console.log("[bk] bkLoadDocx blob=", blob ? blob.size + " bytes" : "null");
     if (!blob){ bkToast("课本文件丢失，请重新添加"); bkClose(); return; }
     return blob.arrayBuffer();
   }).then(function(buf){
+    if (!buf){ console.warn("[bk] bkLoadDocx: buf 为空"); return; }
+    console.log("[bk] bkLoadDocx buf.size=", buf.byteLength, "mammoth=", typeof mammoth);
     if (typeof mammoth === "undefined"){
       bkToast("Word 组件未加载，请刷新页面重试");
       bkClose();
@@ -59644,6 +59668,8 @@ function bkLoadDocx(bid, b){
     }
     return mammoth.convertToHtml({ arrayBuffer: buf });
   }).then(function(result){
+    if (!result){ console.warn("[bk] bkLoadDocx: result 为空"); return; }
+    console.log("[bk] bkLoadDocx html.length=", (result.value || "").length);
     var wrap = document.getElementById("bkPages");
     if (!wrap) return;
     var html = '<div class="bk-docx-page"><div class="bk-docx-content">' + (result.value || "<p>（空文档）</p>") + '</div></div>';
@@ -60009,6 +60035,7 @@ var BK_TOAST_T = null;
 
 /* ---------- 视图进入回调 ---------- */
 function bkOnEnter(){
+  console.log("[bk] bkOnEnter 被调用");
   bkRender();
 }
 
