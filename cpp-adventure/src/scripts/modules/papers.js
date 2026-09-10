@@ -522,16 +522,17 @@ function ppOpen(pid){
       '<span class="pp-tb-zoom" id="ppZoomInfo">100%</span>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'zoomin\')">＋</button>' +
       '<button type="button" class="pp-tb" onclick="ppTool(\'fit\')">🖼 适配</button>' +
+      '<button type="button" class="pp-tb" id="ppBtnWrite" onclick="ppToggleWrite()">✍️ 书写</button>' +
     '</div>' +
-    '<div class="pp-reader-tools2" id="ppTools2">' +
-      '<span class="pp-t2-label">✏️ 书写</span>' +
+    '<div class="pp-reader-tools2" id="ppTools2" style="display:none">' +
+      '<span class="pp-t2-label">✏️ 颜色</span>' +
       '<button type="button" class="pp-color" data-c="#e91e63" style="background:#e91e63" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-color" data-c="#2196f3" style="background:#2196f3" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-color" data-c="#4caf50" style="background:#4caf50" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-color" data-c="#000000" style="background:#000" onclick="ppPickColor(this)"></button>' +
       '<button type="button" class="pp-tb" id="ppBtnEraser" onclick="ppPickColor({eraser:true});">🧽 橡皮</button>' +
       '<button type="button" class="pp-tb" onclick="ppClearPage()">🗑 清空本页</button>' +
-      '<span class="pp-t2-hint">手直接在页面上写，写完自动保存</span>' +
+      '<span class="pp-t2-hint">书写模式：手指直接写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
     '</div>' +
     '<div class="pp-audio-panel" id="ppAudioPanel" style="display:none"></div>' +
     '<div class="pp-pages" id="ppPages"><div class="pp-loading">⏳ 正在打开试卷…</div></div>';
@@ -540,7 +541,7 @@ function ppOpen(pid){
   PP_SESSION = {
     pid: pid, name: p.name, scale: 1, fit: true, pageCount: 0,
     color: "#e91e63", eraser: false, pages: [], audioURLs: [],
-    current: 0, _audio: null, _audioIdx: -1
+    current: 0, _audio: null, _audioIdx: -1, writing: false
   };
   ppLoadPDF(pid, p);
   ppRenderAudioBar(p);
@@ -669,11 +670,32 @@ function ppInkPos(canvas, e){
 }
 
 /* ---------- 手写 ---------- */
+/* 书写/操作模式切换：默认操作模式（可滑动翻页缩放），点「✍️ 书写」才能写字 */
+function ppToggleWrite(){
+  if (!PP_SESSION) return;
+  PP_SESSION.writing = !PP_SESSION.writing;
+  var btn = document.getElementById("ppBtnWrite");
+  if (btn){
+    btn.classList.toggle("active", PP_SESSION.writing);
+    btn.textContent = PP_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+  }
+  var t2 = document.getElementById("ppTools2");
+  if (t2) t2.style.display = PP_SESSION.writing ? "" : "none";
+  ppSetInkMode();
+}
+function ppSetInkMode(){
+  var write = !!(PP_SESSION && PP_SESSION.writing);
+  var inks = document.querySelectorAll(".pp-ink-canvas");
+  for (var i = 0; i < inks.length; i++){
+    inks[i].style.pointerEvents = write ? "auto" : "none";
+    inks[i].style.touchAction = write ? "none" : "auto";
+  }
+}
+
 function ppBindInk(){
   var inks = document.querySelectorAll(".pp-ink-canvas");
   for (var i = 0; i < inks.length; i++){
     var canvas = inks[i];
-    canvas.style.touchAction = "none";
     PP_SESSION.pages[parseInt(canvas.getAttribute("data-pg"), 10)] = { strokes: [], drawing: null };
     canvas.addEventListener("pointerdown", ppInkDown);
     canvas.addEventListener("pointermove", ppInkMove);
@@ -681,6 +703,7 @@ function ppBindInk(){
     canvas.addEventListener("pointerleave", ppInkUp);
     ppLoadInk(canvas);
   }
+  ppSetInkMode();
 }
 
 function ppLoadInk(canvas){
@@ -706,7 +729,7 @@ function ppLoadInk(canvas){
 
 function ppInkDown(e){
   var canvas = e.currentTarget;
-  if (!PP_SESSION) return;
+  if (!PP_SESSION || !PP_SESSION.writing) return;
   var pg = parseInt(canvas.getAttribute("data-pg"), 10);
   canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
   var pos = ppInkPos(canvas, e);

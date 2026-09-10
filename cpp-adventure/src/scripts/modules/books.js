@@ -521,18 +521,20 @@ function bkOpen(bid){
   dlg.className = "bk-dialog";
 
   var emoji = bkTypeEmoji(b.fileType);
+  var writeBtn = "";
   var inkTools = "";
   if (b.fileType !== "docx"){
+    writeBtn = '<button type="button" class="bk-tb" id="bkBtnWrite" onclick="bkToggleWrite()">✍️ 书写</button>';
     inkTools =
-      '<div class="bk-reader-tools2" id="bkTools2">' +
-        '<span class="bk-t2-label">✏️ 书写</span>' +
+      '<div class="bk-reader-tools2" id="bkTools2" style="display:none">' +
+        '<span class="bk-t2-label">✏️ 颜色</span>' +
         '<button type="button" class="bk-color" data-c="#e91e63" style="background:#e91e63" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-color" data-c="#2196f3" style="background:#2196f3" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-color" data-c="#4caf50" style="background:#4caf50" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-color" data-c="#000000" style="background:#000" onclick="bkPickColor(this)"></button>' +
         '<button type="button" class="bk-tb" id="bkBtnEraser" onclick="bkPickColor({eraser:true});">🧽 橡皮</button>' +
         '<button type="button" class="bk-tb" onclick="bkClearPage()">🗑 清空本页</button>' +
-        '<span class="bk-t2-hint">手直接在页面上写，写完自动保存</span>' +
+        '<span class="bk-t2-hint">书写模式：手指直接在页面上写字，自动保存；点「🖐️ 操作」退出后才能滑动翻页</span>' +
       '</div>';
   }
 
@@ -548,7 +550,7 @@ function bkOpen(bid){
       '<button type="button" class="bk-tb" onclick="bkTool(\'zoomout\')">−</button>' +
       '<span class="bk-tb-zoom" id="bkZoomInfo">100%</span>' +
       '<button type="button" class="bk-tb" onclick="bkTool(\'zoomin\')">＋</button>' +
-      '<button type="button" class="bk-tb" onclick="bkTool(\'fit\')">🖼 适配</button>' +
+      '<button type="button" class="bk-tb" onclick="bkTool(\'fit\')">🖼 适配</button>' + writeBtn +
     '</div>' +
     inkTools +
     '<div class="bk-pages" id="bkPages"><div class="bk-loading">⏳ 正在打开课本…</div></div>';
@@ -556,7 +558,7 @@ function bkOpen(bid){
 
   BK_SESSION = {
     bid: bid, name: b.name, fileType: b.fileType, scale: 1, fit: true, pageCount: 0,
-    color: "#e91e63", eraser: false, pages: [], current: 0
+    color: "#e91e63", eraser: false, pages: [], current: 0, writing: false
   };
 
   if (b.fileType === "pdf") bkLoadPDF(bid, b);
@@ -788,11 +790,32 @@ function bkInkPos(canvas, e){
 }
 
 /* ---------- 手写 ---------- */
+/* 书写/操作模式切换：默认操作模式（可滑动翻页缩放），点「✍️ 书写」才能写字 */
+function bkToggleWrite(){
+  if (!BK_SESSION) return;
+  BK_SESSION.writing = !BK_SESSION.writing;
+  var btn = document.getElementById("bkBtnWrite");
+  if (btn){
+    btn.classList.toggle("active", BK_SESSION.writing);
+    btn.textContent = BK_SESSION.writing ? "🖐️ 操作" : "✍️ 书写";
+  }
+  var t2 = document.getElementById("bkTools2");
+  if (t2) t2.style.display = BK_SESSION.writing ? "" : "none";
+  bkSetInkMode();
+}
+function bkSetInkMode(){
+  var write = !!(BK_SESSION && BK_SESSION.writing);
+  var inks = document.querySelectorAll(".bk-ink-canvas");
+  for (var i = 0; i < inks.length; i++){
+    inks[i].style.pointerEvents = write ? "auto" : "none";
+    inks[i].style.touchAction = write ? "none" : "auto";
+  }
+}
+
 function bkBindInk(){
   var inks = document.querySelectorAll(".bk-ink-canvas");
   for (var i = 0; i < inks.length; i++){
     var canvas = inks[i];
-    canvas.style.touchAction = "none";
     BK_SESSION.pages[parseInt(canvas.getAttribute("data-pg"), 10)] = { strokes: [], drawing: null };
     canvas.addEventListener("pointerdown", bkInkDown);
     canvas.addEventListener("pointermove", bkInkMove);
@@ -800,6 +823,7 @@ function bkBindInk(){
     canvas.addEventListener("pointerleave", bkInkUp);
     bkLoadInk(canvas);
   }
+  bkSetInkMode();
 }
 
 function bkLoadInk(canvas){
@@ -825,7 +849,7 @@ function bkLoadInk(canvas){
 
 function bkInkDown(e){
   var canvas = e.currentTarget;
-  if (!BK_SESSION) return;
+  if (!BK_SESSION || !BK_SESSION.writing) return;
   var pg = parseInt(canvas.getAttribute("data-pg"), 10);
   canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
   var pos = bkInkPos(canvas, e);
