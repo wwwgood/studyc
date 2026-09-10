@@ -467,6 +467,7 @@
         <button class="eq-tab" data-tab="vocab" onclick="eqSwitchTab('vocab')">📚 词汇闯关</button>
         <button class="eq-tab" data-tab="reading" onclick="eqSwitchTab('reading')">📄 阅读理解</button>
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
+        <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
@@ -513,12 +514,36 @@
       <div class="wq-books" id="wqBooks"></div>
     </div>
 
+    <!-- 口语子模块 -->
+    <div class="eq-subview" id="eqSubOral" style="display:none">
+      <div class="eq-progress-bar" aria-label="口语总进度"><span id="oqTotalBar"></span></div>
+      <p class="eq-progress-txt" id="oqTotalTxt">已跟读 0 / 0 句</p>
+      <div class="eq-hero-badges">
+        <span class="eq-coin-chip">🪙 口语金币 <b id="oqCoins">0</b></span>
+      </div>
+      <p class="eq-progress-tip">🗣️ 三个场景由易到难：先在学校课堂跟老师学，再到球场和外国朋友过招（术语、规则、比分都在这），场下还能家常聊天无话不谈。点 🔊 听带读，读好了点 🎤 打卡，学完就能真开口！</p>
+      <div class="oq-levels" id="oqLevels"></div>
+    </div>
+
     <!-- 真题演练子模块 -->
     <div class="eq-subview" id="eqSubExam" style="display:none">
       <div class="eq-progress-bar" aria-label="真题总进度"><span id="xqTotalBar"></span></div>
       <p class="eq-progress-txt" id="xqTotalTxt">已完成 0 / 9 套真题</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 真题金币 <b id="xqCoins">0</b></span>
+      </div>
+      <div class="pp-panel" id="ppPanel">
+        <div class="pp-head">
+          <span class="pp-title">📄 专项试卷</span>
+          <span class="pp-sub">上传 PDF 原卷直接做 · 手写答题 · 听力音频本地播放</span>
+          <div class="pp-actions">
+            <button class="pp-btn sm primary" type="button" onclick="ppOpenAdd()">＋ 添加试卷</button>
+            <button class="pp-btn sm" type="button" onclick="ppExportPack()">📦 导出试卷包</button>
+            <label class="pp-btn sm" for="ppImportInput">📥 导入试卷包</label>
+            <input type="file" id="ppImportInput" accept=".json,application/json" style="display:none" onchange="ppImport(this)">
+          </div>
+        </div>
+        <div class="pp-list" id="ppList"></div>
       </div>
       <div class="xq-papers" id="xqPapers"></div>
     </div>
@@ -550,6 +575,9 @@
     </div>
     <div class="eq-mask" id="teDialogMask">
       <div class="eq-dialog" id="teDialog" role="dialog" aria-modal="true" aria-label="专题真题"></div>
+    </div>
+    <div class="eq-mask" id="oqDialogMask">
+      <div class="eq-dialog" id="oqDialog" role="dialog" aria-modal="true" aria-label="口语训练"></div>
     </div>
 
     <div class="eq-combo" id="eqCombo"></div>
@@ -1213,6 +1241,8 @@
   <script src="scripts/data/english-vocab.js"></script>
   <script src="scripts/data/english-reading.js"></script>
   <script src="scripts/data/english-writing.js"></script>
+  <script src="scripts/data/english-writing-zh.js"></script>
+  <script src="scripts/data/english-oral.js"></script>
   <script src="scripts/data/english-exam.js"></script>
   <script src="scripts/data/english-topic-exam.js"></script>
   <script src="scripts/data/question-bank.js"></script>
@@ -1222,12 +1252,14 @@
   <script src="scripts/modules/vocab-quest.js"></script>
   <script src="scripts/modules/reading-quest.js"></script>
   <script src="scripts/modules/writing-quest.js"></script>
+  <script src="scripts/modules/oral-quest.js"></script>
   <script src="scripts/modules/exam-quest.js"></script>
   <script src="scripts/modules/err-book.js"></script>
   <script src="scripts/modules/question-bank.js"></script>
   <script src="scripts/modules/topic-exam.js"></script>
   <script src="scripts/modules/bank-admin.js"></script>
   <script src="scripts/modules/sync.js"></script>
+  <script src="scripts/modules/papers.js"></script>
   <script src="scripts/modules/notes.js"></script>
   <script src="scripts/modules/awards.js"></script>
   <script src="scripts/modules/checkin.js"></script>
@@ -1277,6 +1309,9 @@
 </div>
 <div class="ba-mask" id="syncDialogMask">
   <div class="ba-dialog" id="syncDialog" role="dialog" aria-modal="true" aria-label="数据同步"></div>
+</div>
+<div class="pp-mask" id="ppMask">
+  <div class="pp-dialog" id="ppDialog" role="dialog" aria-modal="true" aria-label="专项试卷"></div>
 </div>
 
 </body>

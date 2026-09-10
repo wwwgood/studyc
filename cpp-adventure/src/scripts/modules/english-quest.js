@@ -278,13 +278,16 @@ function eqSwitchTab(tab){
   document.getElementById('eqSubVocab').style.display = tab === 'vocab' ? '' : 'none';
   document.getElementById('eqSubReading').style.display = tab === 'reading' ? '' : 'none';
   document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
+  document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
   document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
   document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
   if (tab === 'reading' && typeof rqRender === "function") rqRender();
   if (tab === 'writing' && typeof wqRender === "function") wqRender();
+  if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
+  if (tab === 'exam' && typeof ppRender === "function") ppRender();
   if (tab === 'errbook' && typeof ebRender === "function") ebRender();
 }
 
