@@ -137,3 +137,30 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .nt-op.done:hover{background:#A7F3D0;}
 .nt-op.del{background:#FEE2E2; color:#DC2626;}
 .nt-op.del:hover{background:#FECACA;}
+
+/* 定时提醒表单控件 */
+.nt-f-mode{padding:6px 10px; border:2px solid #E5E7EB; border-radius:8px; font-size:14px; cursor:pointer; background:#fff;}
+.nt-f-mode:focus{border-color:#F59E0B; outline:none;}
+.nt-f-time{padding:6px 10px; border:2px solid #E5E7EB; border-radius:8px; font-size:14px;}
+.nt-f-time:focus{border-color:#F59E0B; outline:none;}
+.nt-f-reminddate{padding:6px 10px; border:2px solid #E5E7EB; border-radius:8px; font-size:14px;}
+.nt-f-reminddate:focus{border-color:#F59E0B; outline:none;}
+
+/* 列表项上的提醒标记 */
+.nt-item-remind{display:inline-block; font-size:13px; font-weight:600; color:#B45309; background:#FEF3C7; border-radius:8px; padding:3px 10px; margin-bottom:8px;}
+
+/* ---------- 到点提醒弹框 ---------- */
+.nt-remind-mask{position:fixed; inset:0; background:rgba(17,24,39,.55); display:none; align-items:center; justify-content:center; z-index:100050; padding:20px;}
+.nt-remind-mask.open{display:flex;}
+.nt-remind-box{background:#fff; border-radius:18px; max-width:420px; width:100%; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center; animation:ntRemindPop .28s cubic-bezier(.18,.89,.32,1.28);}
+@keyframes ntRemindPop{from{transform:scale(.85); opacity:0}to{transform:scale(1); opacity:1}}
+.nt-remind-cap{font-size:15px; font-weight:800; color:#DC2626; letter-spacing:1px; margin-bottom:10px;}
+.nt-remind-title{font-size:22px; font-weight:800; color:#1F2937; margin-bottom:10px; word-break:break-word;}
+.nt-remind-content{font-size:15px; color:#4B5563; line-height:1.8; margin-bottom:12px; word-break:break-word; text-align:left;}
+.nt-remind-subs{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;}
+.nt-remind-ops{display:flex; gap:12px; justify-content:center;}
+.nt-remind-btn{border:none; border-radius:12px; padding:12px 26px; font-size:16px; font-weight:700; cursor:pointer; transition:background .2s;}
+.nt-remind-btn.ok{background:#F59E0B; color:#fff;}
+.nt-remind-btn.ok:hover{background:#D97706;}
+.nt-remind-btn.view{background:#F3F4F6; color:#4B5563;}
+.nt-remind-btn.view:hover{background:#E5E7EB;}
