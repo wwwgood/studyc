@@ -193,93 +193,180 @@ function ppOpenAdd(){
       '<button class="pp-close" type="button" onclick="ppClose()">×</button>' +
     '</div>' +
     '<div class="pp-dlg-body">' +
-      '<div class="pp-add-tip">上传 PDF 原卷直接开做（扫描件、图片版都能看），听力 mp3 可同时选多个或后补。选好专题，试卷就不会混在一起。</div>' +
-      '<div class="pp-add-row"><label>🗂 专题</label>' +
-        '<select id="ppCat" onchange="ppOnCatSelect()">' + ppCatOptionsHTML("", true) + '</select>' +
-        '<input type="text" id="ppNewCatName" placeholder="新专题名称，如：四年级上册专项试卷" maxlength="20" style="display:none">' +
+      '<div class="pp-add-tip">📁 选一个<b>试卷文件夹</b>：系统自动以文件夹名建专题，按文件名配对 PDF 和 MP3。<br>文件夹结构示例：<br>四年级上册专项试卷/<br>　├ 期中检测卷1.pdf<br>　├ 期中检测卷1.mp3<br>　├ 期中检测卷2.pdf<br>　└ 期末冲刺卷.pdf</div>' +
+      '<div class="pp-add-row">' +
+        '<label>📁 试卷文件夹</label>' +
+        '<input type="file" id="ppFolderInput" webkitdirectory allowdirs multiple accept=".pdf,.mp3,.m4a,.wav,.pdf,application/pdf,audio/*">' +
+        '<button class="pp-btn sm" type="button" onclick="ppScanFolder()">🔍 扫描文件夹</button>' +
       '</div>' +
-      '<div class="pp-add-row"><label>试卷名称</label>' +
-        '<input type="text" id="ppName" placeholder="如：期中检测卷1（含答案）" maxlength="40"></div>' +
-      '<div class="pp-add-row"><label>📄 试卷 PDF</label>' +
-        '<input type="file" id="ppPdfInput" accept=".pdf,application/pdf"></div>' +
-      '<div class="pp-add-row"><label>🎧 听力音频（可多选/可不选）</label>' +
-        '<input type="file" id="ppAudioInput" accept=".mp3,.m4a,.wav,audio/*" multiple></div>' +
+      '<div id="ppFolderPreview"></div>' +
       '<div class="pp-add-actions">' +
-        '<button class="pp-btn primary" type="button" onclick="ppSaveAdd()">💾 保存试卷</button>' +
+        '<button class="pp-btn primary" type="button" onclick="ppSaveBatch()" id="ppSaveBatchBtn" style="display:none">💾 全部保存（0 套）</button>' +
         '<button class="pp-btn" type="button" onclick="ppClose()">取消</button>' +
       '</div>' +
     '</div>';
   mask.classList.add("open");
+  PP_SESSION = PP_SESSION || {};
+  PP_SESSION._batch = [];
+  PP_SESSION._catName = "";
 }
 
-function ppSaveAdd(){
-  var name = (document.getElementById("ppName").value || "").trim();
-  var pdfInput = document.getElementById("ppPdfInput");
-  var audioInput = document.getElementById("ppAudioInput");
-  if (!name) name = (pdfInput.files[0] && pdfInput.files[0].name || "未命名试卷").replace(/\.pdf$/i, "");
-  if (!pdfInput.files || pdfInput.files.length === 0){
-    ppToast("请先选择 PDF 试卷文件");
+/* 扫描文件夹：识别专题名 + 配对 PDF 与 MP3 */
+function ppScanFolder(){
+  var input = document.getElementById("ppFolderInput");
+  if (!input || !input.files || input.files.length === 0){
+    ppToast("请先选择一个试卷文件夹");
     return;
   }
-  var pdfFile = pdfInput.files[0];
-  if (!/\.pdf$/i.test(pdfFile.name)){
-    ppToast("只能上传 .pdf 试卷文件");
+  var files = Array.prototype.slice.call(input.files);
+  if (files.length > 200){
+    ppToast("文件夹内文件太多（" + files.length + "），建议分批");
     return;
   }
 
-  /* 解析专题 */
-  var catId = "";
-  var catSel = document.getElementById("ppCat");
-  if (catSel){
-    if (catSel.value === "__new__"){
-      var newName = (document.getElementById("ppNewCatName").value || "").trim();
-      if (!newName){ ppToast("请填写新专题名称，或选择已有专题"); return; }
-      var cats = ppCats();
-      var exist = cats.filter(function(c){ return c.name === newName; })[0];
-      if (exist){ catId = exist.id; }
-      else { catId = ppUid(); cats.push({ id: catId, name: newName }); ppSaveCats(cats); }
-    } else {
-      catId = catSel.value || "";
+  /* 1. 取文件夹名：从第一个文件的 webkitRelativePath 取第一层目录名 */
+  var folderName = "";
+  for (var i = 0; i < files.length; i++){
+    var rp = files[i].webkitRelativePath || "";
+    if (rp){
+      var parts = rp.split(/[\\/]/);
+      if (parts.length > 1){ folderName = parts[0]; break; }
     }
   }
+  if (!folderName) folderName = "未命名专题";
 
-  var audios = audioInput.files ? Array.prototype.slice.call(audioInput.files) : [];
-  var pid = ppUid();
-  var audioList = audios.map(function(f){ return { name: f.name }; });
+  /* 2. 分类：PDF 一组，音频一组 */
+  var pdfs = [], audios = [];
+  files.forEach(function(f){
+    var name = f.name.toLowerCase();
+    if (name.endsWith(".pdf")) pdfs.push(f);
+    else if (name.endsWith(".mp3") || name.endsWith(".m4a") || name.endsWith(".wav") || name.endsWith(".ogg")) audios.push(f);
+  });
+  if (pdfs.length === 0){
+    ppToast("文件夹内没有找到 PDF 试卷文件");
+    return;
+  }
 
-  var reader = new FileReader();
-  reader.onload = function(){
-    var buf = reader.result;
-    ppDBPut(pid + ":pdf", new Blob([buf], {type: "application/pdf"}))
-      .then(function(){
-        var chain = Promise.resolve();
-        audios.forEach(function(f, i){
-          chain = chain.then(function(){
-            return new Promise(function(resolve){
-              var r2 = new FileReader();
-              r2.onload = function(){ ppDBPut(pid + ":audio:" + i, new Blob([r2.result], {type: "audio/mpeg"})).then(resolve); };
-              r2.onerror = function(){ resolve(); };
-              r2.readAsArrayBuffer(f);
-            });
-          });
-        });
-        return chain;
-      })
-      .then(function(){
-        var meta = ppMeta();
-        meta.push({ id: pid, name: name, catId: catId, pages: 0, pdfSize: pdfFile.size, audios: audioList, created: Date.now() });
-        ppSaveMeta(meta);
-        ppToast("试卷已保存：" + name + (catId ? "（归入「" + ppCatName(catId) + "」）" : "") + (audioList.length ? "，含 " + audioList.length + " 段听力" : ""));
-        ppClose();
-        if (typeof xqRender === "function") xqRender();
-        ppRender();
-      })
-      .catch(function(err){
-        ppToast("保存失败：" + (err && err.message || "未知错误"));
+  /* 3. 按文件名配对：PDF 去掉 .pdf 后缀，找同名音频 */
+  function baseName(f){ return f.name.replace(/\.[^.]+$/, "").replace(/\s+$/, ""); }
+  var audioMap = {};
+  audios.forEach(function(f){
+    var b = baseName(f);
+    if (!audioMap[b]) audioMap[b] = [];
+    audioMap[b].push(f);
+  });
+
+  var batch = [];
+  pdfs.forEach(function(pdf){
+    var b = baseName(pdf);
+    var matched = audioMap[b] || [];
+    /* 也尝试去掉末尾数字/序号再匹配一次（如 期中检测卷1 vs 期中检测卷1_听力） */
+    if (matched.length === 0){
+      for (var k in audioMap){
+        if (k.indexOf(b) === 0 || b.indexOf(k) === 0){
+          matched = audioMap[k];
+          break;
+        }
+      }
+    }
+    batch.push({
+      pdf: pdf,
+      audios: matched,
+      name: pdf.name.replace(/\.pdf$/i, ""),
+      pages: 0, pdfSize: pdf.size
+    });
+  });
+
+  PP_SESSION._batch = batch;
+  PP_SESSION._catName = folderName;
+
+  /* 4. 渲染预览列表 */
+  var preview = document.getElementById("ppFolderPreview");
+  var html = '<div class="pp-folder-info">📂 专题：<b>' + ppEsc(folderName) + '</b>　（共 ' + batch.length + ' 套试卷，' + audios.length + ' 段音频已配对）</div>';
+  html += '<div class="pp-batch-list">';
+  batch.forEach(function(item, idx){
+    var audioN = item.audios.length;
+    html += '<div class="pp-batch-row">' +
+      '<span class="pp-batch-name"><b>' + (idx + 1) + '.</b> ' + ppEsc(item.name) + '</span>' +
+      '<span class="pp-batch-meta">' + ppFmtSize(item.pdfSize) + (audioN > 0 ? ' · 🎧 ' + audioN + ' 段音频' : ' · ⚠️ 无音频') + '</span>' +
+      '<input type="text" class="pp-batch-rename" value="' + ppEsc(item.name) + '" onchange="PP_SESSION._batch[' + idx + '].name=this.value" placeholder="试卷名">' +
+    '</div>';
+  });
+  html += '</div>';
+  preview.innerHTML = html;
+
+  var btn = document.getElementById("ppSaveBatchBtn");
+  if (btn){
+    btn.style.display = "inline-block";
+    btn.textContent = "💾 全部保存（" + batch.length + " 套）";
+  }
+}
+
+/* 批量保存：逐套写入 IndexedDB */
+function ppSaveBatch(){
+  var batch = PP_SESSION._batch || [];
+  if (batch.length === 0){ ppToast("没有可保存的试卷"); return; }
+  var catName = PP_SESSION._catName || "未命名专题";
+
+  /* 专题：建或找已有 */
+  var cats = ppCats();
+  var catId = "";
+  var exist = cats.filter(function(c){ return c.name === catName; })[0];
+  if (exist){ catId = exist.id; }
+  else { catId = ppUid(); cats.push({ id: catId, name: catName }); ppSaveCats(cats); }
+
+  ppToast("正在保存 " + batch.length + " 套试卷…");
+  var meta = ppMeta();
+  var chain = Promise.resolve();
+  var saved = 0;
+
+  batch.forEach(function(item, _idx){
+    chain = chain.then(function(){
+      return new Promise(function(resolve){
+        var pid = ppUid();
+        var audioList = item.audios.map(function(f){ return { name: f.name }; });
+        var r = new FileReader();
+        r.onload = function(){
+          ppDBPut(pid + ":pdf", new Blob([r.result], {type: "application/pdf"}))
+            .then(function(){
+              var aChain = Promise.resolve();
+              item.audios.forEach(function(f, i){
+                aChain = aChain.then(function(){
+                  return new Promise(function(ares){
+                    var r2 = new FileReader();
+                    r2.onload = function(){ ppDBPut(pid + ":audio:" + i, new Blob([r2.result], {type: "audio/mpeg"})).then(ares); };
+                    r2.onerror = function(){ ares(); };
+                    r2.readAsArrayBuffer(f);
+                  });
+                });
+              });
+              return aChain;
+            })
+            .then(function(){
+              meta.push({
+                id: pid, name: item.name, catId: catId,
+                pages: 0, pdfSize: item.pdfSize, audios: audioList, created: Date.now()
+              });
+              saved++;
+              var btn = document.getElementById("ppSaveBatchBtn");
+              if (btn) btn.textContent = "💾 保存中 " + saved + " / " + batch.length + "…";
+              resolve();
+            })
+            .catch(function(){ resolve(); });
+        };
+        r.onerror = function(){ resolve(); };
+        r.readAsArrayBuffer(item.pdf);
       });
-  };
-  reader.onerror = function(){ ppToast("读取 PDF 失败"); };
-  reader.readAsArrayBuffer(pdfFile);
+    });
+  });
+
+  chain.then(function(){
+    ppSaveMeta(meta);
+    ppToast("✅ 已保存 " + saved + " 套试卷到「" + catName + "」");
+    ppClose();
+    ppRender();
+    if (typeof xqRender === "function") xqRender();
+  });
 }
 
 /* ---------- 专题管理 ---------- */
