@@ -59,6 +59,9 @@ function ppDBDelRange(prefix){
 }
 
 /* ---------- 元数据 ---------- */
+var PP_META_KEY = "sc_papers";
+var PP_CATS_KEY = "sc_paper_cats";
+
 function ppMeta(){
   try { var v = JSON.parse(localStorage.getItem(PP_META_KEY) || "[]"); return Array.isArray(v) ? v : []; }
   catch(e){ return []; }
@@ -66,39 +69,87 @@ function ppMeta(){
 function ppSaveMeta(list){ localStorage.setItem(PP_META_KEY, JSON.stringify(list)); }
 function ppFind(pid){ return ppMeta().filter(function(p){ return p.id === pid; })[0] || null; }
 
+/* 专题（试卷分类） */
+function ppCats(){
+  try { var v = JSON.parse(localStorage.getItem(PP_CATS_KEY) || "[]"); return Array.isArray(v) ? v : []; }
+  catch(e){ return []; }
+}
+function ppSaveCats(list){ localStorage.setItem(PP_CATS_KEY, JSON.stringify(list)); }
+function ppCatName(cid){
+  var c = ppCats().filter(function(x){ return x.id === cid; })[0];
+  return c ? c.name : "";
+}
+
 function ppUid(){
   return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-/* ---------- 渲染真题演练页里的专项试卷区 ---------- */
+/* ---------- 渲染真题演练页里的专项试卷区（按专题分组） ---------- */
 function ppRender(){
   var wrap = document.getElementById("ppList");
   if (!wrap) return;
   var list = ppMeta();
   if (list.length === 0){
-    wrap.innerHTML = '<div class="xq-empty">📄 还没有专项试卷。<br>点右上「＋ 添加试卷」，上传 PDF 原卷就能直接做（扫描件也可以），听力 mp3 可一并添加。</div>';
+    wrap.innerHTML = '<div class="xq-empty">📄 还没有专项试卷。<br>点右上「＋ 添加试卷」，上传 PDF 原卷就能直接做（扫描件也可以），听力 mp3 可一并添加。</div>' +
+      (ppCats().length > 0 ? '<div class="pp-empty-cats">🗂 已建专题：' + ppCats().map(function(c){ return ppEsc(c.name); }).join("、") + '</div>' : '');
     return;
   }
+
+  var cats = ppCats();
   var html = "";
-  list.slice().reverse().forEach(function(p){
-    var audioN = (p.audios || []).length;
-    var pdfSize = ppFmtSize(p.pdfSize || 0);
-    html += '<div class="pp-card">' +
-      '<button class="pp-card-main" type="button" onclick="ppOpen(\'' + p.id + '\')">' +
-        '<span class="pp-card-emoji">📄</span>' +
-        '<span class="pp-card-info">' +
-          '<span class="pp-card-name">' + ppEsc(p.name) + '</span>' +
-          '<span class="pp-card-meta">' + (p.pages || 0) + ' 页 · ' + pdfSize +
-            (audioN > 0 ? ' · 🎧 ' + audioN + ' 段听力' : '') +
-          '</span>' +
-        '</span>' +
-        '<span class="pp-card-go">开始做 →</span>' +
-      '</button>' +
-      '<button class="pp-card-del" type="button" title="删除试卷" onclick="ppDelete(\'' + p.id + '\')">🗑</button>' +
-    '</div>';
-  });
+  if (cats.length > 0){
+    /* 每个专题一个分组 */
+    cats.forEach(function(c){
+      var ps = list.filter(function(p){ return p.catId === c.id; });
+      if (ps.length === 0) return;
+      html += ppRenderCatBlock(c, ps);
+    });
+    /* 未归类的试卷 */
+    var uncat = list.filter(function(p){ return !p.catId || !cats.some(function(c){ return c.id === p.catId; }); });
+    if (uncat.length > 0){
+      html += ppRenderCatBlock({ id: "", name: "📁 未归类", emoji: "📁" }, uncat);
+    }
+  } else {
+    list.slice().reverse().forEach(function(p){ html += ppRenderCard(p); });
+  }
   wrap.innerHTML = html;
 }
+
+function ppRenderCatBlock(c, ps){
+  var audioN = 0, pdfSize = 0;
+  ps.forEach(function(p){ audioN += (p.audios || []).length; pdfSize += p.pdfSize || 0; });
+  var html = '<div class="pp-cat-block">' +
+    '<div class="pp-cat-head">' +
+      '<span class="pp-cat-emoji">' + (c.emoji || "🗂") + '</span>' +
+      '<span class="pp-cat-name">' + ppEsc(c.name) + '</span>' +
+      '<span class="pp-cat-meta">' + ps.length + ' 套 · ' + ppFmtSize(pdfSize) + '</span>' +
+    '</div>' +
+    '<div class="pp-cat-list">';
+  ps.slice().reverse().forEach(function(p){ html += ppRenderCard(p); });
+  html += '</div></div>';
+  return html;
+}
+
+function ppRenderCard(p){
+  var audioN = (p.audios || []).length;
+  var pdfSize = ppFmtSize(p.pdfSize || 0);
+  var catOpts = ppCatOptionsHTML(p.catId || "", false);
+  return '<div class="pp-card">' +
+    '<button class="pp-card-main" type="button" onclick="ppOpen(\'' + p.id + '\')">' +
+      '<span class="pp-card-emoji">📄</span>' +
+      '<span class="pp-card-info">' +
+        '<span class="pp-card-name">' + ppEsc(p.name) + '</span>' +
+        '<span class="pp-card-meta">' + (p.pages || 0) + ' 页 · ' + pdfSize +
+          (audioN > 0 ? ' · 🎧 ' + audioN + ' 段听力' : '') +
+        '</span>' +
+      '</span>' +
+      '<span class="pp-card-go">开始做 →</span>' +
+    '</button>' +
+    '<select class="pp-cat-select" title="移入专题" onchange="ppModifyCat(\'' + p.id + '\', this.value)">' + catOpts + '</select>' +
+    '<button class="pp-card-del" type="button" title="删除试卷" onclick="ppDelete(\'' + p.id + '\')">🗑</button>' +
+  '</div>';
+}
+
 
 function ppFmtSize(n){
   if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
@@ -112,19 +163,43 @@ function ppEsc(s){
 }
 
 /* ---------- 添加试卷 ---------- */
+function ppCatOptionsHTML(selectedId, withNew){
+  var cats = ppCats();
+  var opts = '<option value=""' + (selectedId === "" ? " selected" : "") + '>（不分类）</option>';
+  cats.forEach(function(c){
+    opts += '<option value="' + c.id + '"' + (selectedId === c.id ? " selected" : "") + '>' + ppEsc(c.name) + '</option>';
+  });
+  if (withNew){
+    opts += '<option value="__new__"' + (selectedId === "__new__" ? " selected" : "") + '>（＋ 新建专题…）</option>';
+  }
+  return opts;
+}
+
+function ppOnCatSelect(){
+  var sel = document.getElementById("ppCat");
+  var inp = document.getElementById("ppNewCatName");
+  if (!sel || !inp) return;
+  inp.style.display = sel.value === "__new__" ? "" : "none";
+}
+
 function ppOpenAdd(){
   var dlg = document.getElementById("ppDialog");
   var mask = document.getElementById("ppMask");
   if (!dlg || !mask) return;
+  dlg.className = "pp-dialog";
   dlg.innerHTML =
     '<div class="pp-dlg-head">' +
       '<span class="pp-cap">📄 添加专项试卷</span>' +
       '<button class="pp-close" type="button" onclick="ppClose()">×</button>' +
     '</div>' +
     '<div class="pp-dlg-body">' +
-      '<div class="pp-add-tip">上传 PDF 原卷直接开做（扫描件、图片版都能看），听力 mp3 可同时选多个或后补。</div>' +
+      '<div class="pp-add-tip">上传 PDF 原卷直接开做（扫描件、图片版都能看），听力 mp3 可同时选多个或后补。选好专题，试卷就不会混在一起。</div>' +
+      '<div class="pp-add-row"><label>🗂 专题</label>' +
+        '<select id="ppCat" onchange="ppOnCatSelect()">' + ppCatOptionsHTML("", true) + '</select>' +
+        '<input type="text" id="ppNewCatName" placeholder="新专题名称，如：四年级上册专项试卷" maxlength="20" style="display:none">' +
+      '</div>' +
       '<div class="pp-add-row"><label>试卷名称</label>' +
-        '<input type="text" id="ppName" placeholder="如：四年级上册专项试卷 - 期中检测卷1" maxlength="40"></div>' +
+        '<input type="text" id="ppName" placeholder="如：期中检测卷1（含答案）" maxlength="40"></div>' +
       '<div class="pp-add-row"><label>📄 试卷 PDF</label>' +
         '<input type="file" id="ppPdfInput" accept=".pdf,application/pdf"></div>' +
       '<div class="pp-add-row"><label>🎧 听力音频（可多选/可不选）</label>' +
@@ -151,6 +226,23 @@ function ppSaveAdd(){
     ppToast("只能上传 .pdf 试卷文件");
     return;
   }
+
+  /* 解析专题 */
+  var catId = "";
+  var catSel = document.getElementById("ppCat");
+  if (catSel){
+    if (catSel.value === "__new__"){
+      var newName = (document.getElementById("ppNewCatName").value || "").trim();
+      if (!newName){ ppToast("请填写新专题名称，或选择已有专题"); return; }
+      var cats = ppCats();
+      var exist = cats.filter(function(c){ return c.name === newName; })[0];
+      if (exist){ catId = exist.id; }
+      else { catId = ppUid(); cats.push({ id: catId, name: newName }); ppSaveCats(cats); }
+    } else {
+      catId = catSel.value || "";
+    }
+  }
+
   var audios = audioInput.files ? Array.prototype.slice.call(audioInput.files) : [];
   var pid = ppUid();
   var audioList = audios.map(function(f){ return { name: f.name }; });
@@ -175,9 +267,9 @@ function ppSaveAdd(){
       })
       .then(function(){
         var meta = ppMeta();
-        meta.push({ id: pid, name: name, pages: 0, pdfSize: pdfFile.size, audios: audioList, created: Date.now() });
+        meta.push({ id: pid, name: name, catId: catId, pages: 0, pdfSize: pdfFile.size, audios: audioList, created: Date.now() });
         ppSaveMeta(meta);
-        ppToast("试卷已保存：" + name + (audioList.length ? "（含 " + audioList.length + " 段听力）" : ""));
+        ppToast("试卷已保存：" + name + (catId ? "（归入「" + ppCatName(catId) + "」）" : "") + (audioList.length ? "，含 " + audioList.length + " 段听力" : ""));
         ppClose();
         if (typeof xqRender === "function") xqRender();
         ppRender();
@@ -188,6 +280,92 @@ function ppSaveAdd(){
   };
   reader.onerror = function(){ ppToast("读取 PDF 失败"); };
   reader.readAsArrayBuffer(pdfFile);
+}
+
+/* ---------- 专题管理 ---------- */
+function ppManageCats(){
+  var dlg = document.getElementById("ppDialog");
+  var mask = document.getElementById("ppMask");
+  if (!dlg || !mask) return;
+  var cats = ppCats();
+  var list = ppMeta();
+  var rows = "";
+  if (cats.length === 0){
+    rows = '<div class="pp-cat-none">还没有专题。在下方输入名称点「＋ 新建」，比如「四年级上册专项试卷」。</div>';
+  }
+  cats.forEach(function(c){
+    var n = list.filter(function(p){ return p.catId === c.id; }).length;
+    rows += '<div class="pp-cat-row">' +
+      '<span class="pp-cat-row-name">🗂 ' + ppEsc(c.name) + '</span>' +
+      '<span class="pp-cat-row-meta">' + n + ' 套试卷</span>' +
+      '<button class="pp-btn sm" type="button" onclick="ppRenameCat(\'' + c.id + '\')" title="重命名">✏️</button>' +
+      '<button class="pp-btn sm" type="button" onclick="ppDeleteCat(\'' + c.id + '\')" title="删除专题">🗑</button>' +
+    '</div>';
+  });
+  dlg.className = "pp-dialog small";
+  dlg.innerHTML =
+    '<div class="pp-dlg-head">' +
+      '<span class="pp-cap">🗂 管理专题</span>' +
+      '<button class="pp-close" type="button" onclick="ppClose()">×</button>' +
+    '</div>' +
+    '<div class="pp-dlg-body">' +
+      '<div class="pp-add-tip">专题用来给试卷分组。删除专题不会删除试卷（试卷会移到「未归类」）。</div>' +
+      rows +
+      '<div class="pp-cat-newrow">' +
+        '<input type="text" id="ppNewCatName2" placeholder="新专题名称，如：四年级上册专项试卷" maxlength="20">' +
+        '<button class="pp-btn primary" type="button" onclick="ppAddCat()">＋ 新建</button>' +
+      '</div>' +
+    '</div>';
+  mask.classList.add("open");
+}
+
+function ppAddCat(){
+  var name = (document.getElementById("ppNewCatName2").value || "").trim();
+  if (!name){ ppToast("请输入专题名称"); return; }
+  var cats = ppCats();
+  if (cats.filter(function(c){ return c.name === name; })[0]){ ppToast("同名专题已存在"); return; }
+  cats.push({ id: ppUid(), name: name });
+  ppSaveCats(cats);
+  ppToast("已新建专题：" + name);
+  ppManageCats();
+  ppRender();
+}
+
+function ppRenameCat(cid){
+  var c = ppCats().filter(function(x){ return x.id === cid; })[0];
+  if (!c) return;
+  var name = prompt("重命名专题：", c.name);
+  if (!name || !name.trim() || name.trim() === c.name) return;
+  name = name.trim();
+  var cats = ppCats();
+  cats.forEach(function(x){ if (x.id === cid) x.name = name; });
+  ppSaveCats(cats);
+  ppToast("已重命名为：" + name);
+  ppManageCats();
+  ppRender();
+}
+
+function ppDeleteCat(cid){
+  var c = ppCats().filter(function(x){ return x.id === cid; })[0];
+  if (!c) return;
+  var n = ppMeta().filter(function(p){ return p.catId === cid; }).length;
+  if (!confirm("删除专题「" + c.name + "」？\n" + (n > 0 ? "该专题下 " + n + " 套试卷会移到「未归类」，试卷本身不会被删除。" : "该专题下没有试卷。"))) return;
+  ppSaveCats(ppCats().filter(function(x){ return x.id !== cid; }));
+  var list = ppMeta();
+  list.forEach(function(p){ if (p.catId === cid) p.catId = ""; });
+  ppSaveMeta(list);
+  ppToast("已删除专题");
+  ppManageCats();
+  ppRender();
+}
+
+/* 把试卷移入指定专题（卡片上的下拉用） */
+function ppModifyCat(pid, catId){
+  var list = ppMeta();
+  list.forEach(function(p){ if (p.id === pid) p.catId = catId || ""; });
+  ppSaveMeta(list);
+  ppRender();
+  ppToast(catId ? "已移入「" + ppCatName(catId) + "」" : "已移到未归类");
 }
 
 function ppDelete(pid){
@@ -212,6 +390,7 @@ function ppOpen(pid){
   var mask = document.getElementById("ppMask");
   var dlg = document.getElementById("ppDialog");
   if (!mask || !dlg) return;
+  dlg.className = "pp-dialog";
 
   dlg.innerHTML =
     '<div class="pp-dlg-head pp-reader-head">' +
@@ -560,13 +739,13 @@ function ppExportPack(){
   if (!confirm("导出全部 " + list.length + " 套试卷为一个试卷包文件？\n（含 PDF、听力音频、手写笔迹，微信发送到平板后导入即可用）")) return;
 
   ppToast("正在打包，请稍候…");
-  var pack = { ver: 1, exported: new Date().toISOString(), papers: [] };
+  var pack = { ver: 1, exported: new Date().toISOString(), cats: ppCats(), papers: [] };
   var chain = Promise.resolve();
   list.forEach(function(p){
     chain = chain.then(function(){
       return (function(){
         var entry = {
-          id: p.id, name: p.name, pages: p.pages || 0, created: p.created,
+          id: p.id, name: p.name, catId: p.catId || "", pages: p.pages || 0, created: p.created,
           pdfSize: p.pdfSize || 0, audios: p.audios || []
         };
         var tasks = [];
@@ -642,6 +821,14 @@ function ppImport(input){
 
 function ppRestorePack(pack){
   if (!pack || !Array.isArray(pack.papers)) return Promise.resolve(false);
+  /* 合并专题（按 id 去重） */
+  if (Array.isArray(pack.cats)){
+    var cats = ppCats();
+    pack.cats.forEach(function(c){
+      if (!cats.filter(function(x){ return x.id === c.id; })[0]) cats.push({ id: c.id, name: c.name });
+    });
+    ppSaveCats(cats);
+  }
   var meta = ppMeta();
   var chain = Promise.resolve();
   pack.papers.forEach(function(p, _idx){
@@ -663,7 +850,7 @@ function ppRestorePack(pack){
         return Promise.all(writes).then(function(){
           var exists = meta.filter(function(m){ return m.id === pid; })[0];
           if (!exists) meta.push({
-            id: pid, name: p.name || "导入试卷",
+            id: pid, name: p.name || "导入试卷", catId: p.catId || "",
             pages: p.pages || 0, pdfSize: p.pdfSize || 0,
             audios: p.audios || [], created: p.created || Date.now()
           });
