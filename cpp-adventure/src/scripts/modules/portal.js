@@ -1,5 +1,5 @@
 /* ---------------- 门户 portal.js：学科视图路由与首页统计 ---------------- */
-var PORTAL_VIEWS = ["home", "cpp", "english", "checkin", "notes"];
+var PORTAL_VIEWS = ["home", "cpp", "english", "checkin", "notes", "books"];
 var PORTAL_KEY = "portalLastView";
 
 function portalCurrentView(){
@@ -33,6 +33,7 @@ function portalApply(view, push){
   if (typeof checkinOnViewChange === "function") checkinOnViewChange(view === "checkin");
   if (view === "english" && typeof eqOnEnter === "function") eqOnEnter();
   if (view === "notes" && typeof ntOnEnter === "function") ntOnEnter();
+  if (view === "books" && typeof bkOnEnter === "function") bkOnEnter();
   if (view === "home") portalRenderHomeStats();
   portalRenderTopbar();
   window.scrollTo(0, 0);

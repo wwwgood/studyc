@@ -24,6 +24,7 @@
     <a href="#/cpp" data-view="cpp">💻 信息学</a>
     <a href="#/english" data-view="english">🔤 英语</a>
     <a href="#/checkin" data-view="checkin">📅 每日打卡</a>
+    <a href="#/books" data-view="books">📚 电子课本</a>
     <a href="#/notes" data-view="notes">📌 重要消息</a>
   </nav>
   <button class="portal-user" id="portalShopBtn" type="button" onclick="openShop()" title="奖品店">🎁 奖品店</button>
@@ -1218,6 +1219,28 @@
     </section>
     <div id="ntPageContent"></div>
   </div>
+
+  <!-- ============ 电子课本 ============ -->
+  <div id="view-books" class="app-view">
+    <section class="bk-hero">
+      <h1>📚 电子课本</h1>
+      <p class="tagline">上传 PDF / 图片 / Word 电子课本，原样展示 + 手写标注。所有文件存在本地浏览器，不用联网。</p>
+    </section>
+    <div class="bk-panel" id="bkPanel">
+      <div class="bk-head">
+        <span class="bk-title">📚 我的课本架</span>
+        <span class="bk-sub">PDF 原样展示 · 图片直接看 · Word 转 HTML · 手写标注 · 离线可用</span>
+        <div class="bk-actions">
+          <button class="bk-btn sm primary" type="button" onclick="bkOpenAdd()">＋ 添加课本</button>
+          <button class="bk-btn sm" type="button" onclick="bkManageCats()">🗂 管理分类</button>
+          <button class="bk-btn sm" type="button" onclick="bkExportPack()">📦 导出课本包</button>
+          <label class="bk-btn sm" for="bkImportInput">📥 导入课本包</label>
+          <input type="file" id="bkImportInput" accept=".json,application/json" style="display:none" onchange="bkImport(this)">
+        </div>
+      </div>
+      <div class="bk-list" id="bkList"></div>
+    </div>
+  </div>
 </main>
 
 <footer>🎓 梓煜学习空间站 · 信息学 + 英语 + 每日打卡 · 所有进度保存在这台设备，不用联网也能玩。</footer>
@@ -1261,6 +1284,7 @@
   <script src="scripts/modules/bank-admin.js"></script>
   <script src="scripts/modules/sync.js"></script>
   <script src="scripts/modules/papers.js"></script>
+  <script src="scripts/modules/books.js"></script>
   <script src="scripts/modules/notes.js"></script>
   <script src="scripts/modules/awards.js"></script>
   <script src="scripts/modules/checkin.js"></script>
@@ -1313,6 +1337,9 @@
 </div>
 <div class="pp-mask" id="ppMask">
   <div class="pp-dialog" id="ppDialog" role="dialog" aria-modal="true" aria-label="专项试卷"></div>
+</div>
+<div class="bk-mask" id="bkMask">
+  <div class="bk-dialog" id="bkDialog" role="dialog" aria-modal="true" aria-label="电子课本"></div>
 </div>
 
 </body>
