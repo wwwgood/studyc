@@ -47,6 +47,7 @@ function rqRender(){
 var RQ_SESSION = null;
 
 function rqOpen(pid){
+  rqStopSpeak();
   var p = READ_DATA.passages.filter(function(x){ return x.id === pid; })[0];
   if (!p) return;
   RQ_SESSION = { passage: p, idx: 0, wrong: 0, combo: 0, phase: "read" };
@@ -57,7 +58,7 @@ function rqOpen(pid){
 
 function rqRenderRead(){
   var p = RQ_SESSION.passage;
-  var speakBtn = p.body.length < 300 ? '<button class="rq-speak-btn" type="button" onclick="rqSpeak()">🔊 朗读全文</button>' : '';
+  var speakBtn = p.body.length < 300 ? '<button class="rq-speak-btn" id="rqSpeakBtn" type="button" onclick="rqSpeak()">🔊 朗读全文</button>' : '';
   document.getElementById("rqDialog").innerHTML =
     '<div class="rq-dlg-head">' +
       '<span class="rq-cap">📖 ' + p.title + '</span>' +
@@ -68,20 +69,42 @@ function rqRenderRead(){
       speakBtn +
       '<button class="rq-start-btn" type="button" onclick="rqStartQuiz()">开始答题 →</button>' +
     '</div>';
+  rqRenderSpeakBtn();
 }
 
+/* ---------- 朗读控制（可中途停止） ---------- */
+var rqSpeaking = false;
+
+function rqStopSpeak(){
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e){}
+  rqSpeaking = false;
+  rqRenderSpeakBtn();
+}
+function rqRenderSpeakBtn(){
+  var btn = document.getElementById("rqSpeakBtn");
+  if (!btn) return;
+  btn.textContent = rqSpeaking ? "⏹ 停止朗读" : "🔊 朗读全文";
+  btn.classList.toggle("speaking", !!rqSpeaking);
+}
+
+/* 朗读全文：点一下开始，正在读时再点一下即停止 */
 function rqSpeak(){
   try {
     if (!window.speechSynthesis) return;
+    if (rqSpeaking){ rqStopSpeak(); return; }
+    if (!RQ_SESSION || !RQ_SESSION.passage) return;
     var u = new SpeechSynthesisUtterance(RQ_SESSION.passage.body);
-    u.lang = "en-US";
-    u.rate = 0.85;
+    u.lang = "en-US"; u.rate = 0.85;
+    u.onend = function(){ rqSpeaking = false; rqRenderSpeakBtn(); };
+    u.onerror = function(){ rqSpeaking = false; rqRenderSpeakBtn(); };
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
+    rqSpeaking = true; rqRenderSpeakBtn();
   } catch(e){}
 }
 
 function rqStartQuiz(){
+  rqStopSpeak();
   RQ_SESSION.phase = "quiz";
   RQ_SESSION.idx = 0;
   RQ_SESSION.wrong = 0;
@@ -171,6 +194,7 @@ function rqFinish(){
 }
 
 function rqClose(){
+  rqStopSpeak();
   var mask = document.getElementById("rqDialogMask");
   if (mask) mask.classList.remove("open");
   document.body.style.overflow = "";

@@ -77,6 +77,7 @@ var BA_UNITS = [
 
 /* ---------- 打开/关闭 ---------- */
 function baOpen(){
+  try { baRestoreImported(); } catch(e){}
   baRender();
   document.getElementById("baDialogMask").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -188,8 +189,9 @@ function baRenderImport(){
     '</div>' +
     '<div class="ba-config-row">' +
       '<label>专题章节</label>' +
-      '<select id="baModuleTopic" onchange="baUpdateModuleTopic()"></select>' +
-      '<span class="ba-config-tip">选语法→对应12章，选词汇→对应20单元，其他模块不指定</span>' +
+      /* 注意：这里不能再挂 baUpdateModuleTopic()，否则一选就被重建、跳回「不指定」 */
+      '<select id="baModuleTopic" onchange="baOnTopicChange()"></select>' +
+      '<span class="ba-config-tip" id="baTopicTip">选语法→对应12章，选词汇→对应20单元，其他模块不指定</span>' +
     '</div>' +
     '<div class="ba-config-row">' +
       '<label>来源</label><select id="baSource"><option value="真题" selected>真题</option><option value="自编">自编</option></select>' +
@@ -225,24 +227,117 @@ function baUpdateModules(){
   baUpdateModuleTopic();
 }
 
-/* 根据选中的模块，动态生成「专题章节」下拉：语法→12章 / 词汇→20单元 / 其他→不指定 */
+/* 记住每个模块上次选的章节，避免重绘后被清空 */
+var BA_TOPIC_MEM = { _module: "" };
+
+function baTopicList(module){
+  if (module === "grammar") return BA_CHAPTERS;
+  if (module === "vocab") return BA_UNITS;
+  return [];
+}
+
+/* 根据选中的模块，动态生成「专题章节」下拉：语法→12章 / 词汇→20单元 / 其他→不指定
+ * 重建时会尽量保留用户已选中的章节（原来一选就被重置成「不指定」，就是这个坑） */
 function baUpdateModuleTopic(){
   var sel = document.getElementById("baModule");
   var topicSel = document.getElementById("baModuleTopic");
   if (!sel || !topicSel) return;
-  var module = sel.value;
-  if (!module && sel.options.length > 0) module = sel.options[0].value;
+  var module = sel.value || (sel.options.length > 0 ? sel.options[0].value : "");
+  var sameModule = (BA_TOPIC_MEM._module === module);
+  var prev = sameModule ? topicSel.value : "";
+  var list = baTopicList(module);
+
   var opts = '<option value="0">— 不指定 —</option>';
-  if (module === "grammar"){
-    BA_CHAPTERS.forEach(function(c){
-      opts += '<option value="' + c.id + '">' + c.name + '</option>';
-    });
-  } else if (module === "vocab"){
-    BA_UNITS.forEach(function(u){
-      opts += '<option value="' + u.id + '">' + u.name + '</option>';
-    });
-  }
+  list.forEach(function(item){
+    opts += '<option value="' + item.id + '">' + item.name + '</option>';
+  });
   topicSel.innerHTML = opts;
+
+  /* 恢复选择：优先当前值，其次该模块上次记住的值 */
+  var keep = prev || (BA_TOPIC_MEM[module] || "");
+  if (keep && String(keep) !== "0"){
+    var hit = false;
+    for (var i = 0; i < topicSel.options.length; i++){
+      if (topicSel.options[i].value === String(keep)){ hit = true; break; }
+    }
+    if (hit) topicSel.value = String(keep);
+  }
+  BA_TOPIC_MEM._module = module;
+  baUpdateTopicTip();
+}
+
+/* 用户手动切换专题章节：只做记录 + 刷新提示，绝不重建下拉 */
+function baOnTopicChange(){
+  var sel = document.getElementById("baModule");
+  var topicSel = document.getElementById("baModuleTopic");
+  if (!sel || !topicSel) return;
+  var module = sel.value || (sel.options.length > 0 ? sel.options[0].value : "");
+  BA_TOPIC_MEM._module = module;
+  BA_TOPIC_MEM[module] = topicSel.value;
+  baUpdateTopicTip();
+  baRefreshAssignLabels();
+}
+
+function baUpdateTopicTip(){
+  var tip = document.getElementById("baTopicTip");
+  var topicSel = document.getElementById("baModuleTopic");
+  if (!tip || !topicSel) return;
+  var v = parseInt(topicSel.value, 10) || 0;
+  if (v === 0){
+    tip.textContent = "选语法→对应12章，选词汇→对应20单元，其他模块不指定（当前：不指定，将按自动识别的考点归类）";
+  } else {
+    var label = topicSel.options[topicSel.selectedIndex] ? topicSel.options[topicSel.selectedIndex].text : ("第" + v + "章");
+    tip.textContent = "已指定：" + label + " —— 导入时这批题统一归入该章节";
+  }
+}
+
+/* ---------- 归属判定：预览与导入共用同一套规则，避免两处口径不一致 ---------- */
+/* 优先级：① 单题「手动归类」 ② 用户在「专题章节」明确指定 ③ 自动识别考点 ④ 兜底用所选模块 */
+function baGetImportDefaults(){
+  var subjEl = document.getElementById("baSubject");
+  var modEl = document.getElementById("baModule");
+  var topicEl = document.getElementById("baModuleTopic");
+  return {
+    subject: subjEl ? subjEl.value : "english",
+    module: modEl ? (modEl.value || (modEl.options.length ? modEl.options[0].value : "")) : "",
+    topicId: topicEl ? (parseInt(topicEl.value, 10) || 0) : 0
+  };
+}
+
+function baResolveTarget(q, def, validMods){
+  if (q && q.kpOverride && q.kpOverrideModule &&
+      (!validMods || validMods.indexOf(q.kpOverrideModule) >= 0)){
+    return { module: q.kpOverrideModule, topicId: q.kpOverrideTopicId || 0, by: "手动归类" };
+  }
+  if (def && def.topicId > 0){
+    return { module: def.module, topicId: def.topicId, by: "指定章节" };
+  }
+  if (q && q.kpModule && (!validMods || validMods.indexOf(q.kpModule) >= 0) &&
+      typeof q.kpTopicId === "number"){
+    return { module: q.kpModule, topicId: q.kpTopicId, by: "自动考点" };
+  }
+  return { module: def ? def.module : "", topicId: 0, by: "模块默认" };
+}
+
+/* 预览区已渲染时，改动「专题章节」可实时刷新每题的归入提示 */
+function baRefreshAssignLabels(){
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  var def = baGetImportDefaults();
+  var validMods = (BA_MODULES[def.subject] || []).map(function(m){ return m.id; });
+  preview._questions.forEach(function(q, i){
+    var item = document.getElementById("ba-item-" + i);
+    if (!item) return;
+    var box = item.querySelector(".ba-preview-assign");
+    if (!box) return;
+    var tgt = baResolveTarget(q, def, validMods);
+    var kpText = q.kpOverride ? ('<b>' + baEsc(q.kpOverride) + '</b>（手动）')
+      : (q.kp && q.kp.length ? ('<b>' + baEsc(q.kp[0]) + '</b>（自动）') : '<i>未识别</i>');
+    box.innerHTML = '📌 归入：' + kpText +
+      ' → ' + baEsc(def.subject) + ' / ' + baEsc(tgt.module) +
+      ' · 章节 <b>' + baEsc(baTopicLabel(tgt.module, tgt.topicId)) + '</b>' +
+      '（' + tgt.by + '）';
+  });
 }
 
 /* ---------- 文件处理（支持多文件） ---------- */
@@ -961,6 +1056,8 @@ function baParseAndPreview(){
     baToast("未解析到题目，请检查格式");
     return;
   }
+  /* 每题默认「采纳」，解析错的可单独取消，不会被导入 */
+  questions.forEach(function(q){ if (q._pick === undefined) q._pick = true; });
 
   var preview = document.getElementById("baPreview");
   var html = '<div class="ba-preview-head">✅ 解析到 ' + questions.length + ' 道题';
@@ -985,22 +1082,21 @@ function baParseAndPreview(){
     html += '</div>';
   }
 
-  var kpCounts = {};
-  var kpUnknown = 0;
-  questions.forEach(function(q){
-    if (q.kp && q.kp.length) kpCounts[q.kp[0]] = (kpCounts[q.kp[0]] || 0) + 1;
-    else kpUnknown++;
-  });
-  var kpKeys = Object.keys(kpCounts).sort(function(a, b){ return kpCounts[b] - kpCounts[a]; });
-  if (kpKeys.length > 0 || kpUnknown > 0){
-    html += '<div class="ba-kp-summary"><b>🎯 考点分布：</b>';
-    kpKeys.forEach(function(k){
-      html += '<span class="ba-kp-chip">' + k + ' ×' + kpCounts[k] + '</span>';
-    });
-    if (kpUnknown > 0) html += '<span class="ba-kp-chip unknown">❓ 未识别 ×' + kpUnknown + '</span>';
-    html += '</div>';
-    if (kpUnknown > 0) html += '<div class="ba-kp-hint">💡 未识别考点的题将按上方「专题章节」导入；带解析的试卷识别率更高。</div>';
-  }
+  /* 考点分布：每个标签都可点击，点了直接跳到对应题目（含「未识别」） */
+  html += baKpSummaryHtml(questions);
+  html += '<div class="ba-kp-nav" id="baKpNav" style="display:none"></div>';
+
+  var def = baGetImportDefaults();
+  var defValidMods = (BA_MODULES[def.subject] || []).map(function(m){ return m.id; });
+
+  /* 采纳控制条：解析错的题直接取消勾选，就不会被导入 */
+  html += '<div class="ba-pick-bar">' +
+    '<span class="ba-pick-count">☑️ 已采纳 <b id="baPickCount">' + questions.length + '</b> / ' + questions.length +
+      ' 道　<span class="ba-pick-tip">解析错的题，取消该题上的「采纳」就不会导入</span></span>' +
+    '<button type="button" class="ba-pick-btn" onclick="baPickAll(true)">全选</button>' +
+    '<button type="button" class="ba-pick-btn" onclick="baPickAll(false)">全不选</button>' +
+    '<button type="button" class="ba-pick-btn" onclick="baPickInvert()">反选</button>' +
+  '</div>';
 
   html += '<div class="ba-preview-list">';
   questions.forEach(function(q, i){
@@ -1010,17 +1106,24 @@ function baParseAndPreview(){
     var whyAutoBadge = q.whyAuto ? '<span class="ba-why-auto">⚡自动解析</span>' : '';
     var kpHtml = "";
     if (q.kp && q.kp.length){
-      kpHtml = '<div class="ba-preview-kp">🎯 考点：' + q.kp[0] + (q.kpConfidence ? '<span class="ba-kp-src">' + q.kpConfidence + '</span>' : '') + '</div>';
+      kpHtml = '<div class="ba-preview-kp">🎯 考点：' + baEsc(q.kp[0]) + (q.kpConfidence ? '<span class="ba-kp-src">' + baEsc(q.kpConfidence) + '</span>' : '') + '</div>';
     }
     var kpSelect = '<div class="ba-kp-edit"><label>手动归类：</label><select class="ba-kp-select" onchange="baSetKp(' + i + ', this)">' + baKpSelectOptions(q.kp && q.kp[0] ? q.kp[0] : "") + '</select></div>';
-    var curModule = document.getElementById("baModule").value;
-    var curTopicId = parseInt(document.getElementById("baModuleTopic").value) || 0;
-    var topicLabel = baTopicLabel(q.kpModule || q.kpOverrideModule || curModule, q.kpTopicId || q.kpOverrideTopicId || curTopicId);
-    var assignHtml = '<div class="ba-preview-assign">📌 归入：' + (q.kpOverride ? ('<b>' + q.kpOverride + '</b>（手动）') : (q.kp ? ('<b>' + q.kp[0] + '</b>（自动）') : '<i>未识别</i>')) + ' → 专题章节 <b>' + topicLabel + '</b></div>';
+    var tgt = baResolveTarget(q, def, defValidMods);
+    var kpText = q.kpOverride ? ('<b>' + baEsc(q.kpOverride) + '</b>（手动）')
+      : (q.kp && q.kp.length ? ('<b>' + baEsc(q.kp[0]) + '</b>（自动）') : '<i>未识别</i>');
+    var assignHtml = '<div class="ba-preview-assign">📌 归入：' + kpText +
+      ' → ' + baEsc(def.subject) + ' / ' + baEsc(tgt.module) +
+      ' · 章节 <b>' + baEsc(baTopicLabel(tgt.module, tgt.topicId)) + '</b>（' + tgt.by + '）</div>';
     var ansEditor = baAnsEditorFor(q, i);
     var whyEditor = '<div class="ba-why-edit"><label>解析：</label><textarea class="ba-why-input" rows="2" placeholder="粘贴或录入解析（可留空）" onchange="baSetWhy(' + i + ', this.value)">' + baEsc(q.why || "") + '</textarea></div>';
-    html += '<div class="ba-preview-item" id="ba-item-' + i + '">' +
-      '<div class="ba-preview-q"><span class="ba-qtype-tag">' + typeLabel + '</span>' + (i + 1) + '. ' + q.q + '</div>' +
+    html += '<div class="ba-preview-item' + (q._pick === false ? ' ba-item-skip' : '') + '" id="ba-item-' + i + '">' +
+      '<div class="ba-item-top">' +
+        '<span class="ba-qtype-tag">' + typeLabel + '</span>' +
+        '<label class="ba-item-pick"><input type="checkbox"' + (q._pick === false ? '' : ' checked') +
+          ' onchange="baSetPick(' + i + ', this.checked)"> 采纳这道题</label>' +
+      '</div>' +
+      '<div class="ba-preview-q">' + (i + 1) + '. ' + q.q + '</div>' +
       '<div class="ba-preview-opts">' + baRenderOptsHtml(q) + '</div>' +
       '<div class="ba-preview-badges">' + ansBadge + whyAutoBadge + '</div>' +
       ansEditor +
@@ -1034,6 +1137,256 @@ function baParseAndPreview(){
   html += '<button class="ba-import-btn" type="button" onclick="baDoImport()">📥 确认导入题库</button>';
   preview.innerHTML = html;
   preview._questions = questions;
+  BA_KP_FOCUS = { key: null, idxs: [], pos: -1 };
+}
+
+/* ---------- 考点分布条 + 点击定位 ----------
+ * 考点标签（含「❓ 未识别」）都可点击：点了直接跳到那一类题目，
+ * 高亮所有同类题，并提供 上一处 / 下一处 逐题跳转，方便快速补考点。
+ */
+var BA_KP_FOCUS = { key: null, idxs: [], pos: -1 };
+var BA_KP_UNKNOWN = "__unknown__";
+
+/* 题目归入哪个考点名（手动归类优先） */
+function baKpNameOf(q){
+  if (!q) return "";
+  if (q.kpOverride) return q.kpOverride;
+  return (q.kp && q.kp.length) ? q.kp[0] : "";
+}
+
+function baKpMatch(q, key){
+  if (key === BA_KP_UNKNOWN) return baKpNameOf(q) === "";
+  return baKpNameOf(q) === key;
+}
+
+function baKpSummaryHtml(questions){
+  if (!questions || !questions.length) return '<div id="baKpSummaryBox"></div>';
+  var kpCounts = {};
+  var kpUnknown = 0;
+  questions.forEach(function(q){
+    var name = baKpNameOf(q);
+    if (name) kpCounts[name] = (kpCounts[name] || 0) + 1;
+    else kpUnknown++;
+  });
+  var kpKeys = Object.keys(kpCounts).sort(function(a, b){ return kpCounts[b] - kpCounts[a]; });
+  if (kpKeys.length === 0 && kpUnknown === 0) return '<div id="baKpSummaryBox"></div>';
+
+  var html = '<div id="baKpSummaryBox">';
+  html += '<div class="ba-kp-summary"><b>🎯 考点分布：</b>';
+  kpKeys.forEach(function(k){
+    html += '<span class="ba-kp-chip" title="点击定位到这类题" onclick="baLocateKp(\'' +
+      String(k).replace(/'/g, "\\'") + '\')">' + baEsc(k) + ' ×' + kpCounts[k] + '</span>';
+  });
+  if (kpUnknown > 0){
+    html += '<span class="ba-kp-chip unknown" title="点击定位到未识别的题目" onclick="baLocateKp(\'' +
+      BA_KP_UNKNOWN + '\')">❓ 未识别 ×' + kpUnknown + '</span>';
+  }
+  html += '</div>';
+  if (kpUnknown > 0){
+    html += '<div class="ba-kp-hint">💡 点上面的「❓ 未识别 ×' + kpUnknown +
+      '」可逐题跳到未识别的题目，用该题下方的「手动归类」补考点；未指定专题章节时，未识别的题只归入所选模块。</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* 重算考点分布（手动归类后数字要跟着变） */
+function baRefreshKpSummary(){
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  var box = document.getElementById("baKpSummaryBox");
+  if (!box) return;
+  box.outerHTML = baKpSummaryHtml(preview._questions);
+}
+
+/* 点击考点标签：定位到这一类题目 */
+function baLocateKp(key){
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  var qs = preview._questions;
+  var idxs = [];
+  for (var i = 0; i < qs.length; i++){
+    if (baKpMatch(qs[i], key)) idxs.push(i);
+  }
+  if (idxs.length === 0){ baToast("这一类当前没有题目"); return; }
+  baKpFocusClear();
+  BA_KP_FOCUS = { key: key, idxs: idxs, pos: -1 };
+  for (var j = 0; j < idxs.length; j++){
+    var el = document.getElementById("ba-item-" + idxs[j]);
+    if (el) el.classList.add("ba-item-focus");
+  }
+  var nav = document.getElementById("baKpNav");
+  if (nav) nav.style.display = "";
+  baKpFocusStep(1);
+}
+
+/* 上一处 / 下一处 */
+function baKpFocusStep(step){
+  var f = BA_KP_FOCUS;
+  if (!f || !f.idxs.length) return;
+  var oldEl = f.pos >= 0 ? document.getElementById("ba-item-" + f.idxs[f.pos]) : null;
+  if (oldEl){ oldEl.classList.remove("ba-item-focus-cur"); oldEl.classList.remove("ba-item-flash"); }
+  if (step > 0) f.pos = (f.pos >= f.idxs.length - 1) ? 0 : f.pos + 1;
+  else if (step < 0) f.pos = (f.pos <= 0) ? f.idxs.length - 1 : f.pos - 1;
+  else if (f.pos < 0) f.pos = 0;   // step=0：停在当前位置，只重绘高亮
+
+  var el = document.getElementById("ba-item-" + f.idxs[f.pos]);
+  if (el){
+    el.classList.add("ba-item-focus-cur");
+    el.classList.remove("ba-item-flash");
+    /* 重新触发闪烁动画 */
+    void el.offsetWidth;
+    el.classList.add("ba-item-flash");
+    if (typeof el.scrollIntoView === "function"){
+      try { el.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      catch(e){ try { el.scrollIntoView(); } catch(e2){} }
+    }
+    var kpSel = el.querySelector(".ba-kp-select");
+    if (kpSel) kpSel.classList.add("ba-kp-select-hl");
+  }
+  var nav = document.getElementById("baKpNav");
+  if (nav){
+    var label = (f.key === BA_KP_UNKNOWN) ? "未识别考点" : f.key;
+    nav.innerHTML = '<span class="ba-kp-nav-text">🔎 正在定位：<b>' + baEsc(label) +
+      '</b>　第 ' + (f.pos + 1) + ' / ' + f.idxs.length + ' 道</span>' +
+      '<button type="button" class="ba-kp-nav-btn" onclick="baKpFocusStep(-1)">← 上一处</button>' +
+      '<button type="button" class="ba-kp-nav-btn" onclick="baKpFocusStep(1)">下一处 →</button>' +
+      '<button type="button" class="ba-kp-nav-btn ghost" onclick="baKpFocusClear()">清除定位</button>';
+  }
+}
+
+/* 清除高亮（keepNav=true 时保留导航条，供重算用） */
+function baKpFocusClear(keepNav){
+  var f = BA_KP_FOCUS;
+  if (f && f.idxs.length){
+    for (var i = 0; i < f.idxs.length; i++){
+      var el = document.getElementById("ba-item-" + f.idxs[i]);
+      if (!el) continue;
+      el.classList.remove("ba-item-focus", "ba-item-focus-cur", "ba-item-flash");
+      var s = el.querySelector(".ba-kp-select");
+      if (s) s.classList.remove("ba-kp-select-hl");
+    }
+  }
+  BA_KP_FOCUS = { key: null, idxs: [], pos: -1 };
+  var nav = document.getElementById("baKpNav");
+  if (nav && !keepNav){ nav.style.display = "none"; nav.innerHTML = ""; }
+}
+
+/* 手动归类后重算定位集合：已修好的题从「未识别」里移除 */
+function baKpFocusRefresh(){
+  var f = BA_KP_FOCUS;
+  if (!f || !f.key) return;
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  var key = f.key, pos = f.pos;
+  var idxs = [];
+  preview._questions.forEach(function(q, i){ if (baKpMatch(q, key)) idxs.push(i); });
+  baKpFocusClear(true);
+  if (idxs.length === 0){
+    baToast("这一类已全部处理完 ✅");
+    var nav = document.getElementById("baKpNav");
+    if (nav){ nav.style.display = "none"; nav.innerHTML = ""; }
+    return;
+  }
+  BA_KP_FOCUS = { key: key, idxs: idxs, pos: -1 };
+  idxs.forEach(function(i){
+    var el = document.getElementById("ba-item-" + i);
+    if (el) el.classList.add("ba-item-focus");
+  });
+  /* 尽量停在原来那道题附近 */
+  var wantIdx = (pos >= 0 && pos < preview._questions.length) ? pos : idxs[0];
+  var at = idxs.indexOf(wantIdx);
+  BA_KP_FOCUS.pos = at >= 0 ? at : 0;
+  baKpFocusStep(0);
+}
+
+/* ---------- 逐题「采纳」：解析错的题可以不导入 ---------- */
+function baSetPick(i, checked){
+  var q = baGetQ(i);
+  if (!q) return;
+  q._pick = !!checked;
+  var item = document.getElementById("ba-item-" + i);
+  if (item) item.classList.toggle("ba-item-skip", !checked);
+  baUpdatePickCount();
+}
+
+function baPickAll(v){
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  preview._questions.forEach(function(q, i){
+    q._pick = v;
+    var item = document.getElementById("ba-item-" + i);
+    if (item){
+      item.classList.toggle("ba-item-skip", !v);
+      var cb = item.querySelector(".ba-item-pick input");
+      if (cb) cb.checked = v;
+    }
+  });
+  baUpdatePickCount();
+}
+
+function baPickInvert(){
+  var preview = document.getElementById("baPreview");
+  if (!preview || !preview._questions) return;
+  preview._questions.forEach(function(q, i){
+    var v = (q._pick === false);
+    q._pick = v;
+    var item = document.getElementById("ba-item-" + i);
+    if (item){
+      item.classList.toggle("ba-item-skip", !v);
+      var cb = item.querySelector(".ba-item-pick input");
+      if (cb) cb.checked = v;
+    }
+  });
+  baUpdatePickCount();
+}
+
+function baUpdatePickCount(){
+  var preview = document.getElementById("baPreview");
+  var el = document.getElementById("baPickCount");
+  if (!preview || !preview._questions || !el) return;
+  var n = 0;
+  preview._questions.forEach(function(q){ if (q._pick !== false) n++; });
+  el.textContent = n;
+}
+
+/* ---------- 导入后：告诉用户题去哪了 ---------- */
+function baSubjectName(id){
+  var s = BA_SUBJECTS.find(function(x){ return x.id === id; });
+  return s ? (s.emoji + " " + s.name) : id;
+}
+
+function baModuleName(subject, module){
+  var mods = BA_MODULES[subject] || [];
+  var m = mods.find(function(x){ return x.id === module; });
+  return m ? m.name : module;
+}
+
+/* 生成「去哪里能找到/练到」的中文路径 */
+function baWhereToFind(subject, module, topicId){
+  var sName = baSubjectName(subject);
+  var mName = baModuleName(subject, module);
+  if (topicId > 0){
+    var chap = baTopicLabel(module, topicId);
+    return sName + " → " + mName + " → 第" + topicId + "章 " + chap + "（在该章节点「专题真题训练」即可练到）";
+  }
+  return sName + " → " + mName;
+}
+
+/* 跳到浏览页，并自动筛到刚导入的科目/模块 */
+function baGoBrowse(subject, module){
+  BA_CURRENT_TAB = "browse";
+  baRender();
+  var s = document.getElementById("baBrowseSubject");
+  if (s && subject) s.value = subject;
+  baBrowseFillModules();
+  var m = document.getElementById("baBrowseModule");
+  if (m && module) m.value = module;
+  var src = document.getElementById("baBrowseSource");
+  if (src) src.value = "__imported__";
+  baBrowseFilter();
+  var mask = document.getElementById("baDialogMask");
+  if (mask) mask.classList.add("open");
 }
 
 function baApplySubject(subject){
@@ -1183,6 +1536,10 @@ function baSetKp(i, selEl){
     q.kpOverrideModule = null;
     q.kpOverrideTopicId = null;
   }
+  /* 归类改了：归入提示、考点分布数字、定位高亮都要跟着刷新 */
+  baRefreshAssignLabels();
+  baRefreshKpSummary();
+  baKpFocusRefresh();
 }
 
 function baParseText(text, answerKey){
@@ -1253,16 +1610,22 @@ function baDoImport(){
     baToast("没有可导入的题目");
     return;
   }
-  var subject = document.getElementById("baSubject").value;
-  var module = document.getElementById("baModule").value;
-  var topicId = parseInt(document.getElementById("baModuleTopic").value) || 0;
+  var all = preview._questions;
+  var questions = all.filter(function(q){ return q._pick !== false; });
+  var skipped = all.length - questions.length;
+  if (questions.length === 0){
+    baToast("没有勾选要导入的题目：请至少勾一道「采纳」，或点「全选」");
+    return;
+  }
+  var def = baGetImportDefaults();
+  var subject = def.subject;
   var source = document.getElementById("baSource").value;
   var sourceDetail = document.getElementById("baSourceDetail").value;
   var year = parseInt(document.getElementById("baYear").value) || 0;
   var region = document.getElementById("baRegion").value;
   var difficulty = parseInt(document.getElementById("baDifficulty").value) || 3;
 
-  var questions = preview._questions;
+  /* 注意：这里只导入勾选「采纳」的题，不要再用 preview._questions 覆盖 questions */
   var maxId = 0;
   if (typeof QB_DATA !== "undefined"){
     QB_DATA.questions.forEach(function(q){
@@ -1272,46 +1635,103 @@ function baDoImport(){
   }
 
   var validMods = (BA_MODULES[subject] || []).map(function(m){ return m.id; });
-  var kpImported = 0;
+  var nManual = 0, nSpec = 0, nAuto = 0, nWhy = 0;
+  var dist = {};
+  var stamp = new Date().toISOString();
 
   questions.forEach(function(q){
     maxId++;
-    var useModule = module;
-    var useTopicId = topicId;
-    if (q.kpOverride && q.kpOverrideModule){
-      useModule = q.kpOverrideModule;
-      useTopicId = q.kpOverrideTopicId || topicId;
-      q.kp = [q.kpOverride];
-      kpImported++;
-    } else if (q.kpModule && validMods.indexOf(q.kpModule) >= 0){
-      useModule = q.kpModule;
-      if (typeof q.kpTopicId === "number"){ useTopicId = q.kpTopicId; kpImported++; }
-    }
+    var tgt = baResolveTarget(q, def, validMods);
+    if (tgt.by === "手动归类"){ nManual++; q.kp = [q.kpOverride]; }
+    else if (tgt.by === "指定章节"){ nSpec++; }
+    else if (tgt.by === "自动考点"){ nAuto++; }
+    if (q.why && String(q.why).trim()) nWhy++;
+
     var newQ = {
       id: "qb" + String(maxId).padStart(5, "0"),
-      subject: subject, module: useModule, topicId: useTopicId,
-      kp: q.kp || [], q: q.q, o: q.o, a: q.a, why: q.why,
+      subject: subject, module: tgt.module, topicId: tgt.topicId,
+      kp: q.kp || [], q: q.q, o: q.o, a: q.a, why: q.why || "",
       ansText: q.ansText || "",
       source: source, sourceDetail: sourceDetail,
-      difficulty: difficulty, year: year, region: region
+      difficulty: difficulty, year: year, region: region,
+      imported: true, importedAt: stamp
     };
     if (typeof QB_DATA !== "undefined") QB_DATA.questions.push(newQ);
+
+    var dkey = tgt.module + "||" + tgt.topicId;
+    dist[dkey] = (dist[dkey] || 0) + 1;
   });
 
-  // 持久化到 localStorage
-  try {
-    localStorage.setItem("ba_imported_questions", JSON.stringify(
-      QB_DATA.questions.filter(function(q){ return q.source === "真题"; })
-    ));
-  } catch(e){}
+  baPersistImported();
 
-  baToast(kpImported > 0 ?
-    "成功导入 " + questions.length + " 道题，其中 " + kpImported + " 道已按考点归入对应章节！" :
-    "成功导入 " + questions.length + " 道题！");
-  preview.innerHTML = '<div class="ba-preview-success">✅ 已导入 ' + questions.length + ' 道题到题库！' +
-    (kpImported > 0 ? '<br>🎯 其中 ' + kpImported + ' 道已按考点自动归入对应章节，学完该章节即可就地练到。' : '') +
+  /* 汇总去向：明确写出「去哪里能找到」，并给一键查看按钮 */
+  var distHtml = "";
+  var firstMod = "";
+  Object.keys(dist).forEach(function(k){
+    var parts = k.split("||");
+    var mod = parts[0];
+    var tid = parseInt(parts[1], 10) || 0;
+    if (!firstMod) firstMod = mod;
+    distHtml += '<div class="ba-import-dist-row">📍 ' + baEsc(baWhereToFind(subject, mod, tid)) +
+      '：<b>' + dist[k] + ' 道</b></div>';
+  });
+
+  baToast("成功导入 " + questions.length + " 道题" +
+    (skipped > 0 ? "（跳过 " + skipped + " 道未采纳的）" : "") +
+    (nSpec > 0 ? "，其中 " + nSpec + " 道归入指定章节" : "") + "！");
+  var successHtml = '<div class="ba-preview-success">✅ 已导入 ' + questions.length + ' 道题' +
+    (skipped > 0 ? '，跳过 ' + skipped + ' 道（你取消采纳的）' : '') + '！' +
+    (nWhy > 0 ? '<br>📖 其中 ' + nWhy + ' 道带解析，已随题一并保存' : '') +
+    (nSpec > 0 ? '<br>📌 ' + nSpec + ' 道按你指定的「专题章节」归入' : '') +
+    (nAuto > 0 ? '<br>🎯 ' + nAuto + ' 道按自动识别考点归入' : '') +
+    (nManual > 0 ? '<br>✍️ ' + nManual + ' 道按单题「手动归类」归入' : '') +
+    (distHtml ? '<div class="ba-import-dist"><div class="ba-import-dist-title">题都放这儿了：</div>' + distHtml + '</div>' : '') +
+    '<div class="ba-import-actions">' +
+      '<button type="button" class="ba-pick-btn primary" onclick="baGoBrowse(\'' + baEsc(subject) + '\', \'' + baEsc(firstMod) + '\')">🔍 立刻查看这批题</button>' +
+      '<button type="button" class="ba-pick-btn" onclick="baParseAndPreview()">↩️ 继续导入下一批</button>' +
+    '</div>' +
     '</div>';
+
+  /* 顺序很关键：先 baRender() 刷新面板（它会清空预览区），再把成功回执写回预览区。
+   * 以前是先写回执再 baRender()，回执立刻被冲掉，所以用户完全不知道题去哪了。 */
   baRender();
+  var pv = document.getElementById("baPreview");
+  if (pv){
+    pv.innerHTML = successHtml;
+    if (typeof pv.scrollIntoView === "function"){
+      try { pv.scrollIntoView({ behavior: "smooth", block: "start" }); } catch(e){}
+    }
+  }
+}
+
+/* ---------- 导入题目的持久化（刷新后不丢） ---------- */
+function baPersistImported(){
+  try {
+    if (typeof QB_DATA === "undefined") return;
+    var list = QB_DATA.questions.filter(function(q){ return q.imported === true; });
+    localStorage.setItem("ba_imported_questions", JSON.stringify(list));
+  } catch(e){}
+}
+
+function baRestoreImported(){
+  if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return 0;
+  var raw = null;
+  try { raw = localStorage.getItem("ba_imported_questions"); } catch(e){ return 0; }
+  if (!raw) return 0;
+  var list;
+  try { list = JSON.parse(raw); } catch(e){ return 0; }
+  if (!Array.isArray(list)) return 0;
+  var seen = {};
+  QB_DATA.questions.forEach(function(q){ if (q && q.id) seen[q.id] = true; });
+  var n = 0;
+  list.forEach(function(q){
+    if (!q || !q.id || seen[q.id]) return;
+    q.imported = true;
+    QB_DATA.questions.push(q);
+    seen[q.id] = true;
+    n++;
+  });
+  return n;
 }
 
 /* ---------- 统计面板 ---------- */
@@ -1356,34 +1776,70 @@ function baRenderBrowse(){
     '</select>' +
     '<select id="baBrowseSource" onchange="baBrowseFilter()">' +
       '<option value="">全部来源</option><option value="真题">真题</option><option value="自编">自编</option>' +
+      '<option value="__imported__">📥 我导入的题</option>' +
     '</select>' +
-  '</div>';
+    '<select id="baBrowseModule" onchange="baBrowseFilter()"></select>' +
+  '</div>' +
+  '<div class="ba-browse-count" id="baBrowseCount"></div>';
   html += '<div class="ba-browse-list" id="baBrowseList"></div>';
   return html;
+}
+
+function baBrowseFillModules(){
+  var subjEl = document.getElementById("baBrowseSubject");
+  var modEl = document.getElementById("baBrowseModule");
+  if (!subjEl || !modEl) return;
+  var prev = modEl.value;                       // 重建后保留已选的模块
+  var mods = BA_MODULES[subjEl.value] || [];
+  var opts = '<option value="">全部模块</option>';
+  mods.forEach(function(m){ opts += '<option value="' + m.id + '">' + m.name + '</option>'; });
+  modEl.innerHTML = opts;
+  if (prev){
+    for (var i = 0; i < modEl.options.length; i++){
+      if (modEl.options[i].value === prev){ modEl.value = prev; break; }
+    }
+  }
 }
 
 function baBrowseFilter(){
   if (typeof QB_DATA === "undefined") return;
   var subjectEl = document.getElementById("baBrowseSubject");
   if (!subjectEl) return;
+  baBrowseFillModules();
   var subject = subjectEl.value;
   var source = document.getElementById("baBrowseSource").value;
+  var modEl = document.getElementById("baBrowseModule");
+  var module = modEl ? modEl.value : "";
   var list = QB_DATA.questions.filter(function(q){
     if (q.subject !== subject) return false;
-    if (source && q.source !== source) return false;
+    if (module && q.module !== module) return false;
+    if (source === "__imported__"){ if (!q.imported) return false; }
+    else if (source && q.source !== source) return false;
     return true;
-  }).slice(0, 100); // 最多显示100条
+  });
+  var shown = list.slice(0, 100); // 最多显示100条
+  var countEl = document.getElementById("baBrowseCount");
+  if (countEl){
+    countEl.innerHTML = '共 <b>' + list.length + '</b> 道' +
+      (list.length > shown.length ? '（显示前 ' + shown.length + ' 道）' : '');
+  }
 
   var html = "";
-  list.forEach(function(q, i){
-    var optsHtml = q.o.map(function(opt, j){
+  shown.forEach(function(q, i){
+    var optsHtml = (q.o || []).map(function(opt, j){
       var letter = String.fromCharCode(65 + j);
       return '<span class="ba-browse-opt' + (j === q.a ? " ans" : "") + '">' + letter + '. ' + opt + '</span>';
     }).join("");
     html += '<div class="ba-browse-item">' +
       '<div class="ba-browse-q">' + (i + 1) + '. ' + q.q + '</div>' +
       '<div class="ba-browse-opts">' + optsHtml + '</div>' +
-      '<div class="ba-browse-meta">' + q.source + (q.sourceDetail ? ' · ' + q.sourceDetail : '') + (q.region ? ' · ' + q.region : '') + '</div>' +
+      '<div class="ba-browse-meta">📌 ' + baEsc(q.module || "") + ' · ' + baEsc(baTopicLabel(q.module, q.topicId)) +
+        (q.kp && q.kp.length ? ' · 🎯 ' + baEsc(q.kp[0]) : '') +
+        ' · ' + baEsc(q.source || "") + (q.sourceDetail ? ' · ' + baEsc(q.sourceDetail) : '') +
+        (q.region ? ' · ' + baEsc(q.region) : '') +
+        (q.why ? ' · 📖 有解析' : '') +
+        (q.imported ? ' · 导入' : '') +
+      '</div>' +
     '</div>';
   });
   if (list.length === 0) html = '<div class="ba-empty">没有符合条件的题目</div>';
@@ -1492,6 +1948,9 @@ function baToast(msg){
 }
 
 /* ---------- 初始化 ---------- */
+/* 脚本加载即恢复本机已导入的题目（刷新不丢），再初始化下拉 */
+try { baRestoreImported(); } catch(e){}
+
 window.addEventListener("load", function(){
 
   baUpdateModules();

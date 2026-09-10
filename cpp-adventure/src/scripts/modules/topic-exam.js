@@ -134,11 +134,24 @@ function teFinish(){
       '<div class="te-result-stars">' + starRow + '</div>' +
       '<h3>' + TE_SESSION.topicName + '</h3>' +
       '<p>答对 ' + (total - wrong) + '/' + total + ' · ' + (stars === 3 ? "全部正确！小升初稳了！🏆" : stars === 2 ? "优秀！再接再厉！" : "完成！错题已加入错题本，多练几次！") + '</p>' +
+      (TE_SESSION.module === "writing" ? '<p class="te-tip">💡 这些只是「写作小知识」。真正提高作文水平，还是要动笔写 →</p>' : '') +
       '<div class="te-result-btns">' +
+        (TE_SESSION.module === "writing" ? '<button class="te-go-btn" type="button" onclick="teGotoWriting()">✍️ 去真写一篇</button>' : '') +
         '<button class="te-go-btn ghost" type="button" onclick="teRetry()">🔁 再做一次</button>' +
         '<button class="te-go-btn" type="button" onclick="teClose()">返回</button>' +
       '</div>' +
     '</div>';
+}
+
+/* 从「作文知识小测」跳到真正的写作训练（分步写一整篇） */
+function teGotoWriting(){
+  teClose();
+  if (typeof wqOpen !== "function" || typeof WRITE_DATA === "undefined") return;
+  if (typeof eqSwitchTab === "function"){ try { eqSwitchTab("writing"); } catch(e){} }
+  var ps = WRITE_DATA.passages;
+  var todo = ps.filter(function(p){ return !(S.writing && S.writing.done && S.writing.done[p.id]); });
+  var pick = todo.length ? todo[0] : ps[0];
+  wqOpen(pick.id);
 }
 
 function teRetry(){
