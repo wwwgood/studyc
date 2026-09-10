@@ -540,6 +540,7 @@ function bkOpen(bid){
 
   dlg.innerHTML =
     '<div class="bk-dlg-head bk-reader-head">' +
+      '<button class="bk-back" type="button" onclick="bkClose()">⬅ 返回</button>' +
       '<span class="bk-cap" id="bkReaderTitle">' + emoji + ' ' + bkEsc(b.name) + '</span>' +
       '<button class="bk-close" type="button" onclick="bkClose()">×</button>' +
     '</div>' +
@@ -560,6 +561,9 @@ function bkOpen(bid){
     bid: bid, name: b.name, fileType: b.fileType, scale: 1, fit: true, pageCount: 0,
     color: "#e91e63", eraser: false, pages: [], current: 0, writing: false
   };
+  /* 占一条历史记录：阅读器里按浏览器/安卓返回键 = 关闭阅读器，不会退出网站 */
+  BK_PUSHED = true;
+  try { history.pushState({bkReader:1}, ""); } catch(e){ BK_PUSHED = false; }
 
   if (b.fileType === "pdf") bkLoadPDF(bid, b);
   else if (b.fileType === "img") bkLoadImages(bid, b);
@@ -1109,11 +1113,20 @@ function bkB64ToStr(b64){
 }
 
 /* ---------- 关闭 ---------- */
-function bkClose(){
+var BK_PUSHED = false;
+function bkCloseCore(){
   var mask = document.getElementById("bkMask");
   if (mask) mask.classList.remove("open");
   BK_SESSION = null;
 }
+function bkClose(){
+  if (BK_PUSHED){ BK_PUSHED = false; try { history.back(); } catch(e){} }
+  bkCloseCore();
+}
+/* 安卓返回键：阅读器开着时只关阅读器，不退出网站 */
+window.addEventListener("popstate", function(){
+  if (BK_SESSION){ BK_PUSHED = false; bkCloseCore(); }
+});
 
 /* ---------- 提示 ---------- */
 function bkToast(msg){

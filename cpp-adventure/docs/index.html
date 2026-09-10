@@ -4312,6 +4312,8 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .pp-dlg-head{display:flex; align-items:center; gap:10px; padding:12px 16px; position:relative; z-index:20; background:#1E293B; flex:none;}
 .pp-dlg-head .pp-cap{flex:1; font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .pp-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
+.pp-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
+.pp-back:hover,.pp-back:active{background:rgba(255,255,255,.3);}
 .pp-close:hover{background:#FEE2E2; color:#DC2626;}
 .pp-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .pp-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#FFFBEB; border:1px solid #FDE68A; border-radius:10px; padding:10px 12px; margin-bottom:14px;}
@@ -4403,6 +4405,8 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bk-dlg-head{display:flex; align-items:center; gap:10px; padding:12px 16px; position:relative; z-index:20; background:#1E293B; flex:none;}
 .bk-dlg-head .bk-cap{flex:1; font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .bk-close{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:19px; font-weight:800; border:none; cursor:pointer; flex:none;}
+.bk-back{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:10px; padding:6px 14px; font-size:14px; font-weight:700; cursor:pointer; flex:none; white-space:nowrap;}
+.bk-back:hover,.bk-back:active{background:rgba(255,255,255,.3);}
 .bk-close:hover{background:#FEE2E2; color:#DC2626;}
 .bk-dlg-body{padding:18px 20px 22px; overflow-y:auto;}
 .bk-add-tip{font-size:13px; line-height:1.7; color:#475569; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:10px; padding:10px 12px; margin-bottom:14px;}
@@ -58522,6 +58526,7 @@ function ppOpen(pid){
 
   dlg.innerHTML =
     '<div class="pp-dlg-head pp-reader-head">' +
+      '<button class="pp-back" type="button" onclick="ppClose()">⬅ 返回</button>' +
       '<span class="pp-cap" id="ppReaderTitle">📄 ' + ppEsc(p.name) + '</span>' +
       '<button class="pp-close" type="button" onclick="ppClose()">×</button>' +
     '</div>' +
@@ -58555,6 +58560,9 @@ function ppOpen(pid){
     color: "#e91e63", eraser: false, pages: [], audioURLs: [],
     current: 0, _audio: null, _audioIdx: -1, writing: false
   };
+  /* 占一条历史记录：阅读器里按浏览器/安卓返回键 = 关闭阅读器，不会退出网站 */
+  PP_PUSHED = true;
+  try { history.pushState({ppReader:1}, ""); } catch(e){ PP_PUSHED = false; }
   ppLoadPDF(pid, p);
   ppRenderAudioBar(p);
 }
@@ -59051,11 +59059,20 @@ function ppB64ToStr(b64){
 }
 
 /* ---------- 关闭 ---------- */
-function ppClose(){
+var PP_PUSHED = false;
+function ppCloseCore(){
   var mask = document.getElementById("ppMask");
   if (mask) mask.classList.remove("open");
   PP_SESSION = null;
 }
+function ppClose(){
+  if (PP_PUSHED){ PP_PUSHED = false; try { history.back(); } catch(e){} }
+  ppCloseCore();
+}
+/* 安卓返回键：阅读器开着时只关阅读器，不退出网站 */
+window.addEventListener("popstate", function(){
+  if (PP_SESSION){ PP_PUSHED = false; ppCloseCore(); }
+});
 
 /* ---------- 轻提示 ---------- */
 function ppToast(msg){
@@ -59620,6 +59637,7 @@ function bkOpen(bid){
 
   dlg.innerHTML =
     '<div class="bk-dlg-head bk-reader-head">' +
+      '<button class="bk-back" type="button" onclick="bkClose()">⬅ 返回</button>' +
       '<span class="bk-cap" id="bkReaderTitle">' + emoji + ' ' + bkEsc(b.name) + '</span>' +
       '<button class="bk-close" type="button" onclick="bkClose()">×</button>' +
     '</div>' +
@@ -59640,6 +59658,9 @@ function bkOpen(bid){
     bid: bid, name: b.name, fileType: b.fileType, scale: 1, fit: true, pageCount: 0,
     color: "#e91e63", eraser: false, pages: [], current: 0, writing: false
   };
+  /* 占一条历史记录：阅读器里按浏览器/安卓返回键 = 关闭阅读器，不会退出网站 */
+  BK_PUSHED = true;
+  try { history.pushState({bkReader:1}, ""); } catch(e){ BK_PUSHED = false; }
 
   if (b.fileType === "pdf") bkLoadPDF(bid, b);
   else if (b.fileType === "img") bkLoadImages(bid, b);
@@ -60189,11 +60210,20 @@ function bkB64ToStr(b64){
 }
 
 /* ---------- 关闭 ---------- */
-function bkClose(){
+var BK_PUSHED = false;
+function bkCloseCore(){
   var mask = document.getElementById("bkMask");
   if (mask) mask.classList.remove("open");
   BK_SESSION = null;
 }
+function bkClose(){
+  if (BK_PUSHED){ BK_PUSHED = false; try { history.back(); } catch(e){} }
+  bkCloseCore();
+}
+/* 安卓返回键：阅读器开着时只关阅读器，不退出网站 */
+window.addEventListener("popstate", function(){
+  if (BK_SESSION){ BK_PUSHED = false; bkCloseCore(); }
+});
 
 /* ---------- 提示 ---------- */
 function bkToast(msg){

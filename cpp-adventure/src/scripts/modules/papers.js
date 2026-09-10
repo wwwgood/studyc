@@ -510,6 +510,7 @@ function ppOpen(pid){
 
   dlg.innerHTML =
     '<div class="pp-dlg-head pp-reader-head">' +
+      '<button class="pp-back" type="button" onclick="ppClose()">⬅ 返回</button>' +
       '<span class="pp-cap" id="ppReaderTitle">📄 ' + ppEsc(p.name) + '</span>' +
       '<button class="pp-close" type="button" onclick="ppClose()">×</button>' +
     '</div>' +
@@ -543,6 +544,9 @@ function ppOpen(pid){
     color: "#e91e63", eraser: false, pages: [], audioURLs: [],
     current: 0, _audio: null, _audioIdx: -1, writing: false
   };
+  /* 占一条历史记录：阅读器里按浏览器/安卓返回键 = 关闭阅读器，不会退出网站 */
+  PP_PUSHED = true;
+  try { history.pushState({ppReader:1}, ""); } catch(e){ PP_PUSHED = false; }
   ppLoadPDF(pid, p);
   ppRenderAudioBar(p);
 }
@@ -1039,11 +1043,20 @@ function ppB64ToStr(b64){
 }
 
 /* ---------- 关闭 ---------- */
-function ppClose(){
+var PP_PUSHED = false;
+function ppCloseCore(){
   var mask = document.getElementById("ppMask");
   if (mask) mask.classList.remove("open");
   PP_SESSION = null;
 }
+function ppClose(){
+  if (PP_PUSHED){ PP_PUSHED = false; try { history.back(); } catch(e){} }
+  ppCloseCore();
+}
+/* 安卓返回键：阅读器开着时只关阅读器，不退出网站 */
+window.addEventListener("popstate", function(){
+  if (PP_SESSION){ PP_PUSHED = false; ppCloseCore(); }
+});
 
 /* ---------- 轻提示 ---------- */
 function ppToast(msg){
