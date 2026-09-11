@@ -182,6 +182,10 @@ function baRenderImport(){
     '<div class="ba-config-title">📝 导入归属（以下信息标记这批题的出处，方便日后筛选）</div>' +
     '<div class="ba-config-row">' +
       '<label>科目</label><select id="baSubject" onchange="baUpdateModules()">' + subjectOpts + '</select>' +
+'<div class="ba-config-row">' +
+      '<label>题型</label><select id="baTypeSelect">' + (typeof QT_OPTIONS !== "undefined" ? QT_OPTIONS.map(function(o){ return '<option value="' + o.v + '">' + o.label + '</option>'; }).join("") : '<option value="auto">自动</option>') + '</select>' +
+      '<span class="ba-config-tip">选词填空/阅读理解/作文整题解析；填空与改错每题一空。默认自动识别即可</span>' +
+    '</div>' +
     '</div>' +
     '<div class="ba-config-row">' +
       '<label>模块</label><select id="baModule" onchange="baUpdateModuleTopic()"></select>' +
@@ -606,6 +610,7 @@ var BA_SECTION_TYPES = [
   { keys: ["阅读理解", "阅读"], type: "reading" },
   { keys: ["作文", "写作", "书面表达"], type: "essay" },
   { keys: ["判断"], type: "judge" },
+  { keys: ["选词填空", "方框.*词", "用方框", "选词", "词库"], type: "cloze" },
   { keys: ["完形填空", "填空"], type: "fill" },
   { keys: ["解答", "计算"], type: "solve" }
 ];
@@ -640,7 +645,8 @@ function baGuessSubject(text){
 /* 识别题型 */
 function baGuessQType(text){
   var optCount = (text.match(/[A-D][\.、．]/g) || []).length;
-  var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空/.test(text);
+  var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空|汉译英|英译汉|改错|适当形式|翻译|句型转换|按要求改写|完成句子|补全/.test(text);
+  var hasCloze = /(选词填空|方框.*词|用方框|词库)/.test(text) && hasFill;
   var hasJudge = /判断题|对\s*错|正确.*错误|√.*×|T.*F/i.test(text);
   var hasSolve = /(解答|计算|证明|求\s|试求|解方程|列式)/.test(text);
   var hasEssay = /(作文|写作|范文|以「|以"|题目：|不少于.*字|写一篇)/.test(text);
@@ -649,6 +655,7 @@ function baGuessQType(text){
 
   if (hasEssay) return "essay";
   if (hasReading && text.length > 200) return "reading";
+  if (hasCloze) return "cloze";
   if (optCount >= 2 && ansMulti) return "multi";
   if (optCount >= 4) return "single";
   if (hasJudge) return "judge";
@@ -702,16 +709,25 @@ function baSplitSmallQuestions(block){
 }
 
 /* 解析单道题：行内答案优先，末尾答案表兜底；无解析时按考点自动生成 */
-function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType){
+function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceType){
   if (lines.length < 1) return null;
   if (lines.length === 1 && /^[一二三四五六七八九十]+[、．\.]/.test(lines[0])) return null;
   var fullText = lines.join("\n");
   var qType;
-  if (sectionType && sectionType !== "single"){
-    qType = sectionType;
-  } else {
-    qType = baGuessQType(fullText);
-  }
+  if (forceType) qType = forceType;
+  else if (sectionType && sectionType !== "single") qType = sectionType;
+  else qType = baGuessQType(fullText);
+  /* 旧题型名统一映射到新题型体系 */
+  if (qType === "choice") qType = "single";
+  if (qType === "translation" || qType === "sentransform" || qType === "complete") qType = "fill";
+  if (qType === "essay") qType = "writing";
+
+  /* ===== 新题型分支 ===== */
+  if (qType === "fill") return baParseFill(lines, fullText);
+  if (qType === "cloze") return baParseCloze(lines, fullText);
+  if (qType === "reading") return baParseReading(lines, fullText);
+  if (qType === "writing") return baParseWriting(lines, fullText);
+
   var hasOpts = /[A-D][\.、．]/.test(fullText);
   var treatAs;
   if (qType === "single" || qType === "multi"){
@@ -800,6 +816,7 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType){
   }
   return q;
 }
+
 
 /* ==================== 考点识别引擎 ====================
  * 三重证据匹配：解析文本（最强）→ 题干特征 → 选项特征
@@ -1005,14 +1022,24 @@ function baSmartParse(text){
   var answerKey = baExtractAnswerKey(text);
   var questions = [];
   var bigBlocks = baSplitBigBlocks(text);
+  var forceEl = (typeof document !== "undefined" && document.getElementById) ? document.getElementById("baTypeSelect") : null;
+  var forceType = (forceEl && forceEl.value && forceEl.value !== "auto") ? forceEl.value : "";
 
   bigBlocks.forEach(function(block){
     var sectionType = baGuessSectionType(block.title);
-    var qBlocks = baSplitSmallQuestions(block.text);
-    qBlocks.forEach(function(qb){
-      var q = baParseOneQuestion(qb.lines, subjectGuess.subject, answerKey, qb.no, sectionType);
-      if (q) questions.push(q);
-    });
+    /* 阅读/选词/作文这类「整块是一道题」的：不拆小题，整块解析 */
+    var whole = (sectionType === "cloze" || sectionType === "reading" || sectionType === "essay" ||
+                 forceType === "cloze" || forceType === "reading" || forceType === "writing");
+    if (whole){
+      var qw = baParseOneQuestion(block.text.split("\n"), subjectGuess.subject, answerKey, null, sectionType, forceType);
+      if (qw) questions.push(qw);
+    } else {
+      var qBlocks = baSplitSmallQuestions(block.text);
+      qBlocks.forEach(function(qb){
+        var q = baParseOneQuestion(qb.lines, subjectGuess.subject, answerKey, qb.no, sectionType, forceType);
+        if (q) questions.push(q);
+      });
+    }
   });
 
   if (questions.length === 0){
@@ -1023,6 +1050,7 @@ function baSmartParse(text){
     hasAnswerKey: Object.keys(answerKey).length > 0
   };
 }
+
 
 /* ---------- 解析与预览 ---------- */
 function baParseAndPreview(){
@@ -1041,7 +1069,10 @@ function baParseAndPreview(){
       questions = json.map(function(item){
         return {
           q: item.q, o: item.o, a: item.a, why: item.why || "",
-          kp: item.kp || [], qType: item.qType || "single"
+          kp: item.kp || [], qType: item.qType || "single",
+          type: item.type || "", ansText: item.ansText || "",
+          words: item.words, blanks: item.blanks, passage: item.passage,
+          questions: item.questions, sample: item.sample, tips: item.tips
         };
       });
     }
@@ -1077,7 +1108,7 @@ function baParseAndPreview(){
   if (!isJson && Object.keys(typeCounts).length > 0){
     html += '<div class="ba-type-summary">';
     Object.keys(typeCounts).forEach(function(t){
-      html += '<span class="ba-type-chip">' + (BA_QTYPE_LABELS[t] || t) + ' ×' + typeCounts[t] + '</span>';
+      html += '<span class="ba-type-chip">' + baTypeShow(t) + ' ×' + typeCounts[t] + '</span>';
     });
     html += '</div>';
   }
@@ -1101,7 +1132,7 @@ function baParseAndPreview(){
   html += '<div class="ba-preview-list">';
   questions.forEach(function(q, i){
     var qType = q.qType || "single";
-    var typeLabel = BA_QTYPE_LABELS[qType] || qType;
+    var typeLabel = baTypeShow(qType);
     var ansBadge = q.ansSource ? '<span class="ba-ans-badge src-' + q.ansSource + '">' + q.ansSource + '</span>' : '';
     var whyAutoBadge = q.whyAuto ? '<span class="ba-why-auto">⚡自动解析</span>' : '';
     var kpHtml = "";
@@ -1402,13 +1433,225 @@ function baEsc(s){
     .replace(/"/g, "&quot;");
 }
 
+function baTypeShow(qType){
+  var map = { single: "choice", essay: "writing" };
+  var k = map[qType] || qType;
+  if (typeof QT_LABELS !== "undefined" && QT_LABELS[k]) return QT_LABELS[k];
+  return BA_QTYPE_LABELS[qType] || qType;
+}
 function baRenderOptsHtml(q){
   var qType = q.qType || "single";
+  var qTypeShow = (qType === "single" ? "choice" : qType === "essay" ? "writing" : qType);
+  if (typeof QT_LABELS !== "undefined" && QT_LABELS[qTypeShow] && qTypeShow !== "choice"){
+    var sum = "";
+    if (qTypeShow === "fill") sum = q.ansText ? "📝 标准答案：" + q.ansText : "📝 文本答案（可在下方答案框补录）";
+    if (qTypeShow === "cloze") sum = "🧩 词库：" + (q.words || []).join("、") + (q.blanks && q.blanks.length ? "　✅ 答案：" + q.blanks.join(" / ") : "");
+    if (qTypeShow === "reading") sum = "📄 短文 + " + (q.questions || []).length + " 道小题";
+    if (qTypeShow === "writing") sum = "✍️ 作文题" + (q.tips && q.tips.length ? "（" + q.tips.length + " 个要点）" : "") + (q.sample ? "，含范文" : "");
+    return '<div class="ba-preview-subj">' + sum + '</div>';
+  }
   return q.o.map(function(opt, j){
     var letter = String.fromCharCode(65 + j);
     var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);
     return '<span class="ba-preview-opt' + (isAns ? " ans" : "") + '">' + letter + '. ' + opt + '</span>';
   }).join("");
+}
+
+
+/* ---------- 多题型解析：填空（词性转换/汉译英/单句改错/改正填空） ---------- */
+function baParseFill(lines, fullText){
+  var qText = lines[0].replace(/^\d+[\.、．]\s*/, "").trim();
+  var ansText = "";
+  var ansSource = "未找到";
+  var why = "";
+  var ansLine = lines.find(function(l){ return /答案|answer|参考答案/i.test(l); });
+  if (ansLine){
+    var am = ansLine.replace(/^.*(?:答案|参考答案|answer)[：:]\s*/i, "").trim();
+    if (am){ ansText = am; ansSource = "原卷行内"; }
+  }
+  var whyLine = lines.find(function(l){ return /解析|解释|分析/i.test(l); });
+  if (whyLine) why = whyLine.replace(/^.*(?:解析|解释|分析)[：:]\s*/, "").trim();
+  var q = { q: qText, o: ["（主观题，需人工评分）"], a: 0, ansText: ansText, why: why, kp: [], qType: "fill", type: "fill", ansSource: ansSource };
+  var kn = baDetectKnowledge(why, qText, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+function baSplitWords(s){
+  var out = [];
+  (String(s).match(/[A-Za-z][A-Za-z\-']*/g) || []).forEach(function(w){
+    if (out.indexOf(w) < 0) out.push(w);
+  });
+  return out;
+}
+
+/* ---------- 多题型解析：选词填空（整块一道题：词库 + 多空） ---------- */
+function baParseCloze(lines, fullText){
+  var words = [];
+  var blanks = [];
+  var subQs = [];
+  var answersByPos = {};
+  lines.forEach(function(line){
+    var m = line.match(/^(?:词库|方框|选词|单词)[：:]\s*(.+)$/);
+    if (m){
+      words = baSplitWords(m[1]);
+    } else if (/^[A-Za-z][a-z]*\s*[,、，\s]+[A-Za-z]/.test(line) && !/[．。；]/.test(line) && line.trim().length < 120){
+      var cand = baSplitWords(line);
+      if (cand.length >= 2 && cand.every(function(w){ return /^[A-Za-z]+$/.test(w); })){
+        words = cand;
+      }
+    }
+  });
+  var re = /^(?:\(?(\d+)\)?|[（(](\d+)[）)])\s*[\.、．]?\s*(.+)$/;
+  lines.forEach(function(line){
+    var mm = line.match(re);
+    if (mm){
+      var no = parseInt(mm[1] || mm[2], 10);
+      var txt = (mm[3] || "").replace(/^答案[：:]\s*/i, "");
+      if (/[___＿（()（）〔〕\s]/.test(txt)) subQs.push({ no: no, q: txt });
+    }
+  });
+  var ansLine = lines.find(function(l){ return /答案|参考答案/i.test(l); });
+  if (ansLine){
+    var body = ansLine.replace(/^.*(?:答案|参考答案)[：:]\s*/i, "");
+    var segRe = /(?:[（(](\d+)[）)]|(\d+)[\.、．]?)\s*([A-Za-z][A-Za-z\-']*)/g;
+    var mm2;
+    while ((mm2 = segRe.exec(body)) !== null){
+      var no2 = parseInt(mm2[1] || mm2[2], 10);
+      answersByPos[no2] = mm2[3];
+    }
+    if (Object.keys(answersByPos).length === 0){
+      var ws = body.match(/[A-Za-z][A-Za-z\-']*/g) || [];
+      ws.forEach(function(w, idx){ answersByPos[idx + 1] = w; });
+    }
+  }
+  var qTexts = [];
+  subQs.forEach(function(sq){
+    qTexts.push(sq.q);
+    blanks.push(answersByPos[sq.no] || "");
+  });
+  if (qTexts.length === 0){
+    var blankCount = (fullText.match(/____|＿＿|（\s*）|\(\s*\)/g) || []).length;
+    qTexts.push(lines[0].replace(/^\d+[\.、．]\s*/, "").trim());
+    for (var i = 0; i < blankCount; i++) blanks.push(answersByPos[i + 1] || "");
+  }
+  var q = {
+    q: qTexts.join("\n"), type: "cloze", qType: "cloze",
+    o: ["（主观题，需人工评分）"], a: 0, ansText: "",
+    words: words, blanks: blanks,
+    why: "", kp: [], ansSource: words.length ? "原卷行内" : "未找到"
+  };
+  var whyLine = lines.find(function(l){ return /解析|解释|分析/i.test(l); });
+  if (whyLine) q.why = whyLine.replace(/^.*(?:解析|解释|分析)[：:]\s*/, "").trim();
+  /* 没识别到词库 → 降级为填空 */
+  if (!words || words.length < 2){
+    var ansJoin = [];
+    Object.keys(answersByPos).sort(function(a, b){ return parseInt(a, 10) - parseInt(b, 10); }).forEach(function(k){ ansJoin.push(answersByPos[k]); });
+    q.type = "fill"; q.qType = "fill";
+    q.ansText = ansJoin.join(" / ");
+    q.words = undefined; q.blanks = undefined;
+  }
+  var kn = baDetectKnowledge(q.why, q.q, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+/* ---------- 多题型解析：阅读理解（短文 + 子题） ---------- */
+function baParseReading(lines, fullText){
+  var passage = [];
+  var subs = [];
+  var inSub = false;
+  var cur = null;
+  var answersByNo = {};
+  lines.forEach(function(line){
+    var m = line.match(/^(\d+)[\.、．]\s*(.+)$/);
+    if (m){
+      inSub = true;
+      if (cur) subs.push(cur);
+      cur = { no: parseInt(m[1], 10), q: m[2], o: [], a: -1, ansTxt: "", why: "" };
+      var im = m[2].match(/[（(]([A-Da-d])[）)]|答案[：:]\s*([A-Da-d])/);
+      if (im) cur.ansTxt = (im[1] || im[2]).toUpperCase();
+    } else if (inSub && cur){
+      if (/^[A-Da-d][\.、．]/.test(line)){
+        var re2 = /([A-Da-d])[\.、．]\s*([^\n]*?)(?=\s+[A-D][\.、．]|$)/g;
+        var mm2;
+        while ((mm2 = re2.exec(line)) !== null) cur.o.push(mm2[2].trim());
+      } else {
+      /* 选项已在上方拆分 */
+        var am = line.match(/答案[：:]\s*([A-Da-d])/);
+        if (am) cur.ansTxt = am[1].toUpperCase();
+        else if (/解析|解释/.test(line)) cur.why = line.replace(/^.*(?:解析|解释)[：:]\s*/, "").trim();
+        else if (!/^答案/i.test(line) && line.trim()) cur.q += " " + line.trim();
+      }
+    } else {
+      passage.push(line);
+    }
+  });
+  if (cur) subs.push(cur);
+  /* 末尾答案表：1.B 2.C */
+  lines.forEach(function(line){
+    var tm = /答案/.test(line) ? line.match(/(?:\d+)[\.、．]\s*([A-Da-d])/g) : null;
+    if (tm) tm.forEach(function(tg){
+      var pm = tg.match(/(\d+)[\.、．]\s*([A-Da-d])/);
+      if (pm) answersByNo[parseInt(pm[1], 10)] = pm[2].toUpperCase();
+    });
+  });
+  var questions = subs.map(function(s){
+    var aTxt = s.ansTxt || answersByNo[s.no] || "";
+    if (aTxt){
+      if (s.o.length){
+        s.a = aTxt.charCodeAt(0) - 65;
+        if (s.a < 0 || s.a >= s.o.length) s.a = 0;
+      } else {
+        s.ansText = aTxt;
+      }
+    }
+    return { q: s.q, o: s.o.length ? s.o : undefined, a: s.o.length ? (s.a >= 0 ? s.a : 0) : undefined, ansText: s.ansText || "", why: s.why || "" };
+  });
+  if (questions.length === 0) return null;
+  var q = {
+    q: "", type: "reading", qType: "reading",
+    o: ["（主观题，需人工评分）"], a: 0, ansText: "",
+    passage: passage.join("\n").trim(), questions: questions,
+    why: "", kp: [], ansSource: "原卷行内"
+  };
+  var kn = baDetectKnowledge(q.why, q.passage, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+/* ---------- 多题型解析：作文（题目 + 要点 + 范文） ---------- */
+function baParseWriting(lines, fullText){
+  var body = lines.join("\n");
+  var qText = lines[0].replace(/^\d+[\.、．]\s*/, "").trim();
+  var tips = [];
+  var sample = "";
+  var why = "";
+  var tipMatch = body.match(/(?:要点|提示)[：:]\s*([\s\S]*?)(?=\n(?:范文|参考范文|示例作文|示例|解析|点评)|$)/);
+  if (tipMatch){
+    var items = [];
+    tipMatch[1].split(/\n/).forEach(function(l){
+      l = l.trim();
+      if (!l) return;
+      if (/[（(]?\d+[）)]?[\.、．]/.test(l)){
+        var parts = l.split(/[（(]?\d+[）)]?[\.、．]/).map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+        items = items.concat(parts);
+      } else {
+        items.push(l.replace(/^[•·\-]\s*/, ""));
+      }
+    });
+    if (items.length === 0) items = tipMatch[1].split(/[；;、]/).map(function(l){ return l.trim(); }).filter(function(l){ return l; });
+    tips = items;
+  }
+  var sm = body.match(/(?:范文|参考范文|示例作文)[：:]\s*([\s\S]*?)(?=\n(?:解析|点评)|$)/);
+  if (sm) sample = sm[1].trim();
+  var whyLine = lines.find(function(l){ return /解析|点评/i.test(l); });
+  if (whyLine) why = whyLine.replace(/^.*(?:解析|点评)[：:]\s*/, "").trim();
+  if (!sample && why){ sample = why; why = ""; }
+  var q = { q: qText, type: "writing", qType: "writing", o: ["（主观题，需人工评分）"], a: 0, ansText: "", tips: tips, sample: sample, why: why, kp: [], ansSource: "原卷行内" };
+  var kn = baDetectKnowledge(why, qText, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
 }
 
 function baGetQ(i){
@@ -1423,6 +1666,8 @@ function baHasRealOpts(q){
 
 function baAnsEditorFor(q, i){
   var qType = q.qType || "single";
+  var qTypeShow = (qType === "single" ? "choice" : qType === "essay" ? "writing" : qType);
+  if (qTypeShow === "cloze" || qTypeShow === "reading" || qTypeShow === "writing") return "";
   var realOpts = baHasRealOpts(q);
   if (qType === "judge"){
     var curJ = q.a === 0 ? "对" : "错";
@@ -1651,7 +1896,10 @@ function baDoImport(){
       id: "qb" + String(maxId).padStart(5, "0"),
       subject: subject, module: tgt.module, topicId: tgt.topicId,
       kp: q.kp || [], q: q.q, o: q.o, a: q.a, why: q.why || "",
+      type: q.type || "choice",
       ansText: q.ansText || "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
       source: source, sourceDetail: sourceDetail,
       difficulty: difficulty, year: year, region: region,
       imported: true, importedAt: stamp

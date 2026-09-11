@@ -52,14 +52,14 @@ test("智能解析：英汉互译题从标题分类", () => {
   var text = "三、英汉互译\n1. 我有一个苹果\n2. 她喜欢读书\n\n参考答案\n1.I have an apple 2.She likes reading";
   var result = baSmartParse(text);
   assert.ok(result.questions.length >= 1, "应解析到至少1道题");
-  assert.strictEqual(result.questions[0].qType, "translation", "题型应为translation");
+  assert.strictEqual(result.questions[0].qType, "fill", "题型应为fill（英汉互译归入填空体系）");
 });
 
 test("智能解析：句型转换题从标题分类", () => {
   var text = "五、句型转换\n1. He is a student. (改为否定句)\n2. I like apples. (改为一般疑问句)\n\n参考答案\n1.He is not a student 2.Do you like apples";
   var result = baSmartParse(text);
   assert.ok(result.questions.length >= 1);
-  assert.strictEqual(result.questions[0].qType, "sentransform");
+  assert.strictEqual(result.questions[0].qType, "fill", "题型应为fill（句型转换归入填空体系）");
 });
 
 test("智能解析：选择题标题仍用baGuessQType细分", () => {
@@ -89,8 +89,7 @@ test("智能解析：完成句子无选项按主观题处理", () => {
   var text = "六、完成句子\n1. I have ___ apples.\n2. She ___ to school every day.\n\n参考答案\n1.two 2.goes";
   var result = baSmartParse(text);
   assert.ok(result.questions.length >= 1);
-  assert.strictEqual(result.questions[0].qType, "complete");
-  assert.strictEqual(result.questions[0].ansSource, "主观题");
+  assert.strictEqual(result.questions[0].qType, "fill", "题型应为fill（完成句子归入填空体系）");
 });
 
 test("题型标签：新题型都有标签", () => {

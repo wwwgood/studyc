@@ -45,7 +45,7 @@ function topicExamOpen(module, topicId, topicName){
     }
     return;
   }
-  TE_SESSION = { module: module, topicId: topicId, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0 };
+  TE_SESSION = { module: module, topicId: topicId, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false };
   teRenderQuiz();
   var mask = document.getElementById("teDialogMask");
   if (mask) mask.classList.add("open");
@@ -54,62 +54,76 @@ function topicExamOpen(module, topicId, topicName){
 
 function teRenderQuiz(){
   var q = TE_SESSION.questions[TE_SESSION.idx];
-  var passage = q.q.indexOf("\n\n") >= 0 ? q.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : q.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="te-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = q.o.map(function(t, i){
-    return '<button class="te-opt" type="button" data-i="' + i + '" onclick="teAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(q, "qt") : "";
+  var qTitle = q.q ? '<div class="te-question">' + q.q + '</div>' : '';
   var dialog = document.getElementById("teDialog");
   if (!dialog) return;
   dialog.innerHTML =
     '<div class="te-dlg-head">' +
-      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 专题真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length + '</span>' +
+      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 专题真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
     '<div class="te-dlg-body">' +
       '<div class="te-combo-track">🔥 连击 <b>' + TE_SESSION.combo + '</b> · 🪙 ' + teState().coins + '</div>' +
-      passageHtml +
-      '<div class="te-question">' + qText + '</div>' +
-      '<div class="te-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="te-feedback" id="teFeedback"></div>' +
+      '<div class="te-act" id="teAct">' +
+        '<button class="qt-submit" type="button" onclick="teAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function teAnswer(btn){
+
+function teAnswer(){
   var q = TE_SESSION.questions[TE_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".te-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (TE_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(q, "qt") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(q, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(q, "qt");
+  TE_SESSION.answered = true;
   var fb = document.getElementById("teFeedback");
-  if (i === q.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(q);
+  var sampleHtml = "";
+  if (qType === "writing" && (q.sample || q.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
+  }
+  if (grade.ok){
     TE_SESSION.combo++;
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
-    fb.innerHTML = '<div class="te-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+    fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
-    btn.classList.add("no");
-    opts[q.a].classList.add("ok");
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
-    if (typeof errBookAdd === "function") errBookAdd(TE_SESSION.module, { q: q.q, o: q.o, a: q.a, why: q.why, source: TE_SESSION.topicName + " 专题真题" });
-    fb.innerHTML = '<div class="te-fb no">❌ ' + q.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    if (typeof errBookAdd === "function"){
+      errBookAdd(TE_SESSION.module, {
+        q: q.q || q.passage || "", type: qType,
+        o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+        words: q.words, blanks: q.blanks, passage: q.passage,
+        questions: q.questions, sample: q.sample, tips: q.tips,
+        why: q.why, source: TE_SESSION.topicName + " 专题真题"
+      });
+    }
+    fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
+      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
     saveS();
   }
 }
 
+
 function teNext(){
   TE_SESSION.idx++;
+  TE_SESSION.answered = false;
   if (TE_SESSION.idx < TE_SESSION.questions.length){ teRenderQuiz(); return; }
   teFinish();
 }
@@ -158,6 +172,7 @@ function teRetry(){
   TE_SESSION.idx = 0;
   TE_SESSION.wrong = 0;
   TE_SESSION.combo = 0;
+  TE_SESSION.answered = false;
   teRenderQuiz();
 }
 

@@ -1017,3 +1017,47 @@
 .bk-batch-meta{font-size:12px; color:#6B7280; white-space:nowrap;}
 .bk-batch-rename{flex:1; min-width:160px; padding:5px 8px; border:1px solid #E5E7EB; border-radius:6px; font-size:12px; outline:none;}
 .bk-batch-rename:focus{border-color:#0EA5E9;}
+
+
+/* ============ 多题型 qt-*（选词填空/填空/阅读/作文） ============
+.qt-opts{margin:10px 0;}
+.qt-opt{display:flex; align-items:center; gap:10px; width:100%; padding:11px 14px; margin:6px 0; background:#F3F4F6; border:2px solid transparent; border-radius:10px; font-size:15px; cursor:pointer; transition:all .15s; text-align:left;}
+.qt-opt:hover{background:#FEF3C7; border-color:#FCD34D;}
+.qt-opt.picked{background:#FEF3C7; border-color:#F59E0B;}
+.qt-opt.qt-right{background:#D1FAE5; border-color:#10B981; color:#065946;}
+.qt-opt-key{flex:0 0 auto; width:26px; height:26px; border-radius:8px; background:#fff; border:1px solid #E5E7EB; color:#7A4B12; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center;}
+.qt-opt-text{flex:1 1 auto; min-width:0;}
+.qt-fill{margin:10px 0;}
+.qt-input{width:100%; max-width:420px; padding:11px 14px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px; background:#fff; box-sizing:border-box;}
+.qt-input:focus{outline:none; border-color:#F59E0B;}
+.qt-hint{font-size:13px; color:#9CA3AF; margin-top:6px;}
+.qt-cloze{margin:10px 0;}
+.qt-blanks{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+.qt-blank{display:inline-flex; align-items:center; gap:6px; min-width:84px; padding:8px 10px; background:#fff; border:2px dashed #D1D5DB; border-radius:10px; cursor:pointer; font-size:14px;}
+.qt-blank:hover{border-color:#F59E0B;}
+.qt-blank-num{flex:0 0 auto; font-size:11px; color:#9CA3AF; background:#F3F4F6; border-radius:6px; padding:2px 5px;}
+.qt-blank-val{flex:1 1 auto; min-width:48px; text-align:center; font-weight:700; color:#7A4B12;}
+.qt-blank-val.filled{color:#065946;}
+.qt-words{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0;}
+.qt-word{padding:8px 16px; background:#FFFBEB; border:1.5px solid #FCD34D; border-radius:999px; font-size:14px; font-weight:700; color:#7A4B12; cursor:pointer; transition:all .15s;}
+.qt-word:hover{background:#FEF3C7;}
+.qt-word.used{opacity:.35; text-decoration:line-through; cursor:default;}
+.qt-cloze-tip{font-size:12px; color:#9CA3AF; margin-top:4px;}
+.qt-passage{font-size:14px; line-height:1.8; color:#374151; padding:14px; background:#F9FAFB; border-radius:10px; margin:8px 0; white-space:pre-wrap; border:1px solid #E5E7EB;}
+.qt-subs{margin-top:6px;}
+.qt-sub{padding:10px 0; border-top:1px dashed #E5E7EB;}
+.qt-sub:first-of-type{border-top:none;}
+.qt-sub-q{font-size:15px; color:#1F2937; line-height:1.7; margin-bottom:4px;}
+.qt-tips{margin:10px 0; padding:10px 14px; background:#F0F9FF; border-left:4px solid #38BDF8; border-radius:8px; font-size:14px; line-height:1.7;}
+.qt-tips ul{margin:6px 0 0; padding-left:18px;}
+.qt-write{width:100%; box-sizing:border-box; padding:12px 14px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px; line-height:1.7; font-family:inherit; margin:10px 0 6px;}
+.qt-write:focus{outline:none; border-color:#F59E0B;}
+.qt-self{display:flex; align-items:center; gap:4px; flex-wrap:wrap; font-size:14px; color:#6B7280; margin:6px 0;}
+.qt-star{font-size:20px; background:none; border:none; cursor:pointer; opacity:.3; transition:opacity .15s; padding:2px;}
+.qt-star.on{opacity:1;}
+.qt-self-txt{font-size:13px; color:#7A4B12; font-weight:700; margin-left:8px;}
+.qt-act{margin:12px 0;}
+.qt-submit{background:#F59E0B; color:#fff; border:none; padding:11px 26px; border-radius:10px; cursor:pointer; font-size:15px; font-weight:700;}
+.qt-submit:hover{background:#D97706;}
+.qt-sample{margin-top:10px; padding:12px 14px; background:#FDF2F8; border-left:4px solid #EC4899; border-radius:8px; font-size:14px; line-height:1.8; white-space:pre-wrap;}
+.qt-sample b{color:#BE185D;}

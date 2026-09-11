@@ -40,8 +40,16 @@ function errBookAdd(module, item){
       id: "eb" + Date.now() + Math.floor(Math.random() * 1000),
       module: module,
       q: item.q,
+      type: item.type || "choice",
       o: item.o,
       a: item.a,
+      ansText: item.ansText || "",
+      words: item.words,
+      blanks: item.blanks,
+      passage: item.passage,
+      questions: item.questions,
+      sample: item.sample,
+      tips: item.tips,
       why: item.why,
       source: item.source || "",
       time: Date.now(),
@@ -160,7 +168,7 @@ function ebPracticeOne(id){
     if (st.items[i].id === id){ it = st.items[i]; break; }
   }
   if (!it) return;
-  EB_SESSION = { items: [it], idx: 0 };
+  EB_SESSION = { items: [it], idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -171,7 +179,7 @@ function ebPracticeAll(){
   var st = ebState();
   var items = st.items.filter(function(it){ return (it.status || "active") === "active"; });
   if (items.length === 0){ alert("没有活跃错题可重做"); return; }
-  EB_SESSION = { items: items, idx: 0 };
+  EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -182,7 +190,7 @@ function ebPracticeModule(module){
   var st = ebState();
   var items = st.items.filter(function(it){ return it.module === module && (it.status || "active") === "active"; });
   if (items.length === 0){ alert("该模块没有活跃错题"); return; }
-  EB_SESSION = { items: items, idx: 0 };
+  EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -191,65 +199,69 @@ function ebPracticeModule(module){
 
 function ebRenderQuiz(){
   var it = EB_SESSION.items[EB_SESSION.idx];
-  var passage = it.q.indexOf("\n\n") >= 0 ? it.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : it.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="eb-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = it.o.map(function(t, i){
-    return '<button class="eb-opt" type="button" data-i="' + i + '" onclick="ebAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(it) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(it, "eb") : "";
+  var qTitle = it.q ? '<div class="eb-question">' + it.q + '</div>' : '';
   var dialog = document.getElementById("ebDialog");
   if (!dialog) return;
   var mName = EB_MODULE_NAMES[it.module] || it.module;
   var streakTxt = it.correctStreak > 0 ? ' · 连对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD : "";
   dialog.innerHTML =
     '<div class="eb-dlg-head">' +
-      '<span class="eb-cap">❌ 错题重做 · ' + mName + ' · ' + (EB_SESSION.idx + 1) + '/' + EB_SESSION.items.length + streakTxt + '</span>' +
+      '<span class="eb-cap">❌ 错题重做 · ' + mName + ' · ' + (EB_SESSION.idx + 1) + '/' + EB_SESSION.items.length + streakTxt +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="eb-close" type="button" onclick="ebClose()">×</button>' +
     '</div>' +
     '<div class="eb-dlg-body">' +
-      passageHtml +
-      '<div class="eb-question">' + qText + '</div>' +
-      '<div class="eb-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="eb-feedback" id="ebFeedback"></div>' +
+      '<div class="eb-act" id="ebAct">' +
+        '<button class="qt-submit" type="button" onclick="ebAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function ebAnswer(btn){
+
+function ebAnswer(){
   var it = EB_SESSION.items[EB_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".eb-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (EB_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(it, "eb") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(it, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(it, "eb");
+  EB_SESSION.answered = true;
   var fb = document.getElementById("ebFeedback");
-  if (i === it.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(it);
+  var sampleHtml = "";
+  if (qType === "writing" && (it.sample || it.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (it.sample || it.why) + '</div>';
+  }
+  if (grade.ok){
     it.correctStreak = (it.correctStreak || 0) + 1;
     var willDormant = it.correctStreak >= EB_DORMANT_THRESHOLD && (it.status || "active") === "active";
     if (willDormant) it.status = "dormant";
     saveS();
-    var msg = '✅ 正确！' + it.why;
+    var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
     if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
     else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
-    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' +
+    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
       '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
   } else {
-    btn.classList.add("no");
-    opts[it.a].classList.add("ok");
     it.count = (it.count || 1) + 1;
     it.correctStreak = 0;
     it.status = "active";
     saveS();
-    fb.innerHTML = '<div class="eb-fb no">❌ ' + it.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
       '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
   }
 }
 
+
 function ebNext(){
   EB_SESSION.idx++;
+  EB_SESSION.answered = false;
   if (EB_SESSION.idx < EB_SESSION.items.length){ ebRenderQuiz(); return; }
   var dialog = document.getElementById("ebDialog");
   if (!dialog) return;

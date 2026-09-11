@@ -55,7 +55,7 @@ var XQ_SESSION = null;
 function xqOpen(pid){
   var p = EXAM_DATA.papers.filter(function(x){ return x.id === pid; })[0];
   if (!p) return;
-  XQ_SESSION = { paper: p, idx: 0, wrong: 0, combo: 0, answers: [] };
+  XQ_SESSION = { paper: p, idx: 0, wrong: 0, combo: 0, answered: false, answers: [] };
   xqRenderQuiz();
   var mask = document.getElementById("xqDialogMask");
   if (mask) mask.classList.add("open");
@@ -65,63 +65,76 @@ function xqOpen(pid){
 function xqRenderQuiz(){
   var p = XQ_SESSION.paper;
   var q = p.questions[XQ_SESSION.idx];
-  var passage = q.q.indexOf("\n\n") >= 0 ? q.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : q.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="xq-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = q.o.map(function(t, i){
-    return '<button class="xq-opt" type="button" data-i="' + i + '" onclick="xqAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(q, "qt") : "";
+  var qTitle = q.q ? '<div class="xq-question">' + q.q + '</div>' : '';
   var dialog = document.getElementById("xqDialog");
   if (!dialog) return;
   dialog.innerHTML =
     '<div class="xq-dlg-head">' +
-      '<span class="xq-cap">📝 ' + p.name + ' · 第 ' + (XQ_SESSION.idx + 1) + '/' + p.questions.length + ' 题</span>' +
+      '<span class="xq-cap">📝 ' + p.name + ' · 第 ' + (XQ_SESSION.idx + 1) + '/' + p.questions.length + ' 题' +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="xq-close" type="button" onclick="xqClose()">×</button>' +
     '</div>' +
     '<div class="xq-dlg-body">' +
       '<div class="xq-combo-track">🔥 连击 <b>' + XQ_SESSION.combo + '</b> · 🪙 ' + xqState().coins + '</div>' +
-      passageHtml +
-      '<div class="xq-question">' + qText + '</div>' +
-      '<div class="xq-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="xq-feedback" id="xqFeedback"></div>' +
+      '<div class="xq-act" id="xqAct">' +
+        '<button class="qt-submit" type="button" onclick="xqAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function xqAnswer(btn){
+
+function xqAnswer(){
   var p = XQ_SESSION.paper;
   var q = p.questions[XQ_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".xq-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (XQ_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(q, "qt") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(q, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(q, "qt");
+  XQ_SESSION.answered = true;
   var fb = document.getElementById("xqFeedback");
-  if (i === q.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(q);
+  var sampleHtml = "";
+  if (qType === "writing" && (q.sample || q.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
+  }
+  if (grade.ok){
     XQ_SESSION.combo++;
     var gain = XQ_COIN_PER_Q * (1 + Math.floor(XQ_SESSION.combo / 3));
     xqState().coins += gain;
-    fb.innerHTML = '<div class="xq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+    fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
       '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
-    btn.classList.add("no");
-    opts[q.a].classList.add("ok");
     XQ_SESSION.combo = 0;
     XQ_SESSION.wrong++;
-    if (typeof errBookAdd === "function") errBookAdd("exam", { q: q.q, o: q.o, a: q.a, why: q.why, source: p.name });
-    fb.innerHTML = '<div class="xq-fb no">❌ ' + q.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    if (typeof errBookAdd === "function"){
+      errBookAdd("exam", {
+        q: q.q || q.passage || "", type: qType,
+        o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+        words: q.words, blanks: q.blanks, passage: q.passage,
+        questions: q.questions, sample: q.sample, tips: q.tips,
+        why: q.why, source: p.name
+      });
+    }
+    fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
       '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
     saveS();
   }
 }
 
+
 function xqNext(){
   XQ_SESSION.idx++;
+  XQ_SESSION.answered = false;
   if (XQ_SESSION.idx < XQ_SESSION.paper.questions.length){ xqRenderQuiz(); return; }
   xqFinish();
 }

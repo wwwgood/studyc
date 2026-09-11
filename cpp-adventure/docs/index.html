@@ -4497,6 +4497,50 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bk-batch-rename{flex:1; min-width:160px; padding:5px 8px; border:1px solid #E5E7EB; border-radius:6px; font-size:12px; outline:none;}
 .bk-batch-rename:focus{border-color:#0EA5E9;}
 
+
+/* ============ 多题型 qt-*（选词填空/填空/阅读/作文） ============
+.qt-opts{margin:10px 0;}
+.qt-opt{display:flex; align-items:center; gap:10px; width:100%; padding:11px 14px; margin:6px 0; background:#F3F4F6; border:2px solid transparent; border-radius:10px; font-size:15px; cursor:pointer; transition:all .15s; text-align:left;}
+.qt-opt:hover{background:#FEF3C7; border-color:#FCD34D;}
+.qt-opt.picked{background:#FEF3C7; border-color:#F59E0B;}
+.qt-opt.qt-right{background:#D1FAE5; border-color:#10B981; color:#065946;}
+.qt-opt-key{flex:0 0 auto; width:26px; height:26px; border-radius:8px; background:#fff; border:1px solid #E5E7EB; color:#7A4B12; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center;}
+.qt-opt-text{flex:1 1 auto; min-width:0;}
+.qt-fill{margin:10px 0;}
+.qt-input{width:100%; max-width:420px; padding:11px 14px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px; background:#fff; box-sizing:border-box;}
+.qt-input:focus{outline:none; border-color:#F59E0B;}
+.qt-hint{font-size:13px; color:#9CA3AF; margin-top:6px;}
+.qt-cloze{margin:10px 0;}
+.qt-blanks{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+.qt-blank{display:inline-flex; align-items:center; gap:6px; min-width:84px; padding:8px 10px; background:#fff; border:2px dashed #D1D5DB; border-radius:10px; cursor:pointer; font-size:14px;}
+.qt-blank:hover{border-color:#F59E0B;}
+.qt-blank-num{flex:0 0 auto; font-size:11px; color:#9CA3AF; background:#F3F4F6; border-radius:6px; padding:2px 5px;}
+.qt-blank-val{flex:1 1 auto; min-width:48px; text-align:center; font-weight:700; color:#7A4B12;}
+.qt-blank-val.filled{color:#065946;}
+.qt-words{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0;}
+.qt-word{padding:8px 16px; background:#FFFBEB; border:1.5px solid #FCD34D; border-radius:999px; font-size:14px; font-weight:700; color:#7A4B12; cursor:pointer; transition:all .15s;}
+.qt-word:hover{background:#FEF3C7;}
+.qt-word.used{opacity:.35; text-decoration:line-through; cursor:default;}
+.qt-cloze-tip{font-size:12px; color:#9CA3AF; margin-top:4px;}
+.qt-passage{font-size:14px; line-height:1.8; color:#374151; padding:14px; background:#F9FAFB; border-radius:10px; margin:8px 0; white-space:pre-wrap; border:1px solid #E5E7EB;}
+.qt-subs{margin-top:6px;}
+.qt-sub{padding:10px 0; border-top:1px dashed #E5E7EB;}
+.qt-sub:first-of-type{border-top:none;}
+.qt-sub-q{font-size:15px; color:#1F2937; line-height:1.7; margin-bottom:4px;}
+.qt-tips{margin:10px 0; padding:10px 14px; background:#F0F9FF; border-left:4px solid #38BDF8; border-radius:8px; font-size:14px; line-height:1.7;}
+.qt-tips ul{margin:6px 0 0; padding-left:18px;}
+.qt-write{width:100%; box-sizing:border-box; padding:12px 14px; border:2px solid #E5E7EB; border-radius:10px; font-size:15px; line-height:1.7; font-family:inherit; margin:10px 0 6px;}
+.qt-write:focus{outline:none; border-color:#F59E0B;}
+.qt-self{display:flex; align-items:center; gap:4px; flex-wrap:wrap; font-size:14px; color:#6B7280; margin:6px 0;}
+.qt-star{font-size:20px; background:none; border:none; cursor:pointer; opacity:.3; transition:opacity .15s; padding:2px;}
+.qt-star.on{opacity:1;}
+.qt-self-txt{font-size:13px; color:#7A4B12; font-weight:700; margin-left:8px;}
+.qt-act{margin:12px 0;}
+.qt-submit{background:#F59E0B; color:#fff; border:none; padding:11px 26px; border-radius:10px; cursor:pointer; font-size:15px; font-weight:700;}
+.qt-submit:hover{background:#D97706;}
+.qt-sample{margin-top:10px; padding:12px 14px; background:#FDF2F8; border-left:4px solid #EC4899; border-radius:8px; font-size:14px; line-height:1.8; white-space:pre-wrap;}
+.qt-sample b{color:#BE185D;}
+
 </style>
 <style>
 /* ---------------- 奖品店样式 awards.css ---------------- */
@@ -55204,6 +55248,313 @@ window.addEventListener("load", function(){ if (document.getElementById("oqLevel
 
 </script>
   <script>
+/* ---------------- 题型引擎 qtypes.js ----------------
+ * 统一支持多题型：选择题 / 选词填空 / 填空(汉译英·词性转换·单句改错·改正填空) / 阅读理解 / 作文。
+ * 供 专题真题(topic-exam)、真题演练(exam-quest)、错题本(err-book) 共用。
+ *
+ * 题目字段约定（旧数据无 type 时默认 choice，完全兼容）：
+ *  - choice : { type:"choice", q, o:[选项], a:正确下标, why }
+ *  - fill   : { type:"fill", q, ansText:"答案" 或 "答案1|答案2", why }
+ *             （覆盖：词性转换填空/汉译英/单句改错/改正填空，答案忽略大小写与标点）
+ *  - cloze  : { type:"cloze", q, words:[词库], blanks:["每空答案"...], why }
+ *  - reading: { type:"reading", q, passage:"短文", questions:[{q,o?,a?,why?}...], why }
+ *  - writing: { type:"writing", q, tips:[要点], sample:"范文", why }
+ */
+var QT_LABELS = {
+  choice: "🔵 选择题",
+  cloze: "🧩 选词填空",
+  fill: "✏️ 填空（词性转换/汉译英/改错）",
+  reading: "📄 阅读理解",
+  writing: "✍️ 作文"
+};
+var QT_OPTIONS = [
+  { v: "auto", label: "🪄 自动识别" },
+  { v: "choice", label: "🔵 选择题" },
+  { v: "cloze", label: "🧩 选词填空" },
+  { v: "fill", label: "✏️ 填空/汉译英/改错" },
+  { v: "reading", label: "📄 阅读理解" },
+  { v: "writing", label: "✍️ 作文" }
+];
+function qtLabel(t){ return QT_LABELS[t] || QT_LABELS.choice; }
+function qtTypeOf(q){ return (q && q.type) || "choice"; }
+
+/* 归一化：小写、去首尾空格、折叠空格、去常见标点（判题宽松） */
+function qtNorm(s){
+  return String(s == null ? "" : s).trim().toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[，。、；：！？.,;:!?'"（）()「」“”‘’]/g, "");
+}
+/* 多答案解析：数组 / | / 、 / ； 分隔 */
+function qtAnsList(a){
+  if (a == null) return [];
+  if (Array.isArray(a)) return a.map(function(x){ return String(x); });
+  return String(a).split(/\s*[|/、；;]\s*/).filter(function(x){ return x; });
+}
+
+/* ================= 渲染 ================= */
+function qtRender(q, prefix){
+  var t = qtTypeOf(q);
+  if (t === "cloze") return qtRenderCloze(q, prefix);
+  if (t === "fill") return qtRenderFill(q, prefix);
+  if (t === "reading") return qtRenderReading(q, prefix);
+  if (t === "writing") return qtRenderWriting(q, prefix);
+  return qtRenderChoice(q, prefix);
+}
+function qtRenderChoice(q, prefix){
+  var opts = q.o || [];
+  var html = '<div class="qt-opts" data-p="' + prefix + '">';
+  opts.forEach(function(o, i){
+    html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-i="' + i + '" onclick="qtPick(this)">' +
+      '<span class="qt-opt-key">' + String.fromCharCode(65 + i) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+  });
+  html += '</div>';
+  return html;
+}
+function qtRenderFill(q, prefix){
+  return '<div class="qt-fill" data-p="' + prefix + '">' +
+    '<input class="qt-input" type="text" data-p="' + prefix + '" placeholder="在此输入答案（可直接键盘输入）">' +
+    (q.aRef ? '<div class="qt-hint">💡 ' + q.aRef + '</div>' : '') +
+  '</div>';
+}
+function qtRenderCloze(q, prefix){
+  var words = q.words || [];
+  var blanks = q.blanks || [];
+  var html = '<div class="qt-cloze" data-p="' + prefix + '">';
+  html += '<div class="qt-blanks">';
+  blanks.forEach(function(b, i){
+    html += '<span class="qt-blank" data-p="' + prefix + '" data-i="' + i + '" onclick="qtBlankClick(this)">' +
+      '<span class="qt-blank-num">' + (i + 1) + '</span>' +
+      '<span class="qt-blank-val" data-p="' + prefix + '" data-i="' + i + '"></span></span>';
+  });
+  html += '</div>';
+  if (words.length){
+    html += '<div class="qt-words" data-p="' + prefix + '">';
+    words.forEach(function(w, i){
+      html += '<button class="qt-word" type="button" data-p="' + prefix + '" data-w="' + i + '" onclick="qtWordClick(this)">' + w + '</button>';
+    });
+    html += '</div><div class="qt-cloze-tip">点击上方单词填入空格；点空格可清空重选</div>';
+  }
+  html += '</div>';
+  return html;
+}
+function qtRenderReading(q, prefix){
+  var subs = q.questions || [];
+  var html = '';
+  if (q.passage){
+    html += '<div class="qt-passage">' + String(q.passage).replace(/\n/g, "<br>") + '</div>';
+  }
+  html += '<div class="qt-subs" data-p="' + prefix + '">';
+  subs.forEach(function(sq, si){
+    html += '<div class="qt-sub"><div class="qt-sub-q">' + (si + 1) + '. ' + sq.q + '</div>';
+    if (sq.o && sq.o.length){
+      html += '<div class="qt-opts">';
+      sq.o.forEach(function(o, oi){
+        html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-s="' + si + '" data-i="' + oi + '" onclick="qtPick(this)">' +
+          '<span class="qt-opt-key">' + String.fromCharCode(65 + oi) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+      });
+      html += '</div>';
+    } else {
+      html += '<input class="qt-input" type="text" data-p="' + prefix + '" data-s="' + si + '" placeholder="在此输入答案">';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+function qtRenderWriting(q, prefix){
+  var html = '';
+  if (q.tips && q.tips.length){
+    html += '<div class="qt-tips"><b>✍️ 写作要点：</b><ul>' +
+      q.tips.map(function(x){ return '<li>' + x + '</li>'; }).join("") + '</ul></div>';
+  }
+  html += '<textarea class="qt-write" rows="7" data-p="' + prefix + '" placeholder="在这里写你的作文（建议 40 词以上）…"></textarea>';
+  html += '<div class="qt-self" data-p="' + prefix + '"><span>写完后给自己打个分：</span>' +
+    ['1','2','3','4','5'].map(function(n){
+      return '<button class="qt-star" type="button" data-p="' + prefix + '" data-v="' + n + '" onclick="qtStarPick(this)">⭐</button>';
+    }).join("") +
+    '<span class="qt-self-txt" data-p="' + prefix + '"></span></div>';
+  return html;
+}
+
+/* 交互：选项选中 / 词库填词 / 空格清空 / 自评 */
+function qtPick(btn){
+  var p = btn.getAttribute("data-p");
+  var s = btn.getAttribute("data-s");
+  var sel = '.qt-opt[data-p="' + p + '"]' + (s ? '[data-s="' + s + '"]' : '');
+  var list = document.querySelectorAll(sel);
+  for (var i = 0; i < list.length; i++) list[i].classList.remove("picked");
+  btn.classList.add("picked");
+}
+function qtWordClick(btn){
+  var p = btn.getAttribute("data-p");
+  var val = (btn.textContent || "").trim();
+  var blanks = document.querySelectorAll('.qt-blank-val[data-p="' + p + '"]');
+  for (var i = 0; i < blanks.length; i++){
+    if (!blanks[i].textContent){
+      blanks[i].textContent = val;
+      blanks[i].classList.add("filled");
+      btn.classList.add("used");
+      return;
+    }
+  }
+}
+function qtBlankClick(el){
+  var valEl = el.querySelector(".qt-blank-val");
+  if (!valEl || !valEl.textContent) return;
+  var w = valEl.textContent;
+  valEl.textContent = "";
+  valEl.classList.remove("filled");
+  var p = valEl.getAttribute("data-p");
+  var words = document.querySelectorAll('.qt-word[data-p="' + p + '"].used');
+  for (var i = 0; i < words.length; i++){
+    if ((words[i].textContent || "").trim() === w){
+      words[i].classList.remove("used");
+      break;
+    }
+  }
+}
+function qtStarPick(btn){
+  var p = btn.getAttribute("data-p");
+  var v = parseInt(btn.getAttribute("data-v"), 10);
+  var stars = document.querySelectorAll('.qt-star[data-p="' + p + '"]');
+  for (var i = 0; i < stars.length; i++){
+    var sv = parseInt(stars[i].getAttribute("data-v"), 10);
+    stars[i].classList.toggle("on", sv <= v);
+  }
+  var txt = document.querySelector('.qt-self-txt[data-p="' + p + '"]');
+  if (txt) txt.textContent = "已自评 " + v + " 星";
+}
+
+/* ================= 读取输入 ================= */
+function qtRead(q, prefix){
+  var t = qtTypeOf(q);
+  if (t === "choice"){
+    var sel = document.querySelector('.qt-opt[data-p="' + prefix + '"].picked');
+    return sel ? parseInt(sel.getAttribute("data-i"), 10) : -1;
+  }
+  if (t === "fill"){
+    var inp = document.querySelector('.qt-input[data-p="' + prefix + '"]');
+    return inp ? inp.value : "";
+  }
+  if (t === "cloze"){
+    var blanks = document.querySelectorAll('.qt-blank-val[data-p="' + prefix + '"]');
+    var arr = [];
+    for (var i = 0; i < blanks.length; i++) arr.push(blanks[i].textContent);
+    return arr;
+  }
+  if (t === "reading"){
+    var subs = q.questions || [];
+    var out = [];
+    for (var s = 0; s < subs.length; s++){
+      var sq = subs[s];
+      if (sq.o && sq.o.length){
+        var b = document.querySelector('.qt-opt[data-p="' + prefix + '"][data-s="' + s + '"].picked');
+        out.push(b ? parseInt(b.getAttribute("data-i"), 10) : -1);
+      } else {
+        var inp = document.querySelector('.qt-input[data-p="' + prefix + '"][data-s="' + s + '"]');
+        out.push(inp ? inp.value : "");
+      }
+    }
+    return out;
+  }
+  if (t === "writing"){
+    var ta = document.querySelector('.qt-write[data-p="' + prefix + '"]');
+    return ta ? ta.value : "";
+  }
+  return null;
+}
+
+/* ================= 判题 ================= */
+function qtGrade(q, input){
+  var t = qtTypeOf(q);
+  if (t === "choice"){
+    var ok = (input === q.a);
+    return { ok: ok, show: ok ? "" : "正确答案：" + String.fromCharCode(65 + q.a) };
+  }
+  if (t === "fill"){
+    var list = qtAnsList(q.ansText != null ? q.ansText : q.a);
+    var ok = list.length > 0 && list.some(function(ans){ return qtNorm(ans) === qtNorm(input); });
+    return { ok: ok, show: ok ? "" : "参考答案：" + list.join(" / ") };
+  }
+  if (t === "cloze"){
+    var blanks = q.blanks || [];
+    var right = 0, parts = [];
+    for (var i = 0; i < blanks.length; i++){
+      var a = qtNorm(blanks[i]);
+      var u = qtNorm(input[i]);
+      var o = (a !== "" && a === u);
+      if (o) right++;
+      parts.push("第" + (i + 1) + "空" + (o ? " ✅" : " ❌" + (input[i] ? "（填了「" + input[i] + "」）" : "（未填）") + "，应为 " + blanks[i]));
+    }
+    return { ok: right === blanks.length, show: parts.join("　"), partial: right };
+  }
+  if (t === "reading"){
+    var subs = q.questions || [];
+    var right = 0, parts = [];
+    for (var s = 0; s < subs.length; s++){
+      var sq = subs[s];
+      var o = false, ansTxt = "";
+      if (sq.o && sq.o.length){
+        ansTxt = String.fromCharCode(65 + sq.a);
+        o = (input[s] === sq.a);
+      } else {
+        var al = qtAnsList(sq.ansText != null ? sq.ansText : sq.a);
+        ansTxt = al.join(" / ");
+        o = al.length > 0 && al.some(function(x){ return qtNorm(x) === qtNorm(input[s]); });
+      }
+      if (o) right++;
+      parts.push("第" + (s + 1) + "题" + (o ? " ✅" : " ❌（应为 " + ansTxt + "）"));
+    }
+    return { ok: right === subs.length, show: parts.join("　"), partial: right };
+  }
+  if (t === "writing"){
+    var len = String(input == null ? "" : input).trim().length;
+    return { ok: len >= 20, show: "", len: len };
+  }
+  return { ok: false, show: "" };
+}
+
+/* 判题后高亮正确答案（补全未填的空格） */
+function qtMarkRight(q, prefix){
+  var t = qtTypeOf(q);
+  if (t === "choice"){
+    var b = document.querySelector('.qt-opt[data-p="' + prefix + '"][data-i="' + q.a + '"]');
+    if (b) b.classList.add("qt-right");
+  }
+  if (t === "cloze"){
+    var blanks = document.querySelectorAll('.qt-blank-val[data-p="' + prefix + '"]');
+    (q.blanks || []).forEach(function(b, i){
+      if (blanks[i] && !blanks[i].textContent) blanks[i].textContent = b;
+    });
+  }
+  if (t === "reading"){
+    (q.questions || []).forEach(function(sq, s){
+      if (sq.o && sq.o.length){
+        var b = document.querySelector('.qt-opt[data-p="' + prefix + '"][data-s="' + s + '"][data-i="' + sq.a + '"]');
+        if (b) b.classList.add("qt-right");
+      }
+    });
+  }
+}
+
+/* 标准答案文本（展示/入库/错题本） */
+function qtAnswerText(q){
+  var t = qtTypeOf(q);
+  if (t === "choice") return String.fromCharCode(65 + q.a);
+  if (t === "fill") return qtAnsList(q.ansText != null ? q.ansText : q.a).join(" / ");
+  if (t === "cloze") return (q.blanks || []).map(function(b, i){ return (i + 1) + "." + b; }).join(" ");
+  if (t === "reading"){
+    return (q.questions || []).map(function(sq, s){
+      var a = sq.o && sq.o.length ? String.fromCharCode(65 + sq.a) : qtAnsList(sq.ansText != null ? sq.ansText : sq.a).join("/");
+      return (s + 1) + "." + a;
+    }).join(" ");
+  }
+  if (t === "writing") return "（作文：写 40 词以上，参考范文见解析）";
+  return "";
+}
+
+</script>
+  <script>
 /* ---------------- 真题演练 exam-quest.js ----------------
  * 小升初/分班考/密考真题。按套卷闯关，答错自动入错题本。
  * 进度保存在 S.exam = { done: { paperId: stars }, coins: 0 }。
@@ -55261,7 +55612,7 @@ var XQ_SESSION = null;
 function xqOpen(pid){
   var p = EXAM_DATA.papers.filter(function(x){ return x.id === pid; })[0];
   if (!p) return;
-  XQ_SESSION = { paper: p, idx: 0, wrong: 0, combo: 0, answers: [] };
+  XQ_SESSION = { paper: p, idx: 0, wrong: 0, combo: 0, answered: false, answers: [] };
   xqRenderQuiz();
   var mask = document.getElementById("xqDialogMask");
   if (mask) mask.classList.add("open");
@@ -55271,63 +55622,76 @@ function xqOpen(pid){
 function xqRenderQuiz(){
   var p = XQ_SESSION.paper;
   var q = p.questions[XQ_SESSION.idx];
-  var passage = q.q.indexOf("\n\n") >= 0 ? q.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : q.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="xq-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = q.o.map(function(t, i){
-    return '<button class="xq-opt" type="button" data-i="' + i + '" onclick="xqAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(q, "qt") : "";
+  var qTitle = q.q ? '<div class="xq-question">' + q.q + '</div>' : '';
   var dialog = document.getElementById("xqDialog");
   if (!dialog) return;
   dialog.innerHTML =
     '<div class="xq-dlg-head">' +
-      '<span class="xq-cap">📝 ' + p.name + ' · 第 ' + (XQ_SESSION.idx + 1) + '/' + p.questions.length + ' 题</span>' +
+      '<span class="xq-cap">📝 ' + p.name + ' · 第 ' + (XQ_SESSION.idx + 1) + '/' + p.questions.length + ' 题' +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="xq-close" type="button" onclick="xqClose()">×</button>' +
     '</div>' +
     '<div class="xq-dlg-body">' +
       '<div class="xq-combo-track">🔥 连击 <b>' + XQ_SESSION.combo + '</b> · 🪙 ' + xqState().coins + '</div>' +
-      passageHtml +
-      '<div class="xq-question">' + qText + '</div>' +
-      '<div class="xq-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="xq-feedback" id="xqFeedback"></div>' +
+      '<div class="xq-act" id="xqAct">' +
+        '<button class="qt-submit" type="button" onclick="xqAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function xqAnswer(btn){
+
+function xqAnswer(){
   var p = XQ_SESSION.paper;
   var q = p.questions[XQ_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".xq-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (XQ_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(q, "qt") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(q, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(q, "qt");
+  XQ_SESSION.answered = true;
   var fb = document.getElementById("xqFeedback");
-  if (i === q.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(q);
+  var sampleHtml = "";
+  if (qType === "writing" && (q.sample || q.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
+  }
+  if (grade.ok){
     XQ_SESSION.combo++;
     var gain = XQ_COIN_PER_Q * (1 + Math.floor(XQ_SESSION.combo / 3));
     xqState().coins += gain;
-    fb.innerHTML = '<div class="xq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+    fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
       '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
-    btn.classList.add("no");
-    opts[q.a].classList.add("ok");
     XQ_SESSION.combo = 0;
     XQ_SESSION.wrong++;
-    if (typeof errBookAdd === "function") errBookAdd("exam", { q: q.q, o: q.o, a: q.a, why: q.why, source: p.name });
-    fb.innerHTML = '<div class="xq-fb no">❌ ' + q.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    if (typeof errBookAdd === "function"){
+      errBookAdd("exam", {
+        q: q.q || q.passage || "", type: qType,
+        o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+        words: q.words, blanks: q.blanks, passage: q.passage,
+        questions: q.questions, sample: q.sample, tips: q.tips,
+        why: q.why, source: p.name
+      });
+    }
+    fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
       '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
     saveS();
   }
 }
 
+
 function xqNext(){
   XQ_SESSION.idx++;
+  XQ_SESSION.answered = false;
   if (XQ_SESSION.idx < XQ_SESSION.paper.questions.length){ xqRenderQuiz(); return; }
   xqFinish();
 }
@@ -55415,8 +55779,16 @@ function errBookAdd(module, item){
       id: "eb" + Date.now() + Math.floor(Math.random() * 1000),
       module: module,
       q: item.q,
+      type: item.type || "choice",
       o: item.o,
       a: item.a,
+      ansText: item.ansText || "",
+      words: item.words,
+      blanks: item.blanks,
+      passage: item.passage,
+      questions: item.questions,
+      sample: item.sample,
+      tips: item.tips,
       why: item.why,
       source: item.source || "",
       time: Date.now(),
@@ -55535,7 +55907,7 @@ function ebPracticeOne(id){
     if (st.items[i].id === id){ it = st.items[i]; break; }
   }
   if (!it) return;
-  EB_SESSION = { items: [it], idx: 0 };
+  EB_SESSION = { items: [it], idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -55546,7 +55918,7 @@ function ebPracticeAll(){
   var st = ebState();
   var items = st.items.filter(function(it){ return (it.status || "active") === "active"; });
   if (items.length === 0){ alert("没有活跃错题可重做"); return; }
-  EB_SESSION = { items: items, idx: 0 };
+  EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -55557,7 +55929,7 @@ function ebPracticeModule(module){
   var st = ebState();
   var items = st.items.filter(function(it){ return it.module === module && (it.status || "active") === "active"; });
   if (items.length === 0){ alert("该模块没有活跃错题"); return; }
-  EB_SESSION = { items: items, idx: 0 };
+  EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
   if (mask) mask.classList.add("open");
@@ -55566,65 +55938,69 @@ function ebPracticeModule(module){
 
 function ebRenderQuiz(){
   var it = EB_SESSION.items[EB_SESSION.idx];
-  var passage = it.q.indexOf("\n\n") >= 0 ? it.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : it.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="eb-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = it.o.map(function(t, i){
-    return '<button class="eb-opt" type="button" data-i="' + i + '" onclick="ebAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(it) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(it, "eb") : "";
+  var qTitle = it.q ? '<div class="eb-question">' + it.q + '</div>' : '';
   var dialog = document.getElementById("ebDialog");
   if (!dialog) return;
   var mName = EB_MODULE_NAMES[it.module] || it.module;
   var streakTxt = it.correctStreak > 0 ? ' · 连对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD : "";
   dialog.innerHTML =
     '<div class="eb-dlg-head">' +
-      '<span class="eb-cap">❌ 错题重做 · ' + mName + ' · ' + (EB_SESSION.idx + 1) + '/' + EB_SESSION.items.length + streakTxt + '</span>' +
+      '<span class="eb-cap">❌ 错题重做 · ' + mName + ' · ' + (EB_SESSION.idx + 1) + '/' + EB_SESSION.items.length + streakTxt +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="eb-close" type="button" onclick="ebClose()">×</button>' +
     '</div>' +
     '<div class="eb-dlg-body">' +
-      passageHtml +
-      '<div class="eb-question">' + qText + '</div>' +
-      '<div class="eb-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="eb-feedback" id="ebFeedback"></div>' +
+      '<div class="eb-act" id="ebAct">' +
+        '<button class="qt-submit" type="button" onclick="ebAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function ebAnswer(btn){
+
+function ebAnswer(){
   var it = EB_SESSION.items[EB_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".eb-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (EB_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(it, "eb") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(it, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(it, "eb");
+  EB_SESSION.answered = true;
   var fb = document.getElementById("ebFeedback");
-  if (i === it.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(it);
+  var sampleHtml = "";
+  if (qType === "writing" && (it.sample || it.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (it.sample || it.why) + '</div>';
+  }
+  if (grade.ok){
     it.correctStreak = (it.correctStreak || 0) + 1;
     var willDormant = it.correctStreak >= EB_DORMANT_THRESHOLD && (it.status || "active") === "active";
     if (willDormant) it.status = "dormant";
     saveS();
-    var msg = '✅ 正确！' + it.why;
+    var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
     if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
     else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
-    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' +
+    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
       '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
   } else {
-    btn.classList.add("no");
-    opts[it.a].classList.add("ok");
     it.count = (it.count || 1) + 1;
     it.correctStreak = 0;
     it.status = "active";
     saveS();
-    fb.innerHTML = '<div class="eb-fb no">❌ ' + it.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
       '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
   }
 }
 
+
 function ebNext(){
   EB_SESSION.idx++;
+  EB_SESSION.answered = false;
   if (EB_SESSION.idx < EB_SESSION.items.length){ ebRenderQuiz(); return; }
   var dialog = document.getElementById("ebDialog");
   if (!dialog) return;
@@ -55811,7 +56187,7 @@ function topicExamOpen(module, topicId, topicName){
     }
     return;
   }
-  TE_SESSION = { module: module, topicId: topicId, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0 };
+  TE_SESSION = { module: module, topicId: topicId, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false };
   teRenderQuiz();
   var mask = document.getElementById("teDialogMask");
   if (mask) mask.classList.add("open");
@@ -55820,62 +56196,76 @@ function topicExamOpen(module, topicId, topicName){
 
 function teRenderQuiz(){
   var q = TE_SESSION.questions[TE_SESSION.idx];
-  var passage = q.q.indexOf("\n\n") >= 0 ? q.q.split("\n\n") : null;
-  var qText = passage ? passage[passage.length - 1] : q.q;
-  var passageHtml = "";
-  if (passage && passage.length > 1){
-    for (var i = 0; i < passage.length - 1; i++){
-      passageHtml += '<div class="te-passage">' + passage[i].replace(/\n/g, "<br>") + '</div>';
-    }
-  }
-  var opts = q.o.map(function(t, i){
-    return '<button class="te-opt" type="button" data-i="' + i + '" onclick="teAnswer(this)">' + String.fromCharCode(65 + i) + ". " + t + '</button>';
-  }).join("");
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var inputHtml = (typeof qtRender === "function") ? qtRender(q, "qt") : "";
+  var qTitle = q.q ? '<div class="te-question">' + q.q + '</div>' : '';
   var dialog = document.getElementById("teDialog");
   if (!dialog) return;
   dialog.innerHTML =
     '<div class="te-dlg-head">' +
-      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 专题真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length + '</span>' +
+      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 专题真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
     '<div class="te-dlg-body">' +
       '<div class="te-combo-track">🔥 连击 <b>' + TE_SESSION.combo + '</b> · 🪙 ' + teState().coins + '</div>' +
-      passageHtml +
-      '<div class="te-question">' + qText + '</div>' +
-      '<div class="te-opts">' + opts + '</div>' +
+      qTitle +
+      inputHtml +
       '<div class="te-feedback" id="teFeedback"></div>' +
+      '<div class="te-act" id="teAct">' +
+        '<button class="qt-submit" type="button" onclick="teAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+      '</div>' +
     '</div>';
 }
 
-function teAnswer(btn){
+
+function teAnswer(){
   var q = TE_SESSION.questions[TE_SESSION.idx];
-  var i = parseInt(btn.getAttribute("data-i"), 10);
-  var opts = btn.parentNode.querySelectorAll(".te-opt");
-  for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
+  if (TE_SESSION.answered) return;
+  var input = (typeof qtRead === "function") ? qtRead(q, "qt") : null;
+  var grade = (typeof qtGrade === "function") ? qtGrade(q, input) : { ok: false, show: "" };
+  if (typeof qtMarkRight === "function") qtMarkRight(q, "qt");
+  TE_SESSION.answered = true;
   var fb = document.getElementById("teFeedback");
-  if (i === q.a){
-    btn.classList.add("ok");
+  if (!fb) return;
+  var qType = qtTypeOf(q);
+  var sampleHtml = "";
+  if (qType === "writing" && (q.sample || q.why)){
+    sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
+  }
+  if (grade.ok){
     TE_SESSION.combo++;
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
-    fb.innerHTML = '<div class="te-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+    fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
-    btn.classList.add("no");
-    opts[q.a].classList.add("ok");
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
-    if (typeof errBookAdd === "function") errBookAdd(TE_SESSION.module, { q: q.q, o: q.o, a: q.a, why: q.why, source: TE_SESSION.topicName + " 专题真题" });
-    fb.innerHTML = '<div class="te-fb no">❌ ' + q.why + '</div>' +
+    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    if (typeof errBookAdd === "function"){
+      errBookAdd(TE_SESSION.module, {
+        q: q.q || q.passage || "", type: qType,
+        o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+        words: q.words, blanks: q.blanks, passage: q.passage,
+        questions: q.questions, sample: q.sample, tips: q.tips,
+        why: q.why, source: TE_SESSION.topicName + " 专题真题"
+      });
+    }
+    fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
+      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
     saveS();
   }
 }
 
+
 function teNext(){
   TE_SESSION.idx++;
+  TE_SESSION.answered = false;
   if (TE_SESSION.idx < TE_SESSION.questions.length){ teRenderQuiz(); return; }
   teFinish();
 }
@@ -55924,6 +56314,7 @@ function teRetry(){
   TE_SESSION.idx = 0;
   TE_SESSION.wrong = 0;
   TE_SESSION.combo = 0;
+  TE_SESSION.answered = false;
   teRenderQuiz();
 }
 
@@ -56120,6 +56511,10 @@ function baRenderImport(){
     '<div class="ba-config-title">📝 导入归属（以下信息标记这批题的出处，方便日后筛选）</div>' +
     '<div class="ba-config-row">' +
       '<label>科目</label><select id="baSubject" onchange="baUpdateModules()">' + subjectOpts + '</select>' +
+'<div class="ba-config-row">' +
+      '<label>题型</label><select id="baTypeSelect">' + (typeof QT_OPTIONS !== "undefined" ? QT_OPTIONS.map(function(o){ return '<option value="' + o.v + '">' + o.label + '</option>'; }).join("") : '<option value="auto">自动</option>') + '</select>' +
+      '<span class="ba-config-tip">选词填空/阅读理解/作文整题解析；填空与改错每题一空。默认自动识别即可</span>' +
+    '</div>' +
     '</div>' +
     '<div class="ba-config-row">' +
       '<label>模块</label><select id="baModule" onchange="baUpdateModuleTopic()"></select>' +
@@ -56544,6 +56939,7 @@ var BA_SECTION_TYPES = [
   { keys: ["阅读理解", "阅读"], type: "reading" },
   { keys: ["作文", "写作", "书面表达"], type: "essay" },
   { keys: ["判断"], type: "judge" },
+  { keys: ["选词填空", "方框.*词", "用方框", "选词", "词库"], type: "cloze" },
   { keys: ["完形填空", "填空"], type: "fill" },
   { keys: ["解答", "计算"], type: "solve" }
 ];
@@ -56578,7 +56974,8 @@ function baGuessSubject(text){
 /* 识别题型 */
 function baGuessQType(text){
   var optCount = (text.match(/[A-D][\.、．]/g) || []).length;
-  var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空/.test(text);
+  var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空|汉译英|英译汉|改错|适当形式|翻译|句型转换|按要求改写|完成句子|补全/.test(text);
+  var hasCloze = /(选词填空|方框.*词|用方框|词库)/.test(text) && hasFill;
   var hasJudge = /判断题|对\s*错|正确.*错误|√.*×|T.*F/i.test(text);
   var hasSolve = /(解答|计算|证明|求\s|试求|解方程|列式)/.test(text);
   var hasEssay = /(作文|写作|范文|以「|以"|题目：|不少于.*字|写一篇)/.test(text);
@@ -56587,6 +56984,7 @@ function baGuessQType(text){
 
   if (hasEssay) return "essay";
   if (hasReading && text.length > 200) return "reading";
+  if (hasCloze) return "cloze";
   if (optCount >= 2 && ansMulti) return "multi";
   if (optCount >= 4) return "single";
   if (hasJudge) return "judge";
@@ -56640,16 +57038,25 @@ function baSplitSmallQuestions(block){
 }
 
 /* 解析单道题：行内答案优先，末尾答案表兜底；无解析时按考点自动生成 */
-function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType){
+function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceType){
   if (lines.length < 1) return null;
   if (lines.length === 1 && /^[一二三四五六七八九十]+[、．\.]/.test(lines[0])) return null;
   var fullText = lines.join("\n");
   var qType;
-  if (sectionType && sectionType !== "single"){
-    qType = sectionType;
-  } else {
-    qType = baGuessQType(fullText);
-  }
+  if (forceType) qType = forceType;
+  else if (sectionType && sectionType !== "single") qType = sectionType;
+  else qType = baGuessQType(fullText);
+  /* 旧题型名统一映射到新题型体系 */
+  if (qType === "choice") qType = "single";
+  if (qType === "translation" || qType === "sentransform" || qType === "complete") qType = "fill";
+  if (qType === "essay") qType = "writing";
+
+  /* ===== 新题型分支 ===== */
+  if (qType === "fill") return baParseFill(lines, fullText);
+  if (qType === "cloze") return baParseCloze(lines, fullText);
+  if (qType === "reading") return baParseReading(lines, fullText);
+  if (qType === "writing") return baParseWriting(lines, fullText);
+
   var hasOpts = /[A-D][\.、．]/.test(fullText);
   var treatAs;
   if (qType === "single" || qType === "multi"){
@@ -56738,6 +57145,7 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType){
   }
   return q;
 }
+
 
 /* ==================== 考点识别引擎 ====================
  * 三重证据匹配：解析文本（最强）→ 题干特征 → 选项特征
@@ -56943,14 +57351,24 @@ function baSmartParse(text){
   var answerKey = baExtractAnswerKey(text);
   var questions = [];
   var bigBlocks = baSplitBigBlocks(text);
+  var forceEl = (typeof document !== "undefined" && document.getElementById) ? document.getElementById("baTypeSelect") : null;
+  var forceType = (forceEl && forceEl.value && forceEl.value !== "auto") ? forceEl.value : "";
 
   bigBlocks.forEach(function(block){
     var sectionType = baGuessSectionType(block.title);
-    var qBlocks = baSplitSmallQuestions(block.text);
-    qBlocks.forEach(function(qb){
-      var q = baParseOneQuestion(qb.lines, subjectGuess.subject, answerKey, qb.no, sectionType);
-      if (q) questions.push(q);
-    });
+    /* 阅读/选词/作文这类「整块是一道题」的：不拆小题，整块解析 */
+    var whole = (sectionType === "cloze" || sectionType === "reading" || sectionType === "essay" ||
+                 forceType === "cloze" || forceType === "reading" || forceType === "writing");
+    if (whole){
+      var qw = baParseOneQuestion(block.text.split("\n"), subjectGuess.subject, answerKey, null, sectionType, forceType);
+      if (qw) questions.push(qw);
+    } else {
+      var qBlocks = baSplitSmallQuestions(block.text);
+      qBlocks.forEach(function(qb){
+        var q = baParseOneQuestion(qb.lines, subjectGuess.subject, answerKey, qb.no, sectionType, forceType);
+        if (q) questions.push(q);
+      });
+    }
   });
 
   if (questions.length === 0){
@@ -56961,6 +57379,7 @@ function baSmartParse(text){
     hasAnswerKey: Object.keys(answerKey).length > 0
   };
 }
+
 
 /* ---------- 解析与预览 ---------- */
 function baParseAndPreview(){
@@ -56979,7 +57398,10 @@ function baParseAndPreview(){
       questions = json.map(function(item){
         return {
           q: item.q, o: item.o, a: item.a, why: item.why || "",
-          kp: item.kp || [], qType: item.qType || "single"
+          kp: item.kp || [], qType: item.qType || "single",
+          type: item.type || "", ansText: item.ansText || "",
+          words: item.words, blanks: item.blanks, passage: item.passage,
+          questions: item.questions, sample: item.sample, tips: item.tips
         };
       });
     }
@@ -57015,7 +57437,7 @@ function baParseAndPreview(){
   if (!isJson && Object.keys(typeCounts).length > 0){
     html += '<div class="ba-type-summary">';
     Object.keys(typeCounts).forEach(function(t){
-      html += '<span class="ba-type-chip">' + (BA_QTYPE_LABELS[t] || t) + ' ×' + typeCounts[t] + '</span>';
+      html += '<span class="ba-type-chip">' + baTypeShow(t) + ' ×' + typeCounts[t] + '</span>';
     });
     html += '</div>';
   }
@@ -57039,7 +57461,7 @@ function baParseAndPreview(){
   html += '<div class="ba-preview-list">';
   questions.forEach(function(q, i){
     var qType = q.qType || "single";
-    var typeLabel = BA_QTYPE_LABELS[qType] || qType;
+    var typeLabel = baTypeShow(qType);
     var ansBadge = q.ansSource ? '<span class="ba-ans-badge src-' + q.ansSource + '">' + q.ansSource + '</span>' : '';
     var whyAutoBadge = q.whyAuto ? '<span class="ba-why-auto">⚡自动解析</span>' : '';
     var kpHtml = "";
@@ -57340,13 +57762,225 @@ function baEsc(s){
     .replace(/"/g, "&quot;");
 }
 
+function baTypeShow(qType){
+  var map = { single: "choice", essay: "writing" };
+  var k = map[qType] || qType;
+  if (typeof QT_LABELS !== "undefined" && QT_LABELS[k]) return QT_LABELS[k];
+  return BA_QTYPE_LABELS[qType] || qType;
+}
 function baRenderOptsHtml(q){
   var qType = q.qType || "single";
+  var qTypeShow = (qType === "single" ? "choice" : qType === "essay" ? "writing" : qType);
+  if (typeof QT_LABELS !== "undefined" && QT_LABELS[qTypeShow] && qTypeShow !== "choice"){
+    var sum = "";
+    if (qTypeShow === "fill") sum = q.ansText ? "📝 标准答案：" + q.ansText : "📝 文本答案（可在下方答案框补录）";
+    if (qTypeShow === "cloze") sum = "🧩 词库：" + (q.words || []).join("、") + (q.blanks && q.blanks.length ? "　✅ 答案：" + q.blanks.join(" / ") : "");
+    if (qTypeShow === "reading") sum = "📄 短文 + " + (q.questions || []).length + " 道小题";
+    if (qTypeShow === "writing") sum = "✍️ 作文题" + (q.tips && q.tips.length ? "（" + q.tips.length + " 个要点）" : "") + (q.sample ? "，含范文" : "");
+    return '<div class="ba-preview-subj">' + sum + '</div>';
+  }
   return q.o.map(function(opt, j){
     var letter = String.fromCharCode(65 + j);
     var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);
     return '<span class="ba-preview-opt' + (isAns ? " ans" : "") + '">' + letter + '. ' + opt + '</span>';
   }).join("");
+}
+
+
+/* ---------- 多题型解析：填空（词性转换/汉译英/单句改错/改正填空） ---------- */
+function baParseFill(lines, fullText){
+  var qText = lines[0].replace(/^\d+[\.、．]\s*/, "").trim();
+  var ansText = "";
+  var ansSource = "未找到";
+  var why = "";
+  var ansLine = lines.find(function(l){ return /答案|answer|参考答案/i.test(l); });
+  if (ansLine){
+    var am = ansLine.replace(/^.*(?:答案|参考答案|answer)[：:]\s*/i, "").trim();
+    if (am){ ansText = am; ansSource = "原卷行内"; }
+  }
+  var whyLine = lines.find(function(l){ return /解析|解释|分析/i.test(l); });
+  if (whyLine) why = whyLine.replace(/^.*(?:解析|解释|分析)[：:]\s*/, "").trim();
+  var q = { q: qText, o: ["（主观题，需人工评分）"], a: 0, ansText: ansText, why: why, kp: [], qType: "fill", type: "fill", ansSource: ansSource };
+  var kn = baDetectKnowledge(why, qText, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+function baSplitWords(s){
+  var out = [];
+  (String(s).match(/[A-Za-z][A-Za-z\-']*/g) || []).forEach(function(w){
+    if (out.indexOf(w) < 0) out.push(w);
+  });
+  return out;
+}
+
+/* ---------- 多题型解析：选词填空（整块一道题：词库 + 多空） ---------- */
+function baParseCloze(lines, fullText){
+  var words = [];
+  var blanks = [];
+  var subQs = [];
+  var answersByPos = {};
+  lines.forEach(function(line){
+    var m = line.match(/^(?:词库|方框|选词|单词)[：:]\s*(.+)$/);
+    if (m){
+      words = baSplitWords(m[1]);
+    } else if (/^[A-Za-z][a-z]*\s*[,、，\s]+[A-Za-z]/.test(line) && !/[．。；]/.test(line) && line.trim().length < 120){
+      var cand = baSplitWords(line);
+      if (cand.length >= 2 && cand.every(function(w){ return /^[A-Za-z]+$/.test(w); })){
+        words = cand;
+      }
+    }
+  });
+  var re = /^(?:\(?(\d+)\)?|[（(](\d+)[）)])\s*[\.、．]?\s*(.+)$/;
+  lines.forEach(function(line){
+    var mm = line.match(re);
+    if (mm){
+      var no = parseInt(mm[1] || mm[2], 10);
+      var txt = (mm[3] || "").replace(/^答案[：:]\s*/i, "");
+      if (/[___＿（()（）〔〕\s]/.test(txt)) subQs.push({ no: no, q: txt });
+    }
+  });
+  var ansLine = lines.find(function(l){ return /答案|参考答案/i.test(l); });
+  if (ansLine){
+    var body = ansLine.replace(/^.*(?:答案|参考答案)[：:]\s*/i, "");
+    var segRe = /(?:[（(](\d+)[）)]|(\d+)[\.、．]?)\s*([A-Za-z][A-Za-z\-']*)/g;
+    var mm2;
+    while ((mm2 = segRe.exec(body)) !== null){
+      var no2 = parseInt(mm2[1] || mm2[2], 10);
+      answersByPos[no2] = mm2[3];
+    }
+    if (Object.keys(answersByPos).length === 0){
+      var ws = body.match(/[A-Za-z][A-Za-z\-']*/g) || [];
+      ws.forEach(function(w, idx){ answersByPos[idx + 1] = w; });
+    }
+  }
+  var qTexts = [];
+  subQs.forEach(function(sq){
+    qTexts.push(sq.q);
+    blanks.push(answersByPos[sq.no] || "");
+  });
+  if (qTexts.length === 0){
+    var blankCount = (fullText.match(/____|＿＿|（\s*）|\(\s*\)/g) || []).length;
+    qTexts.push(lines[0].replace(/^\d+[\.、．]\s*/, "").trim());
+    for (var i = 0; i < blankCount; i++) blanks.push(answersByPos[i + 1] || "");
+  }
+  var q = {
+    q: qTexts.join("\n"), type: "cloze", qType: "cloze",
+    o: ["（主观题，需人工评分）"], a: 0, ansText: "",
+    words: words, blanks: blanks,
+    why: "", kp: [], ansSource: words.length ? "原卷行内" : "未找到"
+  };
+  var whyLine = lines.find(function(l){ return /解析|解释|分析/i.test(l); });
+  if (whyLine) q.why = whyLine.replace(/^.*(?:解析|解释|分析)[：:]\s*/, "").trim();
+  /* 没识别到词库 → 降级为填空 */
+  if (!words || words.length < 2){
+    var ansJoin = [];
+    Object.keys(answersByPos).sort(function(a, b){ return parseInt(a, 10) - parseInt(b, 10); }).forEach(function(k){ ansJoin.push(answersByPos[k]); });
+    q.type = "fill"; q.qType = "fill";
+    q.ansText = ansJoin.join(" / ");
+    q.words = undefined; q.blanks = undefined;
+  }
+  var kn = baDetectKnowledge(q.why, q.q, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+/* ---------- 多题型解析：阅读理解（短文 + 子题） ---------- */
+function baParseReading(lines, fullText){
+  var passage = [];
+  var subs = [];
+  var inSub = false;
+  var cur = null;
+  var answersByNo = {};
+  lines.forEach(function(line){
+    var m = line.match(/^(\d+)[\.、．]\s*(.+)$/);
+    if (m){
+      inSub = true;
+      if (cur) subs.push(cur);
+      cur = { no: parseInt(m[1], 10), q: m[2], o: [], a: -1, ansTxt: "", why: "" };
+      var im = m[2].match(/[（(]([A-Da-d])[）)]|答案[：:]\s*([A-Da-d])/);
+      if (im) cur.ansTxt = (im[1] || im[2]).toUpperCase();
+    } else if (inSub && cur){
+      if (/^[A-Da-d][\.、．]/.test(line)){
+        var re2 = /([A-Da-d])[\.、．]\s*([^\n]*?)(?=\s+[A-D][\.、．]|$)/g;
+        var mm2;
+        while ((mm2 = re2.exec(line)) !== null) cur.o.push(mm2[2].trim());
+      } else {
+      /* 选项已在上方拆分 */
+        var am = line.match(/答案[：:]\s*([A-Da-d])/);
+        if (am) cur.ansTxt = am[1].toUpperCase();
+        else if (/解析|解释/.test(line)) cur.why = line.replace(/^.*(?:解析|解释)[：:]\s*/, "").trim();
+        else if (!/^答案/i.test(line) && line.trim()) cur.q += " " + line.trim();
+      }
+    } else {
+      passage.push(line);
+    }
+  });
+  if (cur) subs.push(cur);
+  /* 末尾答案表：1.B 2.C */
+  lines.forEach(function(line){
+    var tm = /答案/.test(line) ? line.match(/(?:\d+)[\.、．]\s*([A-Da-d])/g) : null;
+    if (tm) tm.forEach(function(tg){
+      var pm = tg.match(/(\d+)[\.、．]\s*([A-Da-d])/);
+      if (pm) answersByNo[parseInt(pm[1], 10)] = pm[2].toUpperCase();
+    });
+  });
+  var questions = subs.map(function(s){
+    var aTxt = s.ansTxt || answersByNo[s.no] || "";
+    if (aTxt){
+      if (s.o.length){
+        s.a = aTxt.charCodeAt(0) - 65;
+        if (s.a < 0 || s.a >= s.o.length) s.a = 0;
+      } else {
+        s.ansText = aTxt;
+      }
+    }
+    return { q: s.q, o: s.o.length ? s.o : undefined, a: s.o.length ? (s.a >= 0 ? s.a : 0) : undefined, ansText: s.ansText || "", why: s.why || "" };
+  });
+  if (questions.length === 0) return null;
+  var q = {
+    q: "", type: "reading", qType: "reading",
+    o: ["（主观题，需人工评分）"], a: 0, ansText: "",
+    passage: passage.join("\n").trim(), questions: questions,
+    why: "", kp: [], ansSource: "原卷行内"
+  };
+  var kn = baDetectKnowledge(q.why, q.passage, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
+}
+
+/* ---------- 多题型解析：作文（题目 + 要点 + 范文） ---------- */
+function baParseWriting(lines, fullText){
+  var body = lines.join("\n");
+  var qText = lines[0].replace(/^\d+[\.、．]\s*/, "").trim();
+  var tips = [];
+  var sample = "";
+  var why = "";
+  var tipMatch = body.match(/(?:要点|提示)[：:]\s*([\s\S]*?)(?=\n(?:范文|参考范文|示例作文|示例|解析|点评)|$)/);
+  if (tipMatch){
+    var items = [];
+    tipMatch[1].split(/\n/).forEach(function(l){
+      l = l.trim();
+      if (!l) return;
+      if (/[（(]?\d+[）)]?[\.、．]/.test(l)){
+        var parts = l.split(/[（(]?\d+[）)]?[\.、．]/).map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+        items = items.concat(parts);
+      } else {
+        items.push(l.replace(/^[•·\-]\s*/, ""));
+      }
+    });
+    if (items.length === 0) items = tipMatch[1].split(/[；;、]/).map(function(l){ return l.trim(); }).filter(function(l){ return l; });
+    tips = items;
+  }
+  var sm = body.match(/(?:范文|参考范文|示例作文)[：:]\s*([\s\S]*?)(?=\n(?:解析|点评)|$)/);
+  if (sm) sample = sm[1].trim();
+  var whyLine = lines.find(function(l){ return /解析|点评/i.test(l); });
+  if (whyLine) why = whyLine.replace(/^.*(?:解析|点评)[：:]\s*/, "").trim();
+  if (!sample && why){ sample = why; why = ""; }
+  var q = { q: qText, type: "writing", qType: "writing", o: ["（主观题，需人工评分）"], a: 0, ansText: "", tips: tips, sample: sample, why: why, kp: [], ansSource: "原卷行内" };
+  var kn = baDetectKnowledge(why, qText, []);
+  if (kn){ q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src; }
+  return q;
 }
 
 function baGetQ(i){
@@ -57361,6 +57995,8 @@ function baHasRealOpts(q){
 
 function baAnsEditorFor(q, i){
   var qType = q.qType || "single";
+  var qTypeShow = (qType === "single" ? "choice" : qType === "essay" ? "writing" : qType);
+  if (qTypeShow === "cloze" || qTypeShow === "reading" || qTypeShow === "writing") return "";
   var realOpts = baHasRealOpts(q);
   if (qType === "judge"){
     var curJ = q.a === 0 ? "对" : "错";
@@ -57589,7 +58225,10 @@ function baDoImport(){
       id: "qb" + String(maxId).padStart(5, "0"),
       subject: subject, module: tgt.module, topicId: tgt.topicId,
       kp: q.kp || [], q: q.q, o: q.o, a: q.a, why: q.why || "",
+      type: q.type || "choice",
       ansText: q.ansText || "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
       source: source, sourceDetail: sourceDetail,
       difficulty: difficulty, year: year, region: region,
       imported: true, importedAt: stamp
