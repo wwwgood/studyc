@@ -92,7 +92,7 @@ function bkupRenderList(){
       var d = new Date(s.t);
       var pad = function(n){ return (n < 10 ? "0" : "") + n; };
       var label = (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes()) +
-        (s.reason === "manual" ? "（手动）" : "（自动）");
+        (s.reason === "manual" ? "（手动）" : "（自动）") + (s.info ? " · " + s.info : "");
       html += '<div class="bkup-row">' +
         '<span class="bkup-time">🕐 ' + label + '</span>' +
         '<button class="sync-import-btn bkup-restore-btn" type="button" onclick="bkupDoRestore(' + s.t + ')">恢复</button>' +
@@ -104,6 +104,8 @@ function bkupRenderList(){
 }
 
 function bkupDoRestore(t){
+  /* 恢复前先给当前状态留一份底，防止恢复错/更糟，可反悔 */
+  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
   if (!confirm("确定用这份快照覆盖当前数据吗？\n（会恢复到 " + new Date(t).toLocaleString() + " 时的进度）")) return;
   bkupRestore(t).then(function(ok){
     if (ok){ baToast("✅ 已恢复到该快照！页面即将刷新"); setTimeout(function(){ location.reload(); }, 1200); }
@@ -169,6 +171,7 @@ function syncImport(file){
           '<div class="sync-import-error">❌ 不是有效的学习数据文件</div>';
         return;
       }
+      try { if (typeof bkupNow === "function") bkupNow("pre-import", true); } catch(_){}
       var data = payload.data;
       var count = 0;
       Object.keys(data).forEach(function(key){

@@ -45,6 +45,7 @@ function csHasLocalData(){
     var raw = localStorage.getItem("cppsAdventureV2");
     if (raw){
       var db = JSON.parse(raw);
+      if (db && typeof dbHasReal === "function" && dbHasReal(db)) return true;
       if (db && db.users && Object.keys(db.users).length > 0) return true;
     }
   } catch(e){}
@@ -57,6 +58,11 @@ function csPush(){
   if (!cfg) return Promise.resolve(false);
   var data = csSnapshot();
   if (Object.keys(data).length === 0) return Promise.resolve(false);
+  /* 防呆：本机没有真实学习数据时不上传，防止把空数据覆盖到云端 */
+  if (typeof csHasLocalData === "function" && !csHasLocalData()){
+    try { console.warn("[cs] 本机无真实学习数据，跳过上传（防止云端被空数据覆盖）"); } catch(_){}
+    return Promise.resolve(false);
+  }
   return fetch(cfg.url + "/api/sync", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

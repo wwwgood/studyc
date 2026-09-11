@@ -25,6 +25,11 @@ function openLogin(){
 }
 function closeLogin(){ document.getElementById("loginMask").classList.remove("open"); }
 function doLogin(){
+  /* 存档读取异常时禁止新建账号，防止用空库覆盖真实数据（先恢复再登录） */
+  if (typeof __DB_LOAD_ERROR__ !== "undefined" && __DB_LOAD_ERROR__){
+    if (typeof baToast === "function") baToast("⚠️ 存档读取异常，请先点 ☁️ 同步 → 本地自动备份 → 恢复，再登录");
+    return;
+  }
   var nm = document.getElementById("loginName").value.trim();
   if (!nm){ document.getElementById("loginName").focus(); return; }
   if (!SDB.users[nm]) SDB.users[nm] = {passed:{}};
