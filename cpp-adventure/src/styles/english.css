@@ -542,6 +542,20 @@
 .sync-import-error{background:#FEE2E2; color:#991B1B; border-radius:10px; padding:12px; margin-top:10px; font-size:14px; font-weight:600;}
 .sync-tips{font-size:13px; color:#4B5563; line-height:2; padding:8px 12px; background:#FFF7ED; border-radius:8px;}
 
+/* ---------- 云端同步 cloud-sync ---------- */
+.cs-section{border:1.5px solid #A7F3D0; background:#F0FDF4;}
+.cs-status{font-size:13px; font-weight:600; padding:8px 12px; border-radius:8px; margin-bottom:10px;}
+.cs-on{background:#D1FAE5; color:#065F46;}
+.cs-off{background:#FEF3C7; color:#92400E;}
+.cs-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:12px;}
+.cs-grid label{display:block; font-size:13px; font-weight:600; color:#4B5563; margin-bottom:2px;}
+.cs-grid input{width:100%; padding:10px 12px; border:2px solid #E5E7EB; border-radius:8px; font-size:14px; color:#1F2937; background:#fff; box-sizing:border-box;}
+.cs-grid input:focus{border-color:#10B981; outline:none;}
+.cs-actions{display:flex; gap:10px; flex-wrap:wrap;}
+.cs-actions button{flex:1; min-width:130px; padding:12px 10px; border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:600;}
+.cs-actions .sync-export-btn{display:inline-block; width:auto; background:#10B981;}
+.cs-actions .sync-import-btn{display:inline-block; width:auto;}
+
 .ba-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #E5E7EB;}
 .ba-tab{background:#F3F4F6; border:2px solid transparent; color:#4B5563; padding:8px 16px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s;}
 .ba-tab:hover{background:#E0E7FF; color:#4338CA;}

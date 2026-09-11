@@ -49,6 +49,7 @@ function syncRender(){
         '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件</button>' +
         '<div id="syncImportResult"></div>' +
       '</div>' +
+      (typeof csRender === "function" ? csRender() : '') +
       '<div class="sync-section">' +
         '<h3>💡 使用说明</h3>' +
         '<div class="sync-tips">' +
@@ -56,9 +57,10 @@ function syncRender(){
           '<div>2. 把文件发到平板上（微信/邮件/U盘均可）</div>' +
           '<div>3. 在平板上打开同一网页，点「选择数据文件」导入</div>' +
           '<div>4. 两台设备的学习进度就同步了！</div>' +
-          '<div style="margin-top:8px;color:#6B7280;">提示：每次学习后导出一次，换设备前导入一次，就能保持同步。</div>' +
+          '<div style="margin-top:8px;color:#6B7280;">提示：每次学习后导出一次，换设备前导入一次，就能保持同步。已经配好 Cloudflare 云端的话，用上面的「☁️ 云端同步」更省事，全自动。</div>' +
         '</div>' +
       '</div>' +
+      '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   var input = document.getElementById("syncFileInput");
   if (input){

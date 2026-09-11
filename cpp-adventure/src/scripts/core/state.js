@@ -60,6 +60,8 @@ function saveS(){
     window.__SAVE_FAIL__ = true;
     try { console.error("存档保存失败（存储空间不足？）", e); } catch(_){}
   }
+  /* 云端自动备份钩子：配置了云端后，进度变化 5 秒内自动上传 */
+  try { if (typeof csMarkDirty === "function") csMarkDirty(); } catch(_){}
 }
 loadCurrentUser();
 function starsOf(){ return Object.keys(S.passed).length; }
