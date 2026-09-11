@@ -83,7 +83,7 @@ test("作文判题：写足 20 字即完成，不自动评分", () => {
 
 test("标准答案文本各题型正确", () => {
   const { qtAnswerText } = loadQt();
-  assert.strictEqual(qtAnswerText({ type: "choice", o: ["a", "b"], a: 1 }), "B");
+  assert.strictEqual(qtAnswerText({ type: "choice", o: ["a", "b"], a: 1 }), "B b");
   assert.strictEqual(qtAnswerText({ type: "fill", ansText: "am|is" }), "am / is");
   assert.strictEqual(qtAnswerText({ type: "cloze", blanks: ["banana", "apple"] }), "1.banana 2.apple");
   assert.match(qtAnswerText({ type: "reading", questions: [{ o: ["a", "b"], a: 1 }] }), /1\.B/);

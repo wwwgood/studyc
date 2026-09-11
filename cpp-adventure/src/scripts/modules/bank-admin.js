@@ -1942,6 +1942,8 @@ function baDoImport(){
   var region = document.getElementById("baRegion").value;
   var difficulty = parseInt(document.getElementById("baDifficulty").value) || 3;
 
+  var nCleaned = baCleanBadImported();
+
   /* 注意：这里只导入勾选「采纳」的题，不要再用 preview._questions 覆盖 questions */
   var maxId = 0;
   if (typeof QB_DATA !== "undefined"){
@@ -1996,7 +1998,7 @@ function baDoImport(){
       '：<b>' + dist[k] + ' 道</b></div>';
   });
 
-  baToast("成功导入 " + questions.length + " 道题" +
+  baToast((nCleaned > 0 ? "已自动清理 " + nCleaned + " 道旧坏题，" : "") + "成功导入 " + questions.length + " 道题" +
     (skipped > 0 ? "（跳过 " + skipped + " 道未采纳的）" : "") +
     (nSpec > 0 ? "，其中 " + nSpec + " 道归入指定章节" : "") + "！");
   var successHtml = '<div class="ba-preview-success">✅ 已导入 ' + questions.length + ' 道题' +
@@ -2033,6 +2035,22 @@ function baPersistImported(){
   } catch(e){}
 }
 
+function baCleanBadImported(){
+  if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return 0;
+  var n = 0;
+  QB_DATA.questions = QB_DATA.questions.filter(function(q){
+    if (!q || q.imported !== true) return true;
+    var qq = String(q.q || "").trim();
+    var badHead = /^答案[：:]/.test(qq);
+    var noReal = q.o && q.o.length === 1 && String(q.o[0]).indexOf("（主观题，需人工评分）") >= 0 &&
+      !q.ansText && !q.words && !q.blanks && !q.passage && !q.sample;
+    if (badHead || noReal){ n++; return false; }
+    return true;
+  });
+  if (n > 0) baPersistImported();
+  return n;
+}
+
 function baRestoreImported(){
   if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return 0;
   var raw = null;
@@ -2051,6 +2069,7 @@ function baRestoreImported(){
     seen[q.id] = true;
     n++;
   });
+  baCleanBadImported();
   return n;
 }
 

@@ -191,3 +191,27 @@ test("名词辨认卷：独立答案行并入题目行，题干完整且自动�
   assert.match(r.questions[0].why, /可数名词/);
   assert.strictEqual(r.questions[1].ansText, "books");
 });
+/* 旧坏题自动清理：题干以「答案」开头 / 人工评分占位无内容 → 加载与导入时自动清除 */
+test("旧坏题自动清理：答案开头的题和人工评分占位题被清除，好题保留", () => {
+  const { baSmartParse, baCleanBadImported, QB_DATA } = loadBank();
+  QB_DATA.questions.push(
+    { id: "qb90001", imported: true, q: "答案: apple", o: ["（主观题，需人工评分）"], a: 0, ansText: "" },
+    { id: "qb90002", imported: true, q: "选出下列单词中的名词。", o: ["（主观题，需人工评分）"], a: 0, ansText: "" },
+    { id: "qb90003", imported: true, q: "pencil __________", ansText: "pencils", type: "fill", o: [], a: 0, why: "直接加 -s。" },
+    { id: "qb90004", imported: false, q: "内置题不应被清", o: ["A", "B"], a: 0 }
+  );
+  const n = baCleanBadImported();
+  assert.strictEqual(n, 2, "应清除 2 道坏题");
+  const ids = QB_DATA.questions.map((q) => q.id);
+  assert.ok(!ids.includes("qb90001") && !ids.includes("qb90002"), "坏题已清除");
+  assert.ok(ids.includes("qb90003") && ids.includes("qb90004"), "好题与内置题保留");
+});
+
+/* 正确答案文本：选择题带选项文本，填空返回答案词 */
+test("qtAnswerText：选择题显示选项文本、填空显示答案词", () => {
+  const { qtAnswerText } = loadBank();
+  const qChoice = { q: "选出名词", o: ["run", "apple", "happy"], a: 1 };
+  assert.strictEqual(qtAnswerText(qChoice), "B apple");
+  const qFill = { q: "pencil __________", ansText: "pencils", type: "fill" };
+  assert.strictEqual(qtAnswerText(qFill), "pencils");
+});

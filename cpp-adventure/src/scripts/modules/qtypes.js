@@ -290,7 +290,7 @@ function qtMarkRight(q, prefix){
 /* 标准答案文本（展示/入库/错题本） */
 function qtAnswerText(q){
   var t = qtTypeOf(q);
-  if (t === "choice") return String.fromCharCode(65 + q.a);
+  if (t === "choice") return String.fromCharCode(65 + q.a) + (q.o && q.o[q.a] ? " " + q.o[q.a] : "");
   if (t === "fill") return qtAnsList(q.ansText != null ? q.ansText : q.a).join(" / ");
   if (t === "cloze") return (q.blanks || []).map(function(b, i){ return (i + 1) + "." + b; }).join(" ");
   if (t === "reading"){

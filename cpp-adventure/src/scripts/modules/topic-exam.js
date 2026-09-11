@@ -105,7 +105,9 @@ function teAnswer(){
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
     if (q.id){ if (!S.examPass) S.examPass = {}; S.examPass[q.id] = 1; }
+    var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
     fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
       (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
     saveS();
@@ -123,7 +125,9 @@ function teAnswer(){
         why: q.why, source: TE_SESSION.topicName + " 专题真题"
       });
     }
+    var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
     fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
+      (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
       (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
     saveS();

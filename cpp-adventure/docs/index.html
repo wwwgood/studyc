@@ -55666,7 +55666,7 @@ function qtMarkRight(q, prefix){
 /* 标准答案文本（展示/入库/错题本） */
 function qtAnswerText(q){
   var t = qtTypeOf(q);
-  if (t === "choice") return String.fromCharCode(65 + q.a);
+  if (t === "choice") return String.fromCharCode(65 + q.a) + (q.o && q.o[q.a] ? " " + q.o[q.a] : "");
   if (t === "fill") return qtAnsList(q.ansText != null ? q.ansText : q.a).join(" / ");
   if (t === "cloze") return (q.blanks || []).map(function(b, i){ return (i + 1) + "." + b; }).join(" ");
   if (t === "reading"){
@@ -56381,7 +56381,9 @@ function teAnswer(){
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
     if (q.id){ if (!S.examPass) S.examPass = {}; S.examPass[q.id] = 1; }
+    var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
     fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+      (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
       (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
     saveS();
@@ -56399,7 +56401,9 @@ function teAnswer(){
         why: q.why, source: TE_SESSION.topicName + " 专题真题"
       });
     }
+    var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
     fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
+      (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
       (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
     saveS();
@@ -58452,6 +58456,8 @@ function baDoImport(){
   var region = document.getElementById("baRegion").value;
   var difficulty = parseInt(document.getElementById("baDifficulty").value) || 3;
 
+  var nCleaned = baCleanBadImported();
+
   /* 注意：这里只导入勾选「采纳」的题，不要再用 preview._questions 覆盖 questions */
   var maxId = 0;
   if (typeof QB_DATA !== "undefined"){
@@ -58506,7 +58512,7 @@ function baDoImport(){
       '：<b>' + dist[k] + ' 道</b></div>';
   });
 
-  baToast("成功导入 " + questions.length + " 道题" +
+  baToast((nCleaned > 0 ? "已自动清理 " + nCleaned + " 道旧坏题，" : "") + "成功导入 " + questions.length + " 道题" +
     (skipped > 0 ? "（跳过 " + skipped + " 道未采纳的）" : "") +
     (nSpec > 0 ? "，其中 " + nSpec + " 道归入指定章节" : "") + "！");
   var successHtml = '<div class="ba-preview-success">✅ 已导入 ' + questions.length + ' 道题' +
@@ -58543,6 +58549,22 @@ function baPersistImported(){
   } catch(e){}
 }
 
+function baCleanBadImported(){
+  if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return 0;
+  var n = 0;
+  QB_DATA.questions = QB_DATA.questions.filter(function(q){
+    if (!q || q.imported !== true) return true;
+    var qq = String(q.q || "").trim();
+    var badHead = /^答案[：:]/.test(qq);
+    var noReal = q.o && q.o.length === 1 && String(q.o[0]).indexOf("（主观题，需人工评分）") >= 0 &&
+      !q.ansText && !q.words && !q.blanks && !q.passage && !q.sample;
+    if (badHead || noReal){ n++; return false; }
+    return true;
+  });
+  if (n > 0) baPersistImported();
+  return n;
+}
+
 function baRestoreImported(){
   if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return 0;
   var raw = null;
@@ -58561,6 +58583,7 @@ function baRestoreImported(){
     seen[q.id] = true;
     n++;
   });
+  baCleanBadImported();
   return n;
 }
 
