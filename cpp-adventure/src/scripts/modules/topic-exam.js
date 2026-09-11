@@ -20,10 +20,10 @@ function topicExamOpen(module, topicId, topicName, kp){
   var count = 10;
   if (typeof qbSelect === "function"){
     if (kp){
-      questions = qbSelect(module, null, 9999, null, "english", kp);
+      questions = qbSelect(module, null, 9999, null, "english", kp, true);
     } else {
       if (topicId === "all") count = 9999;
-      questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english");
+      questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english", undefined, true);
     }
   }
   if (questions.length === 0 && topicId !== "all" && !kp){
@@ -40,10 +40,14 @@ function topicExamOpen(module, topicId, topicName, kp){
   if (questions.length === 0){
     var dialog = document.getElementById("teDialog");
     if (dialog){
+      var emptyMsg = kp
+        ? ('🎉 <b>' + topicName + '</b> 的真题你已经全部做对了！<br><br>换一个考点继续练，或回去学下一个例子吧！' +
+           '<br><br><button class="te-go-btn" type="button" style="margin-top:8px;" onclick="teClose()">返回</button>')
+        : '📋 该专题暂无真题题目<br><br>请先在「题库管理」中导入对应真题<br>或去其他专题练习吧！';
       dialog.innerHTML =
-        '<div class="te-dlg-head"><span class="te-cap">🎯 ' + topicName + ' · 专题真题</span>' +
+        '<div class="te-dlg-head"><span class="te-cap">🎯 ' + topicName + ' · 考点真题</span>' +
           '<button class="te-close" type="button" onclick="teClose()">×</button></div>' +
-        '<div class="te-dlg-body"><div class="te-empty" style="text-align:center;padding:40px 20px;font-size:18px;color:#888;">📋 该专题暂无真题题目<br><br>请先在「题库管理」中导入对应真题<br>或去其他专题练习吧！</div></div>';
+        '<div class="te-dlg-body"><div class="te-empty" style="text-align:center;padding:40px 20px;font-size:17px;color:#888;">' + emptyMsg + '</div></div>';
       var mask = document.getElementById("teDialogMask");
       if (mask) mask.classList.add("open");
       document.body.style.overflow = "hidden";
@@ -100,6 +104,7 @@ function teAnswer(){
     TE_SESSION.combo++;
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
+    if (q.id){ if (!S.examPass) S.examPass = {}; S.examPass[q.id] = 1; }
     fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
       (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
       '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';

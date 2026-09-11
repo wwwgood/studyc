@@ -21,15 +21,22 @@ function qbQuery(module, topicId, subject, kp){
 }
 
 /* 随机选 count 道题，排除已用的 */
-function qbSelect(module, topicId, count, excludeIds, subject, kp){
+function qbSelect(module, topicId, count, excludeIds, subject, kp, skipPassed){
   var pool = qbQuery(module, topicId, subject, kp);
   var used = excludeIds || [];
+  function isPassed(q){
+    return skipPassed && typeof S !== "undefined" && S.examPass && S.examPass[q.id];
+  }
   var available = pool.filter(function(q){
+    if (isPassed(q)) return false;
     return !QB_USED[q.id] && used.indexOf(q.id) < 0;
   });
   // 如果不够，放宽限制（允许重复使用）
   if (available.length < count){
-    available = pool.filter(function(q){ return used.indexOf(q.id) < 0; });
+    available = pool.filter(function(q){
+      if (isPassed(q)) return false;
+      return used.indexOf(q.id) < 0;
+    });
   }
   if (available.length === 0) return [];
   // Fisher-Yates 随机抽取

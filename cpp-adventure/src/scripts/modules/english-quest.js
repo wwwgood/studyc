@@ -78,6 +78,111 @@ function eqToggle(chId){
   if (arrow) arrow.textContent = "▴";
 }
 
+
+/* ---------- 章节 → 考点 映射（学完本章直接练本章考点真题） ---------- */
+var EQ_KP_MAP = [
+  ["名词是什么", "名词辨认"],
+  ["专有名词", "专有名词"],
+  ["作定语", "名词作定语"],
+  ["所有格", "名词所有格"],
+  ["直接加 s", "名词复数-加s规则"],
+  ["s, x, ch, sh", "名词复数-es规则"],
+  ["辅音字母 + y", "名词复数-ies规则"],
+  ["f / fe", "名词复数-ves规则"],
+  ["不规则复数", "不规则名词复数"],
+  ["可数名词", "可数与不可数名词"],
+  ["不可数名词", "可数与不可数名词"],
+  ["a 和 an", "a与an的区别"],
+  ["定冠词", "定冠词the"],
+  ["冠词", "冠词综合"],
+  ["物主代词", "物主代词"],
+  ["人称代词", "人称代词主格宾格"],
+  ["指示代词", "指示代词"],
+  ["不定代词", "不定代词"],
+  ["序数词", "序数词"],
+  ["基数词", "基数词"],
+  ["最高级", "形容词最高级"],
+  ["比较级", "形容词比较级"],
+  ["as 同级", "as同级比较"],
+  ["形容词", "形容词辨认与用法"],
+  ["频率副词", "频率副词"],
+  ["副词", "副词辨认与ly变化"],
+  ["时间介词", "时间介词"],
+  ["地点", "地点方位介词"],
+  ["方位介词", "地点方位介词"],
+  ["and / but / or", "并列连词and/but/or"],
+  ["连词", "并列连词and/but/or"],
+  ["because", "because与so"],
+  ["so", "because与so"],
+  ["there be", "there be句型"],
+  ["be 动词", "be动词am/is/are"],
+  ["第三人称", "动词第三人称单数"],
+  ["三单", "动词第三人称单数"],
+  ["do / does", "do/does助动词"],
+  ["助动词", "do/does助动词"],
+  ["情态动词", "情态动词"],
+  ["一般现在时", "一般现在时"],
+  ["现在进行时", "现在进行时"],
+  ["进行时", "现在进行时"],
+  ["ing", "动词ing形式"],
+  ["一般过去时", "一般过去时"],
+  ["过去时", "一般过去时"],
+  ["一般将来时", "一般将来时"],
+  ["将来时", "一般将来时"],
+  ["特殊疑问", "特殊疑问句"],
+  ["一般疑问", "一般疑问句"],
+  ["祈使句", "祈使句"],
+  ["感叹句", "感叹句"],
+  ["句型", "问句与句型综合"],
+  ["什么时候用 a / an", "a与an的区别"],
+  ["the 表示特指", "定冠词the"],
+  ["go to school", "名词固定搭配"],
+  ["a / an 的数量含义", "a与an的区别"],
+  ["as ... as", "as同级比较"],
+  ["反身代词", null],
+  ["many 和 much", "可数与不可数名词"],
+  ["both 和 all", "不定代词"],
+  ["each 和", "不定代词"],
+  ["every", "不定代词"],
+  ["疑问代词", "特殊疑问句"],
+  ["几十几与 hundred", "基数词"],
+  ["时间的读法", "基数词"],
+  ["日期与年份", "基数词"],
+  ["the same as", "名词固定搭配"],
+  ["hard 和 hardly", "副词辨认与ly变化"],
+  ["穿戴与交通", "地点方位介词"],
+  ["with 和 without", "地点方位介词"],
+  ["for 和 since", "时间介词"],
+  ["常见介词固定搭配", "时间介词"],
+  ["in / on / to", "地点方位介词"],
+  ["介词短语大闯关", "地点方位介词"],
+  ["across / through / along", "地点方位介词"],
+  ["both ... and", "并列连词and/but/or"],
+  ["either ... or", "并列连词and/but/or"],
+  ["neither ... nor", "并列连词and/but/or"],
+  ["if 条件句", "一般将来时"],
+  ["have / has", "动词第三人称单数"],
+  ["must / should", "情态动词"],
+  ["now 标志词", "现在进行时"],
+  ["was 和 were", "一般过去时"],
+  ["规则动词过去式", "一般过去时"],
+  ["不规则动词过去式", "一般过去时"],
+  ["时间标志词", "一般过去时"],
+  ["陈述句语序", "问句与句型综合"]
+];
+function eqKpOfLesson(l){
+  for (var i = 0; i < EQ_KP_MAP.length; i++){
+    if (l.t.indexOf(EQ_KP_MAP[i][0]) >= 0) return EQ_KP_MAP[i][1];
+  }
+  return null;
+}
+function eqChapterName(ch){
+  for (var i = 0; i < EQ_DATA.chapters.length; i++){
+    if (EQ_DATA.chapters[i].id === ch) return EQ_DATA.chapters[i].name;
+  }
+  return "";
+}
+
 /* ---------- 学习弹窗 ---------- */
 var EQ_SESSION = null;
 
@@ -101,24 +206,45 @@ function eqClose(){
 
 function eqDialogLearn(){
   var l = EQ_SESSION.lesson;
+  var st = eqState();
+  var done = st.done[l.id] || 0;
+  var qN = (l.q && l.q.length) ? l.q.length : 0;
   var exHtml = l.ex.map(function(e, i){
     return '<div class="eq-ex-row"><span class="eq-ex-no">' + (i + 1) + '</span>' +
       '<span class="eq-ex-en">' + e.en + '</span>' +
       '<button class="eq-say" type="button" onclick="eqSpeak(this)" data-en="' + e.en.replace(/"/g, "&quot;") + '" title="听发音">🔊</button>' +
       '<span class="eq-ex-zh">' + e.zh + '</span></div>';
   }).join("");
+  var kp = eqKpOfLesson(l);
+  var statusHtml = done
+    ? '<span style="background:#D1FAE5;color:#065F46;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">✅ 练一练已通过 ' + "★".repeat(done) + '</span>'
+    : '<span style="background:#FFF6E5;color:#92400E;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">⏳ 练一练未完成</span>';
+  var quizBtn = done
+    ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F0FFF8;border-radius:12px;padding:10px 14px;">' +
+        '<span style="font-size:15px;font-weight:700;color:#065F46;">⚔️ 练一练已通过</span>' +
+        '<button class="eq-go-btn ghost" type="button" onclick="eqStartQuiz()">🔁 再练一次</button></div>'
+    : '<button class="eq-go-btn" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="eqStartQuiz()">⚔️ 练一练（' + qN + ' 题）</button>';
+  var kpBtn = kp
+    ? '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🎯 练本章真题：' + kp + '</button>'
+    : '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="kpPanelOpen(\'grammar\',\'english\',\'英语语法\')">🎯 按考点练真题</button>';
+  var next = eqNextLessonId(l.id);
+  var nextBtn = done && next
+    ? '<button class="eq-go-btn" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="eqOpen(\'' + next + '\')">下一例 →</button>'
+    : '';
+  var chName = eqChapterName(l.ch);
   document.getElementById("eqDialog").innerHTML =
     '<div class="eq-dlg-head">' +
-      '<span class="eq-cap">🧑‍✈️ 语法船长</span>' +
+      '<span class="eq-cap">🧑‍✈️ 语法船长 · ' + chName + '</span>' +
       '<h3>' + l.t + '</h3>' +
       '<button class="eq-close" type="button" onclick="eqClose()">×</button>' +
     '</div>' +
     '<div class="eq-dlg-body">' +
+      '<div style="margin-bottom:12px;">' + statusHtml + '</div>' +
       '<div class="eq-tip">💡 ' + l.tip + '</div>' +
       '<div class="eq-cap-bubble">' + l.body + '</div>' +
       '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' +
       '<div class="eq-ex-box">' + exHtml + '</div>' +
-      '<button class="eq-go-btn" type="button" onclick="eqStartQuiz()">⚔️ 练一练，出发！</button>' +
+      '<div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">' + quizBtn + kpBtn + nextBtn + '</div>' +
     '</div>';
 }
 
