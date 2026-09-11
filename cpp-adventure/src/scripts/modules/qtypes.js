@@ -54,8 +54,8 @@ function qtRenderChoice(q, prefix){
   var opts = q.o || [];
   var html = '<div class="qt-opts" data-p="' + prefix + '">';
   opts.forEach(function(o, i){
-    html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-i="' + i + '" onclick="qtPick(this)">' +
-      '<span class="qt-opt-key">' + String.fromCharCode(65 + i) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+    html += '<button class="qt-opt" type="button" style="display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;margin:6px 0;padding:11px 14px;" data-p="' + prefix + '" data-i="' + i + '" onclick="qtPick(this)">' +
+      '<span class="qt-opt-key">' + String.fromCharCode(65 + i) + '</span> <span class="qt-opt-text">' + o + '</span></button>';
   });
   html += '</div>';
   return html;
@@ -99,8 +99,8 @@ function qtRenderReading(q, prefix){
     if (sq.o && sq.o.length){
       html += '<div class="qt-opts">';
       sq.o.forEach(function(o, oi){
-        html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-s="' + si + '" data-i="' + oi + '" onclick="qtPick(this)">' +
-          '<span class="qt-opt-key">' + String.fromCharCode(65 + oi) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+        html += '<button class="qt-opt" type="button" style="display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;margin:6px 0;padding:11px 14px;" data-p="' + prefix + '" data-s="' + si + '" data-i="' + oi + '" onclick="qtPick(this)">' +
+          '<span class="qt-opt-key">' + String.fromCharCode(65 + oi) + '</span> <span class="qt-opt-text">' + o + '</span></button>';
       });
       html += '</div>';
     } else {

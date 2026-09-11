@@ -187,7 +187,7 @@ function rqFinish(){
       '<p class="rq-result-meta">📊 总进度 ' + done + ' / ' + READ_DATA.passages.length + ' · 🪙 ' + rqState().coins + '</p>' +
       '<div class="rq-result-btns">' +
         '<button class="rq-go-btn ghost" type="button" onclick="rqOpen(\'' + p.id + '\')">🔁 再读一次</button>' +
-        '<button class="rq-go-btn topic" type="button" onclick="topicExamOpen(\'reading\',0,\'阅读理解\')">🎯 专题真题</button>' +
+        '<button class="rq-go-btn topic" type="button" onclick="topicExamOpen(\'reading\',\'all\',\'全部阅读真题\')">📚 全部真题一起练</button>' +
         '<button class="rq-go-btn" type="button" onclick="rqClose()">返回</button>' +
       '</div>' +
     '</div>';

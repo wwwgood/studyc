@@ -250,7 +250,7 @@ function vqFinish(){
       '<p class="vq-result-meta">📊 本岛已学 ' + learned + '/' + u.words.length + ' 词 · 🪙 ' + vqState().coins + '</p>' +
       '<div class="vq-result-btns">' +
         '<button class="vq-go-btn ghost" type="button" onclick="vqOpen(' + u.id + ')">🔁 再练一次</button>' +
-        '<button class="vq-go-btn topic" type="button" onclick="topicExamOpen(\'vocab\',' + u.id + ',\'' + u.name.replace(/'/g,"\\'") + '\')">🎯 专题真题</button>' +
+        '<button class="vq-go-btn topic" type="button" onclick="topicExamOpen(\'vocab\',\'all\',\'全部词汇真题\')">📚 全部真题一起练</button>' +
         '<button class="vq-go-btn" type="button" onclick="vqClose()">返回</button>' +
       '</div>' +
     '</div>';

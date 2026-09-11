@@ -53412,7 +53412,7 @@ function eqFinish(){
       '<p class="eq-result-meta">📊 本关 ' + (total - wrong) + '/' + total + ' 正确 · 总进度 ' + done + ' / ' + EQ_DATA.lessons.length + ' · 🪙 ' + eqState().coins + '</p>' +
       '<div class="eq-result-btns">' +
         '<button class="eq-go-btn ghost" type="button" onclick="eqStartQuiz()">🔁 再练一次</button>' +
-        '<button class="eq-go-btn topic" type="button" onclick="topicExamOpen(\'grammar\',' + l.ch + ',\'' + l.t.replace(/'/g,"\\'") + '\')">🎯 专题真题</button>' +
+        '<button class="eq-go-btn topic" type="button" onclick="topicExamOpen(\'grammar\',\'all\',\'全部英语真题\')">📚 全部真题一起练</button>' +
         (next ? '<button class="eq-go-btn" type="button" onclick="eqOpen(\'' + next + '\')">下一例 →</button>'
               : '<button class="eq-go-btn" type="button" onclick="eqClose()">🏆 岛屿通关！</button>') +
       '</div>' +
@@ -53728,7 +53728,7 @@ function vqFinish(){
       '<p class="vq-result-meta">📊 本岛已学 ' + learned + '/' + u.words.length + ' 词 · 🪙 ' + vqState().coins + '</p>' +
       '<div class="vq-result-btns">' +
         '<button class="vq-go-btn ghost" type="button" onclick="vqOpen(' + u.id + ')">🔁 再练一次</button>' +
-        '<button class="vq-go-btn topic" type="button" onclick="topicExamOpen(\'vocab\',' + u.id + ',\'' + u.name.replace(/'/g,"\\'") + '\')">🎯 专题真题</button>' +
+        '<button class="vq-go-btn topic" type="button" onclick="topicExamOpen(\'vocab\',\'all\',\'全部词汇真题\')">📚 全部真题一起练</button>' +
         '<button class="vq-go-btn" type="button" onclick="vqClose()">返回</button>' +
       '</div>' +
     '</div>';
@@ -53936,7 +53936,7 @@ function rqFinish(){
       '<p class="rq-result-meta">📊 总进度 ' + done + ' / ' + READ_DATA.passages.length + ' · 🪙 ' + rqState().coins + '</p>' +
       '<div class="rq-result-btns">' +
         '<button class="rq-go-btn ghost" type="button" onclick="rqOpen(\'' + p.id + '\')">🔁 再读一次</button>' +
-        '<button class="rq-go-btn topic" type="button" onclick="topicExamOpen(\'reading\',0,\'阅读理解\')">🎯 专题真题</button>' +
+        '<button class="rq-go-btn topic" type="button" onclick="topicExamOpen(\'reading\',\'all\',\'全部阅读真题\')">📚 全部真题一起练</button>' +
         '<button class="rq-go-btn" type="button" onclick="rqClose()">返回</button>' +
       '</div>' +
     '</div>';
@@ -55304,8 +55304,8 @@ function qtRenderChoice(q, prefix){
   var opts = q.o || [];
   var html = '<div class="qt-opts" data-p="' + prefix + '">';
   opts.forEach(function(o, i){
-    html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-i="' + i + '" onclick="qtPick(this)">' +
-      '<span class="qt-opt-key">' + String.fromCharCode(65 + i) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+    html += '<button class="qt-opt" type="button" style="display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;margin:6px 0;padding:11px 14px;" data-p="' + prefix + '" data-i="' + i + '" onclick="qtPick(this)">' +
+      '<span class="qt-opt-key">' + String.fromCharCode(65 + i) + '</span> <span class="qt-opt-text">' + o + '</span></button>';
   });
   html += '</div>';
   return html;
@@ -55349,8 +55349,8 @@ function qtRenderReading(q, prefix){
     if (sq.o && sq.o.length){
       html += '<div class="qt-opts">';
       sq.o.forEach(function(o, oi){
-        html += '<button class="qt-opt" type="button" data-p="' + prefix + '" data-s="' + si + '" data-i="' + oi + '" onclick="qtPick(this)">' +
-          '<span class="qt-opt-key">' + String.fromCharCode(65 + oi) + '</span><span class="qt-opt-text">' + o + '</span></button>';
+        html += '<button class="qt-opt" type="button" style="display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;margin:6px 0;padding:11px 14px;" data-p="' + prefix + '" data-s="' + si + '" data-i="' + oi + '" onclick="qtPick(this)">' +
+          '<span class="qt-opt-key">' + String.fromCharCode(65 + oi) + '</span> <span class="qt-opt-text">' + o + '</span></button>';
       });
       html += '</div>';
     } else {
@@ -56160,10 +56160,11 @@ var TE_SESSION = null;
 function topicExamOpen(module, topicId, topicName){
   var questions = [];
   var count = 10;
+  if (topicId === "all") count = 9999;
   if (typeof qbSelect === "function"){
-    questions = qbSelect(module, topicId, count, null, "english");
+    questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english");
   }
-  if (questions.length === 0){
+  if (questions.length === 0 && topicId !== "all"){
     if (module === "grammar" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.grammar[topicId]){
       questions = TOPIC_EXAM_DATA.grammar[topicId];
     } else if (module === "vocab" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.vocab[topicId]){

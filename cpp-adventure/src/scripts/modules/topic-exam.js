@@ -18,10 +18,11 @@ var TE_SESSION = null;
 function topicExamOpen(module, topicId, topicName){
   var questions = [];
   var count = 10;
+  if (topicId === "all") count = 9999;
   if (typeof qbSelect === "function"){
-    questions = qbSelect(module, topicId, count, null, "english");
+    questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english");
   }
-  if (questions.length === 0){
+  if (questions.length === 0 && topicId !== "all"){
     if (module === "grammar" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.grammar[topicId]){
       questions = TOPIC_EXAM_DATA.grammar[topicId];
     } else if (module === "vocab" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.vocab[topicId]){
