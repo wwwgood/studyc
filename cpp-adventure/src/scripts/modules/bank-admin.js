@@ -691,13 +691,20 @@ function baSplitBigBlocks(text){
 /* 按小题号拆分：1. 2. 3. 或 1、2、3、 或 (1) (2) (3)；记录题号供末尾答案表匹配 */
 function baSplitSmallQuestions(block){
   var lines = block.split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l; });
-  /* 无编号但多行含行内「答案：」→ 每行一道（只收题目行，跳过说明/小节标题行） */
+  /* 无编号但多行含「答案：」→ 每道题一行；答案/解析行并入它上面的题目行（题干绝不丢失） */
   var hasNum = lines.some(function(l){ return /^(\d+)[\.、．]\s/.test(l); });
   if (!hasNum && lines.filter(function(l){ return /答案[：:]/.test(l); }).length >= 2){
     var rowBlocks = [];
+    var cur = null;
     lines.forEach(function(line){
-      if (/答案[：:]/.test(line)) rowBlocks.push({ no: null, lines: [line] });
+      if (/^(答案|解析|解释|分析)[：:]/.test(line)){
+        if (cur) cur.push(line); else cur = [line];
+      } else {
+        if (cur) rowBlocks.push({ no: null, lines: cur });
+        cur = [line];
+      }
     });
+    if (cur) rowBlocks.push({ no: null, lines: cur });
     return rowBlocks;
   }
   if (lines.length === 0) return [];
@@ -722,6 +729,8 @@ function baSplitSmallQuestions(block){
 function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceType){
   if (lines.length < 1) return null;
   if (lines.length === 1 && /^[一二三四五六七八九十]+[、．\.]/.test(lines[0])) return null;
+  if (lines.length === 1 && /^(答案|解析|解释|分析)[：:]/.test(lines[0])) return null;
+  if (lines.length === 1 && /^[A-Z][\.、．]\s/.test(lines[0]) && !/答案[：:]/.test(lines[0]) && lines[0].indexOf("_") < 0) return null;
   var fullText = lines.join("\n");
   var qType;
   if (forceType) qType = forceType;
@@ -755,6 +764,7 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
   var ansSource = "未找到";
   var why = "";
   var whyAuto = false;
+  var ansText = "";
 
   if (treatAs === "single" || treatAs === "multi"){
     lines.forEach(function(line){
@@ -803,10 +813,16 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
       ansSource = "答案表";
     }
   } else {
-    qText = fullText.replace(/^\d+[\.、．]\s*/, "").trim();
+    qText = fullText.replace(/^\d+[\.、．]\s*/, "").split(/^答案[：:]/m)[0].trim();
+    var ansTxtLine = lines.find(function(l){ return /答案[：:]/i.test(l); });
+    if (ansTxtLine){
+      var am3 = ansTxtLine.match(/答案[：:]\s*([\s\S]*)$/);
+      if (am3) ansText = am3[1].replace(/解析[：:][\s\S]*$/, "").trim();
+    }
     opts = ["（主观题，需人工评分）"];
     ans = 0;
     ansSource = "主观题";
+    qType = "fill";
   }
 
   var whyLine = lines.find(function(l){ return /解析|解释|分析/i.test(l); });
@@ -815,7 +831,8 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
     ansSource = ansSource === "未找到" ? "原卷行内" : ansSource;
   }
 
-  var q = { q: qText, o: opts, a: ans, why: why, kp: [], qType: qType, ansSource: ansSource };
+  var q = { q: qText, o: opts, a: ans, ansText: ansText, why: why, kp: [], qType: qType, ansSource: ansSource };
+  if (qType === "fill") q.type = "fill";
   var kn = baDetectKnowledge(why, qText, opts);
   if (kn){
     q.kp = [kn.name]; q.kpTopicId = kn.topicId; q.kpModule = kn.module; q.kpConfidence = kn.src;
@@ -1834,13 +1851,20 @@ function baParseText(text, answerKey){
     block = block.trim();
     if (!block) return;
     var lines = block.split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l; });
-  /* 无编号但多行含行内「答案：」→ 每行一道（只收题目行，跳过说明/小节标题行） */
+  /* 无编号但多行含「答案：」→ 每道题一行；答案/解析行并入它上面的题目行（题干绝不丢失） */
   var hasNum = lines.some(function(l){ return /^(\d+)[\.、．]\s/.test(l); });
   if (!hasNum && lines.filter(function(l){ return /答案[：:]/.test(l); }).length >= 2){
     var rowBlocks = [];
+    var cur = null;
     lines.forEach(function(line){
-      if (/答案[：:]/.test(line)) rowBlocks.push({ no: null, lines: [line] });
+      if (/^(答案|解析|解释|分析)[：:]/.test(line)){
+        if (cur) cur.push(line); else cur = [line];
+      } else {
+        if (cur) rowBlocks.push({ no: null, lines: cur });
+        cur = [line];
+      }
     });
+    if (cur) rowBlocks.push({ no: null, lines: cur });
     return rowBlocks;
   }
     if (lines.length < 2) return;

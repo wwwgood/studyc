@@ -179,3 +179,15 @@ test("考点聚合：qbQuery 按 kp 精确过滤，混练不会串考点", () =>
   const miss = qbQuery("grammar", null, "english", "不存在的考点");
   assert.strictEqual(miss.length, 0);
 });
+/* 名词辨认类：无编号、题目行+独立答案行（答案行绝不单独成题、题干不丢、自动判题） */
+test("名词辨认卷：独立答案行并入题目行，题干完整且自动判题", () => {
+  const { baSmartParse } = loadBank();
+  const text = "选出下列句子中的名词。\n答案：apple\n解析：apple 是可数名词，是物品名称。\n选出下列单词中的复数形式。\n答案：books\n解析：books 是 book 的复数。";
+  const r = baSmartParse(text);
+  assert.strictEqual(r.questions.length, 2, "应解析出 2 道题");
+  assert.strictEqual(r.questions[0].q, "选出下列句子中的名词。", "题干必须完整，不得变成「答案：apple」");
+  assert.strictEqual(r.questions[0].ansText, "apple", "答案文本应提取为判题依据");
+  assert.strictEqual(r.questions[0].type, "fill", "主观填空应自动转 fill，不依赖人工评分");
+  assert.match(r.questions[0].why, /可数名词/);
+  assert.strictEqual(r.questions[1].ansText, "books");
+});
