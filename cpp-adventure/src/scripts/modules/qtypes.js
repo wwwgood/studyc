@@ -222,8 +222,18 @@ function qtGrade(q, input){
     return { ok: ok, show: ok ? "" : "正确答案：" + String.fromCharCode(65 + q.a) };
   }
   if (t === "fill"){
-    var list = qtAnsList(q.ansText != null ? q.ansText : q.a);
-    var ok = list.length > 0 && list.some(function(ans){ return qtNorm(ans) === qtNorm(input); });
+    var raw = String(q.ansText != null ? q.ansText : q.a);
+    var list = qtAnsList(raw);
+    var ok = list.length > 0;
+    if (ok){
+      /* 多空题（答案以「；」分隔）：输入的每一空都要对上 */
+      if (raw.indexOf("；") >= 0 || raw.indexOf(";") >= 0){
+        var inputs = String(input == null ? "" : input).split(/s*[；;]s*/).filter(function(x){ return x; });
+        ok = inputs.length === list.length && inputs.every(function(u, i){ return qtNorm(u) === qtNorm(list[i]); });
+      } else {
+        ok = list.some(function(ans){ return qtNorm(ans) === qtNorm(input); });
+      }
+    }
     return { ok: ok, show: ok ? "" : "参考答案：" + list.join(" / ") };
   }
   if (t === "cloze"){

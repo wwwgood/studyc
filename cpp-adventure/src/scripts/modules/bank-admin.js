@@ -1050,6 +1050,108 @@ function baExtractAnswerKey(text){
 }
 
 /* 智能解析入口 */
+/* ============ 原样解析器（用户整理好的格式直接入库，不做二次辨析） ============
+ * 用户模式：自己整理好「题干 + 答案：xxx + 解析：yyy」→ 原样建题
+ * 支持格式：
+ *  1. 行内一行一道：题干 ____ 答案：xxx 解析：yyy
+ *  2. 分块：题干行 + 答案：xxx 行 + 解析：yyy 行
+ *  3. 大题标题（一、二、…）自动跳过，不建题
+ *  4. 独立答案行 ≥2 且题干含词库 → 选词填空（原样词库+答案）
+ *  5. A./B./C./D. 选项行 → 选择题（原样选项）
+ *  6. 其余 → 填空（输入判对，多空用「；」全部匹配）
+ * 铁律：题面一字不改；绝不产出「（主观题，需人工评分）」占位
+ */
+function baSimpleParse(text){
+  var lines = String(text || "").split("\n").map(function(l){ return l.trim(); }).filter(function(l){ return l; });
+  var questions = [];
+  var cur = null;
+  function closeCur(){
+    if (cur){
+      var hasQ = !!cur.q;
+      var hasAns = cur.ansText || (cur.o && cur.o.length >= 2);
+      if (hasQ && hasAns){
+        if (cur.o && cur.o.length >= 2 && /^[A-D]$/i.test(String(cur.ansText).trim())){
+          cur.a = String(cur.ansText).trim().toUpperCase().charCodeAt(0) - 65;
+          cur.type = "choice";
+        } else {
+          cur.type = "fill";
+        }
+        cur.qType = cur.type;
+        try {
+          var kn = baDetectKnowledge(cur.why, cur.q, cur.o || []);
+          if (kn){ cur.kp = [kn.name]; cur.kpTopicId = kn.topicId; cur.kpModule = kn.module; }
+        } catch(e){}
+        questions.push(cur);
+      }
+    }
+    cur = null;
+  }
+  lines.forEach(function(line){
+    /* 大题标题：跳过不建题 */
+    if (/^[一二三四五六七八九十]+[、．\.]\s/.test(line) && !/答案[：:]/.test(line) && line.length <= 60){
+      closeCur();
+      return;
+    }
+    /* 独立答案行：并入当前题（多空用「 | 」连接） */
+    if (/^答案[：:]/.test(line)){
+      if (!cur) cur = { q: "", ansText: "", why: "" };
+      var m = line.match(/^答案[：:]\s*(.*)$/);
+      if (m){
+        var rest = m[1];
+        var wm = rest.match(/^(.*?)[\s　]*(?:解析|解释|分析)[：:]\s*([\s\S]*)$/);
+        var aa = (wm ? wm[1] : rest).trim();
+        if (cur.ansText) cur.ansText += " | " + aa; else cur.ansText = aa;
+        if (wm && wm[2].trim()) cur.why = cur.why ? cur.why + "\n" + wm[2].trim() : wm[2].trim();
+      }
+      return;
+    }
+    /* 独立解析行 */
+    if (/^(解析|解释|分析)[：:]/.test(line)){
+      if (cur){
+        var w2 = line.replace(/^(解析|解释|分析)[：:]\s*/, "").trim();
+        cur.why = cur.why ? cur.why + "\n" + w2 : w2;
+      }
+      return;
+    }
+    /* 行内格式：题干 答案：xxx 解析：yyy（一行一道，题面原样） */
+    if (/答案[：:]/.test(line)){
+      closeCur();
+      var parts = line.split(/答案[：:]/);
+      var qq = parts.shift().trim();
+      var rest2 = parts.join("答案：");
+      var wm2 = rest2.match(/^(.*?)[\s　]*(?:解析|解释|分析)[：:]\s*([\s\S]*)$/);
+      cur = { q: qq, ansText: (wm2 ? wm2[1] : rest2).trim(), why: wm2 ? wm2[2].trim() : "", type: "fill" };
+      return;
+    }
+    /* 选项行：A. xxx B. xxx（仅当已有题干时收集，独立小节标题不误当选项） */
+    if (/^[A-D][\.、．]\s/.test(line)){
+      if (cur && cur.q){
+        if (!cur.o) cur.o = [];
+        cur.o.push(line.replace(/^[A-D][\.、．]\s*/, "").trim());
+      }
+      return;
+    }
+    /* 纯题干行：新题开始 */
+    closeCur();
+    cur = { q: line, ansText: "", why: "", type: "fill" };
+  });
+  closeCur();
+  /* 词库选词：题干含「题干词汇/词库/备选/供选」且多个答案 → 转选词填空（词库/答案原样） */
+  questions.forEach(function(q){
+    if (q.type === "fill" && q.ansText && q.ansText.indexOf(" | ") >= 0 && /题干词汇|词库|备选|供选/.test(q.q)){
+      var words = q.ansText.split(" | ").map(function(x){ return x.replace(/（[^）]*）\s*$/, "").trim(); }).filter(Boolean);
+      if (words.length >= 2){
+        q.words = words.slice();
+        q.blanks = words.slice();
+        q.type = "cloze";
+        q.qType = "cloze";
+        q.ansText = "";
+      }
+    }
+  });
+  var subjectGuess = baGuessSubject(text);
+  return { questions: questions, subject: subjectGuess.subject, subjectReason: subjectGuess.reason };
+}
 function baSmartParse(text){
   var subjectGuess = baGuessSubject(text);
   var answerKey = baExtractAnswerKey(text);
@@ -1113,7 +1215,7 @@ function baParseAndPreview(){
       });
     }
   } catch(e){
-    var result = baSmartParse(text);
+    var result = baSimpleParse(text);
     questions = result.questions;
     parsedSubject = result.subject;
     parsedReason = result.subjectReason;

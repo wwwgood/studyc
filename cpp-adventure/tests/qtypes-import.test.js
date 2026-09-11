@@ -215,3 +215,45 @@ test("qtAnswerText：选择题显示选项文本、填空显示答案词", () =>
   const qFill = { q: "pencil __________", ansText: "pencils", type: "fill" };
   assert.strictEqual(qtAnswerText(qFill), "pencils");
 });
+/* 原样解析器：用户整理好的格式直接入库，题面一字不改，不做二次辨析 */
+test("原样解析：行内/分块/词库/多空/改错 各格式原样建题", () => {
+  const { baSimpleParse } = loadBank();
+  const text = "一、找出专有名词。\n题干词汇： Sally Green　Hong Kong\n答案：Sally Green（萨利·格林） 解析：人名属于专有名词。\n答案：Hong Kong（香港） 解析：地名属于专有名词。\n二、改正专有名词\nWhite Joe __________ 答案：Joe White 解析：人名应名在前。\n三、词形转换\npencil __________ 答案：pencils 解析：直接加 -s。\n—What are those ______ (man) doing? 答案：men；children 解析：those 后接复数 men。\n四、改错\nThere are(A) sixty minutes(B) in a hour©. 答案：C；a hour → an hour 解析：hour 用 an。";
+  const r = baSimpleParse(text);
+  assert.strictEqual(r.questions.length, 5, "应解析出 5 道题");
+  const q0 = r.questions[0];
+  assert.strictEqual(q0.type, "cloze", "词库多答案 → 选词填空");
+  assert.strictEqual(q0.blanks.join(","), "Sally Green,Hong Kong", "词库与答案原样");
+  const q1 = r.questions[1];
+  assert.strictEqual(q1.q, "White Joe __________");
+  assert.strictEqual(q1.ansText, "Joe White");
+  assert.strictEqual(q1.why, "人名应名在前。");
+  const q3 = r.questions[3];
+  assert.strictEqual(q3.ansText, "men；children", "多空答案原样保留分隔符");
+  const q4 = r.questions[4];
+  assert.strictEqual(q4.q, "There are(A) sixty minutes(B) in a hour©.");
+  assert.strictEqual(q4.ansText, "C；a hour → an hour");
+  /* 绝不产出人工评分占位 */
+  r.questions.forEach((q) => {
+    assert.ok(!String(q.o && q.o[0] || "").includes("主观题，需人工评分"));
+  });
+});
+
+test("原样解析：纯「答案：」行与字母小节标题不建题", () => {
+  const { baSimpleParse } = loadBank();
+  const text = "A. 写出复数形式。\n答案：pencils\nB. 填空。\nbook __________ 答案：books 解析：直接加 -s。";
+  const r = baSimpleParse(text);
+  assert.strictEqual(r.questions.length, 1, "A. 小节标题与孤立答案行不成题");
+  assert.strictEqual(r.questions[0].q, "book __________");
+  assert.strictEqual(r.questions[0].ansText, "books");
+});
+
+/* fill 多空判题：答案以「；」分隔 → 全部匹配才算对 */
+test("fill 多空判题：全部空匹配才正确，任一匹配不正确", () => {
+  const { qtGrade } = loadBank();
+  const q = { q: "填空", ansText: "men；children", type: "fill" };
+  assert.strictEqual(qtGrade(q, "men；children").ok, true, "全对正确");
+  assert.strictEqual(qtGrade(q, "men").ok, false, "只填一空不正确");
+  assert.strictEqual(qtGrade(q, "children；men").ok, false, "顺序错误不正确");
+  assert.match(qtGrade(q, "men").show, /men \/ children/, "错时提示参考答案");
+});
