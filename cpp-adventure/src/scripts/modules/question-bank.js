@@ -9,19 +9,20 @@ var QB_USED = {}; // 本次会话已用题目ID，避免重复
 function qbResetUsed(){ QB_USED = {}; }
 
 /* 获取题库中符合条件的题目 */
-function qbQuery(module, topicId, subject){
+function qbQuery(module, topicId, subject, kp){
   if (typeof QB_DATA === "undefined") return [];
   return QB_DATA.questions.filter(function(q){
     if (subject && q.subject !== subject) return false;
     if (module && q.module !== module) return false;
     if (topicId !== undefined && topicId !== null && q.topicId !== topicId) return false;
+    if (kp && !(q.kp && q.kp.indexOf(kp) >= 0)) return false;
     return true;
   });
 }
 
 /* 随机选 count 道题，排除已用的 */
-function qbSelect(module, topicId, count, excludeIds, subject){
-  var pool = qbQuery(module, topicId, subject);
+function qbSelect(module, topicId, count, excludeIds, subject, kp){
+  var pool = qbQuery(module, topicId, subject, kp);
   var used = excludeIds || [];
   var available = pool.filter(function(q){
     return !QB_USED[q.id] && used.indexOf(q.id) < 0;

@@ -15,14 +15,18 @@ var TE_SESSION = null;
 
 /* 从任意模块调用：module=grammar/vocab/reading/writing, topicId=章节/单元ID, topicName=名称
  * 优先从统一题库随机选题（每次不同），题库无题时回退到 TOPIC_EXAM_DATA */
-function topicExamOpen(module, topicId, topicName){
+function topicExamOpen(module, topicId, topicName, kp){
   var questions = [];
   var count = 10;
-  if (topicId === "all") count = 9999;
   if (typeof qbSelect === "function"){
-    questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english");
+    if (kp){
+      questions = qbSelect(module, null, 9999, null, "english", kp);
+    } else {
+      if (topicId === "all") count = 9999;
+      questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english");
+    }
   }
-  if (questions.length === 0 && topicId !== "all"){
+  if (questions.length === 0 && topicId !== "all" && !kp){
     if (module === "grammar" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.grammar[topicId]){
       questions = TOPIC_EXAM_DATA.grammar[topicId];
     } else if (module === "vocab" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.vocab[topicId]){
@@ -46,7 +50,7 @@ function topicExamOpen(module, topicId, topicName){
     }
     return;
   }
-  TE_SESSION = { module: module, topicId: topicId, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false };
+  TE_SESSION = { module: module, topicId: topicId, kp: kp || null, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false };
   teRenderQuiz();
   var mask = document.getElementById("teDialogMask");
   if (mask) mask.classList.add("open");
@@ -62,7 +66,7 @@ function teRenderQuiz(){
   if (!dialog) return;
   dialog.innerHTML =
     '<div class="te-dlg-head">' +
-      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 专题真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length +
+      '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 考点真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length +
       (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
@@ -133,7 +137,7 @@ function teFinish(){
   var total = TE_SESSION.questions.length;
   var wrong = TE_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= Math.floor(total * 0.2) ? 2 : 1);
-  var key = TE_SESSION.module + "_" + TE_SESSION.topicId;
+  var key = TE_SESSION.module + (TE_SESSION.kp ? "_kp_" + TE_SESSION.kp : "_" + TE_SESSION.topicId);
   var old = teState().done[key] || 0;
   if (stars > old) teState().done[key] = stars;
   saveS();
@@ -143,7 +147,7 @@ function teFinish(){
   var dialog = document.getElementById("teDialog");
   if (!dialog) return;
   dialog.innerHTML =
-    '<div class="te-dlg-head result"><span class="te-cap">🏁 专题真题完成</span>' +
+    '<div class="te-dlg-head result"><span class="te-cap">🏁 考点真题完成</span>' +
       '<button class="te-close" type="button" onclick="teClose()">×</button></div>' +
     '<div class="te-dlg-body te-result">' +
       '<div class="te-result-stars">' + starRow + '</div>' +
@@ -183,4 +187,40 @@ function teClose(){
   document.body.style.overflow = "";
   TE_SESSION = null;
   if (typeof portalRenderTopbar === "function") portalRenderTopbar();
+}
+
+/* ---------- 考点真题面板：按考点聚合全部真题 ---------- */
+function kpPanelOpen(module, subject, title){
+  var counts = {};
+  var total = 0;
+  if (typeof QB_DATA !== "undefined"){
+    QB_DATA.questions.forEach(function(q){
+      if (q.module !== module) return;
+      if (subject && q.subject !== subject) return;
+      var k = (q.kp && q.kp.length) ? q.kp[0] : "";
+      if (!k) return;
+      counts[k] = (counts[k] || 0) + 1;
+      total++;
+    });
+  }
+  var dialog = document.getElementById("teDialog");
+  if (!dialog) return;
+  var body = "";
+  if (total === 0){
+    body = '<div style="text-align:center;padding:40px 20px;font-size:17px;color:#888;">📋 还没有带考点的真题<br><br>请先在「题库管理」导入真题<br>系统会自动按考点归类（专有名词/可数名词/复数规则…）</div>';
+  } else {
+    var keys = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    body = keys.map(function(k){
+      return '<button class="te-go-btn" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;margin:7px 0;padding:14px 16px;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;cursor:pointer;font-size:16px;color:#1F2937;text-align:left;" onclick="topicExamOpen(\'' + module + '\',null,\'' + k.replace(/'/g,"\\'") + '\',\'' + k.replace(/'/g,"\\'") + '\')">' +
+        '<span>📌 ' + k + '</span><span style="background:#F59E0B;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">' + counts[k] + ' 题</span></button>';
+    }).join("") +
+    '<div style="text-align:center;margin-top:14px;color:#9CA3AF;font-size:13px;">共 ' + total + ' 道真题，按考点分组练习</div>';
+  }
+  dialog.innerHTML =
+    '<div class="te-dlg-head"><span class="te-cap">🎯 按考点练真题 · ' + title + '</span>' +
+      '<button class="te-close" type="button" onclick="teClose()">×</button></div>' +
+    '<div class="te-dlg-body">' + body + '</div>';
+  var mask = document.getElementById("teDialogMask");
+  if (mask) mask.classList.add("open");
+  document.body.style.overflow = "hidden";
 }

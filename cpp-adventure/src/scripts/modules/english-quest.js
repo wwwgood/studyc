@@ -232,7 +232,7 @@ function eqFinish(){
       '<p class="eq-result-meta">📊 本关 ' + (total - wrong) + '/' + total + ' 正确 · 总进度 ' + done + ' / ' + EQ_DATA.lessons.length + ' · 🪙 ' + eqState().coins + '</p>' +
       '<div class="eq-result-btns">' +
         '<button class="eq-go-btn ghost" type="button" onclick="eqStartQuiz()">🔁 再练一次</button>' +
-        '<button class="eq-go-btn topic" type="button" onclick="topicExamOpen(\'grammar\',\'all\',\'全部英语真题\')">📚 全部真题一起练</button>' +
+        '<button class="eq-go-btn topic" type="button" onclick="kpPanelOpen(\'grammar\',\'english\',\'英语语法\')">🎯 按考点练真题</button>' +
         (next ? '<button class="eq-go-btn" type="button" onclick="eqOpen(\'' + next + '\')">下一例 →</button>'
               : '<button class="eq-go-btn" type="button" onclick="eqClose()">🏆 岛屿通关！</button>') +
       '</div>' +

@@ -15,7 +15,7 @@ function loadBank(baTypeSelectValue) {
     },
     window: { addEventListener: () => {} },
   };
-  return loadScripts(["data/question-bank.js", "modules/qtypes.js", "modules/bank-admin.js"], mock);
+  return loadScripts(["data/question-bank.js", "modules/question-bank.js", "modules/qtypes.js", "modules/bank-admin.js"], mock);
 }
 
 test("汉译英填空：自动识别为 fill 并提取文本答案", () => {
@@ -164,4 +164,18 @@ test("名词真题整卷：题干词汇选词 + 无编号行级拆分 + 单句�
   assert.strictEqual(kp(/^妹妹的房间/), "名词所有格");
   assert.strictEqual(kp(/^There are\(A\)/), "a与an的区别");
   assert.strictEqual(kp(/^He eats eggs/), "可数与不可数名词");
+});
+
+/* 考点聚合：导入题按 kp 字段精确聚合，供「按考点练真题」面板使用 */
+test("考点聚合：qbQuery 按 kp 精确过滤，混练不会串考点", () => {
+  const { qbAdd, qbQuery } = loadBank();
+  qbAdd({ id: "kpt-1", subject: "english", module: "grammar", topicId: 1, kp: ["专有名词"], q: "A1" });
+  qbAdd({ id: "kpt-2", subject: "english", module: "grammar", topicId: 1, kp: ["名词复数-加s规则"], q: "B1" });
+  qbAdd({ id: "kpt-3", subject: "english", module: "grammar", topicId: 1, kp: ["专有名词"], q: "A2" });
+  const onlyKp = qbQuery("grammar", null, "english", "专有名词");
+  const ids = onlyKp.map((q) => q.id);
+  assert.ok(ids.indexOf("kpt-1") >= 0 && ids.indexOf("kpt-3") >= 0, "专有名词题应全部命中");
+  assert.ok(ids.indexOf("kpt-2") < 0, "其它考点题不得混入");
+  const miss = qbQuery("grammar", null, "english", "不存在的考点");
+  assert.strictEqual(miss.length, 0);
 });
