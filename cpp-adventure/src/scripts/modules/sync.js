@@ -49,6 +49,12 @@ function syncRender(){
         '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件</button>' +
         '<div id="syncImportResult"></div>' +
       '</div>' +
+      '<div class="sync-section bkup-section">' +
+        '<h3>💾 本地自动备份（不用任何配置）</h3>' +
+        '<p class="sync-desc">学习数据会自动在本浏览器里保存历史快照（最多 12 份）。就算数据意外被清空，也能一键找回。换设备请用上面的「导出/导入文件」。</p>' +
+        '<button class="sync-export-btn" type="button" style="margin-bottom:10px;" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
+        '<div id="bkupBox">加载中…</div>' +
+      '</div>' +
       (typeof csRender === "function" ? csRender() : '') +
       '<div class="sync-section">' +
         '<h3>💡 使用说明</h3>' +
@@ -68,6 +74,41 @@ function syncRender(){
       if (input.files.length > 0) syncImport(input.files[0]);
     });
   }
+  if (typeof bkupRenderList === "function") bkupRenderList();
+}
+
+/* 渲染本地快照列表 */
+function bkupRenderList(){
+  var box = document.getElementById("bkupBox");
+  if (!box) return;
+  if (typeof bkupList !== "function"){ box.innerHTML = '<div class="sync-tips">当前浏览器不支持快照备份。</div>'; return; }
+  bkupList().then(function(list){
+    if (!list || list.length === 0){
+      box.innerHTML = '<div class="sync-tips">还没有快照。学习过程中会自动保存，也可以点上面的「立即备份一次」。</div>';
+      return;
+    }
+    var html = '<div class="bkup-list">';
+    list.forEach(function(s){
+      var d = new Date(s.t);
+      var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+      var label = (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes()) +
+        (s.reason === "manual" ? "（手动）" : "（自动）");
+      html += '<div class="bkup-row">' +
+        '<span class="bkup-time">🕐 ' + label + '</span>' +
+        '<button class="sync-import-btn bkup-restore-btn" type="button" onclick="bkupDoRestore(' + s.t + ')">恢复</button>' +
+      '</div>';
+    });
+    html += '</div>';
+    box.innerHTML = html;
+  });
+}
+
+function bkupDoRestore(t){
+  if (!confirm("确定用这份快照覆盖当前数据吗？\n（会恢复到 " + new Date(t).toLocaleString() + " 时的进度）")) return;
+  bkupRestore(t).then(function(ok){
+    if (ok){ baToast("✅ 已恢复到该快照！页面即将刷新"); setTimeout(function(){ location.reload(); }, 1200); }
+    else baToast("❌ 恢复失败，快照不存在或已损坏");
+  });
 }
 
 function syncCalcSize(){

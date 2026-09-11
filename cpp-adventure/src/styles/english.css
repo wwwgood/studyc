@@ -556,6 +556,13 @@
 .cs-actions .sync-export-btn{display:inline-block; width:auto; background:#10B981;}
 .cs-actions .sync-import-btn{display:inline-block; width:auto;}
 
+/* ---------- 本地自动备份 ---------- */
+.bkup-section{border:1.5px solid #FDE68A; background:#FFFBEB;}
+.bkup-list{display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;}
+.bkup-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 12px; background:#fff; border-radius:8px; border:1px solid #FDE68A;}
+.bkup-time{font-size:13px; color:#92400E; font-weight:600;}
+.bkup-restore-btn{padding:6px 16px !important; font-size:13px !important; min-width:60px; flex:none;}
+
 .ba-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #E5E7EB;}
 .ba-tab{background:#F3F4F6; border:2px solid transparent; color:#4B5563; padding:8px 16px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s;}
 .ba-tab:hover{background:#E0E7FF; color:#4338CA;}
