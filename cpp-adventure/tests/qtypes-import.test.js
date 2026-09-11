@@ -102,3 +102,50 @@ test("选择题回归：原有解析不受影响", () => {
   assert.strictEqual(q.a, 2);
   assert.strictEqual(q.o.length, 4);
 });
+
+test("名词真题整卷：题干词汇选词 + 无编号行级拆分 + 单句改错 →", () => {
+  const { baSmartParse } = loadBank();
+  const text = [
+    "一、从所给的单词中找出五个专有名词，填写在下面的横线上，并写出它们的汉语意思。",
+    "题干词汇： football　Sally Green　carrot　Hong Kong　jacket　the Yellow River　computer　May　snake　food　National Day　window",
+    "答案：Sally Green（萨利·格林） 解析：人名属于专有名词。",
+    "答案：Hong Kong（香港） 解析：地名属于专有名词。",
+    "答案：the Yellow River（黄河） 解析：江河名称属于专有名词。",
+    "答案：May（五月） 解析：月份名称首字母必须大写。",
+    "答案：National Day（国庆节） 解析：节日名称属于专有名词。",
+    "二、下面的专有名词，每个都有错误，你能迅速改正吗？",
+    "White Joe __________ 答案：Joe White 解析：人名应名在前。",
+    "australia __________ 答案：Australia 解析：国家名称首字母要大写。",
+    "三、词形转换",
+    "A. 写出下列名词的复数形式。",
+    "pencil __________ 答案：pencils 解析：直接加 -s。",
+    "foot __________ 答案：feet 解析：不规则变化。",
+    "B. 用所给名词的适当形式填空。",
+    "My grandmother bought two new ______ (watch). 答案：watches 解析：two 后接复数。",
+    "四、将下列短语翻译成英语。",
+    "妹妹的房间 __________ 答案：the sister's room 解析：有生命名词所有格。",
+    "五、单句改错：下列各句中均有一处错误，指出并改正。",
+    "There are(A) sixty minutes(B) in a hour©. 答案：C；a hour → an hour 解析：hour 以元音音素开头。",
+    "He eats eggs,(A) breads(B) and drinks milk© in the morning. 答案：B；breads → bread 解析：bread 不可数。"
+  ].join("\n");
+  const r = baSmartParse(text);
+  assert.strictEqual(r.questions.length, 9, "应解析 9 道题（1 选词 + 8 填空）");
+  const q0 = r.questions[0];
+  assert.strictEqual(q0.type, "cloze");
+  assert.strictEqual(q0.words.length, 12, "词库应保留整词（Sally Green 不拆）");
+  assert.ok(q0.words.indexOf("Sally Green") >= 0 && q0.words.indexOf("the Yellow River") >= 0);
+  assert.strictEqual(q0.blanks.join("|"), "Sally Green|Hong Kong|the Yellow River|May|National Day");
+  const byQ = {};
+  r.questions.forEach((q) => { byQ[q.q] = q; });
+  assert.strictEqual(byQ["White Joe __________"].ansText, "Joe White");
+  assert.strictEqual(byQ["australia __________"].ansText, "Australia");
+  assert.strictEqual(byQ["pencil __________"].ansText, "pencils");
+  assert.strictEqual(byQ["foot __________"].ansText, "feet");
+  assert.strictEqual(byQ["My grandmother bought two new ______ (watch)."].ansText, "watches");
+  assert.strictEqual(byQ["妹妹的房间 __________"].ansText, "the sister's room");
+  const corr = r.questions.find((q) => q.q.indexOf("There are(A)") >= 0);
+  assert.strictEqual(corr.ansText, "an hour", "单句改错应取 → 后内容为判题答案");
+  const corr2 = r.questions.find((q) => q.q.indexOf("He eats eggs") >= 0);
+  assert.strictEqual(corr2.ansText, "bread");
+  r.questions.forEach((q) => assert.ok(q.type === "cloze" || q.type === "fill", "全卷题型应为 cloze/fill，实际 " + q.type));
+});
