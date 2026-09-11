@@ -121,12 +121,12 @@ test("名词真题整卷：题干词汇选词 + 无编号行级拆分 + 单句�
     "pencil __________ 答案：pencils 解析：直接加 -s。",
     "foot __________ 答案：feet 解析：不规则变化。",
     "B. 用所给名词的适当形式填空。",
-    "My grandmother bought two new ______ (watch). 答案：watches 解析：two 后接复数。",
+    "My grandmother bought two new ______ (watch). 答案：watches 解析：two 后接可数名词复数；watch 以 ch 结尾，复数加 -es。",
     "四、将下列短语翻译成英语。",
     "妹妹的房间 __________ 答案：the sister's room 解析：有生命名词所有格。",
     "五、单句改错：下列各句中均有一处错误，指出并改正。",
-    "There are(A) sixty minutes(B) in a hour©. 答案：C；a hour → an hour 解析：hour 以元音音素开头。",
-    "He eats eggs,(A) breads(B) and drinks milk© in the morning. 答案：B；breads → bread 解析：bread 不可数。"
+    "There are(A) sixty minutes(B) in a hour©. 答案：C；a hour → an hour 解析：hour 以元音音素开头，不定冠词用 an。",
+    "He eats eggs,(A) breads(B) and drinks milk© in the morning. 答案：B；breads → bread 解析：bread（面包）是不可数名词，没有复数形式。"
   ].join("\n");
   const r = baSmartParse(text);
   assert.strictEqual(r.questions.length, 9, "应解析 9 道题（1 选词 + 8 填空）");
@@ -148,4 +148,20 @@ test("名词真题整卷：题干词汇选词 + 无编号行级拆分 + 单句�
   const corr2 = r.questions.find((q) => q.q.indexOf("He eats eggs") >= 0);
   assert.strictEqual(corr2.ansText, "bread");
   r.questions.forEach((q) => assert.ok(q.type === "cloze" || q.type === "fill", "全卷题型应为 cloze/fill，实际 " + q.type));
+  /* 考点自动归类：50 题样例实测 0 未识别，此处断言关键题归类（避免退回手工） */
+  r.questions.forEach((q) => assert.ok(q.kp && q.kp[0], "每题应自动识别考点，未识别：" + String(q.q).slice(0, 16)));
+  const kpOf = {};
+  r.questions.forEach((q) => { kpOf[String(q.q)] = q.kp[0]; });
+  function kp(re) {
+    const hit = Object.keys(kpOf).find((k) => re.test(k));
+    return hit ? kpOf[hit] : undefined;
+  }
+  assert.strictEqual(kp(/^题干词汇/), "专有名词");
+  assert.strictEqual(kp(/^White Joe/), "专有名词");
+  assert.strictEqual(kp(/^pencil/), "名词复数-加s规则");
+  assert.strictEqual(kp(/^foot\b/), "不规则名词复数");
+  assert.strictEqual(kp(/^My grandmother/), "名词复数-es规则");
+  assert.strictEqual(kp(/^妹妹的房间/), "名词所有格");
+  assert.strictEqual(kp(/^There are\(A\)/), "a与an的区别");
+  assert.strictEqual(kp(/^He eats eggs/), "可数与不可数名词");
 });

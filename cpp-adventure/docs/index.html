@@ -57163,14 +57163,17 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
  */
 var BA_KNOWLEDGE_MAP = [
   /* ---- 第1章 名词岛（具体规则在前，宽泛兜底在后） ---- */
-  { module:"grammar", topicId:1, name:"可数与不可数名词", how:/不可数|可数名词|uncountable/, howQ:/How much.*(water|bread|milk|rice|tea|juice|money|paper|time|homework|news)/i, opts:/^(water|bread|milk|rice|tea|juice|money|paper|snow|hair|homework|news|advice)$/i },
-  { module:"grammar", topicId:1, name:"名词复数-es规则", how:/加\s*es|以.*(s|x|ch|sh).*结尾/, opts:/(buses|boxes|watches|dishes|classes|tomatoes|potatoes)/ },
-  { module:"grammar", topicId:1, name:"名词复数-ies规则", how:/y.*变.*ies|辅音字母.*y/, opts:/(cities|babies|families|stories|studies|candies)/ },
-  { module:"grammar", topicId:1, name:"名词复数-ves规则", how:/f.*变.*ves|fe/, opts:/(leaves|knives|wolves|shelves|lives|wives)/ },
-  { module:"grammar", topicId:1, name:"不规则名词复数", how:/不规则复数|特殊.*复数/, howQ:/\b(men|women|children|feet|teeth|mice|sheep|deer|people)\b/, opts:/^(men|women|children|feet|teeth|mice|tomatoes|potatoes)$/i },
-  { module:"grammar", topicId:1, name:"名词所有格", how:/所有格/, howQ:/'s\s/ },
-  { module:"grammar", topicId:1, name:"名词复数-加s规则", how:/直接加\s*s|一般.*加\s*s|变复数/, howQ:/\b(two|three|four|five|many|some|lots of)\b.*\b(bananas|birds|books|dogs|pens|cats|apples|bags|eggs)\b/i },
-  { module:"grammar", topicId:1, name:"名词辨认", how:/名词辨析|考查名词|词性|名词辨辨认|哪个.*是名词/, opts:/^(run|jump|eat|happy|sad|big)$/ },
+  { module:"grammar", topicId:1, name:"专有名词", how:/专有名词|人名|地名|国名|国家名称|月份名称|节日名称|江河名称|姓在前|拼音要连写/ },
+  { module:"grammar", topicId:1, name:"名词作定语", how:/作定语|名词作定语|修饰另一个名词|修饰.*名词/ },
+  { module:"grammar", topicId:1, name:"名词所有格", how:/所有格|所有关系|共同拥有|of\s*结构|在.*后加\s*['’]?s/ },
+  { module:"grammar", topicId:1, name:"名词复数-es规则", how:/加\s*es|以.*(s|x|ch|sh).*结尾/ },
+  { module:"grammar", topicId:1, name:"名词复数-ies规则", how:/y.*变.*ies|辅音字母.*y/ },
+  { module:"grammar", topicId:1, name:"名词复数-ves规则", how:/f.*变.*ves|f\/fe\s*结尾|变\s*f\/fe/ },
+  { module:"grammar", topicId:1, name:"不规则名词复数", how:/不规则变化|不规则复数|单复数同形|特殊.*复数|复合名词|中心词.*变/, howQ:/\b(men|women|children|feet|teeth|mice|sheep|deer|people)\b/ },
+  { module:"grammar", topicId:1, name:"可数与不可数名词", how:/不可数名词|uncountable|集合名词/, howQ:/How much.*(water|bread|milk|rice|tea|juice|money|paper|time|homework|news)/i, opts:/^(water|bread|milk|rice|tea|juice|money|paper|snow|hair|homework|news|advice)$/i },
+  { module:"grammar", topicId:1, name:"名词复数-加s规则", how:/直接加\s*-?s|一般.*加\s*s|变复数|用复数|表示一类|不用复数|元音字母.*y/, howQ:/\b(two|three|four|five|many|some|lots of)\b.*\b(bananas|birds|books|dogs|pens|cats|apples|bags|eggs)\b/i },
+  { module:"grammar", topicId:1, name:"名词固定搭配", how:/固定搭配|on foot|a pair of|the key to/ },
+  { module:"grammar", topicId:1, name:"名词辨认", how:/名词辨析|考查名词|词性|名词辨认|哪个.*是名词/, opts:/^(run|jump|eat|happy|sad|big)$/ },
   /* ---- 第2章 冠词湾 ---- */
   { module:"grammar", topicId:2, name:"a与an的区别", how:/an?\s*与|元音.*an|用\s*an\b|a\s*\/\s*an/, opts:/^(a|an)$/i },
   { module:"grammar", topicId:2, name:"定冠词the", how:/定冠词/, opts:/^(the|\/|不填)$/i },
@@ -57182,7 +57185,7 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:3, name:"不定代词", how:/不定代词/, opts:/^(some|any|each|every|both|all|either|neither|something|anything|nothing|nobody|everyone)$/i },
   /* ---- 第4章 数词矿井 ---- */
   { module:"grammar", topicId:4, name:"序数词", how:/序数词/, howQ:/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|twelfth|twentieth)\b/i },
-  { module:"grammar", topicId:4, name:"基数词", how:/基数词|hundred|thousand/, howQ:/\b(one|two|three|hundred|thousand)\b/i },
+  { module:"grammar", topicId:4, name:"基数词", how:/基数词|hundred|thousand/, howQ:/\b(hundred|thousand)\b|\d{2,}\s*[个只本名岁]|用英语.*(数字|数词)/i },
   /* ---- 第5章 形容词雪山 ---- */
   { module:"grammar", topicId:5, name:"形容词最高级", how:/最高级/, howQ:/\bthe\s+\w+est\b|\bthe most\b/i, opts:/est$|most\s/i },
   { module:"grammar", topicId:5, name:"形容词比较级", how:/比较级/, howQ:/\bthan\b/i, opts:/er$|more\s/i },
@@ -57192,13 +57195,13 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:6, name:"频率副词", how:/频率副词|频度/, howQ:/\b(always|usually|often|sometimes|seldom|never)\b/i },
   { module:"grammar", topicId:6, name:"副词辨认与ly变化", how:/副词/, howQ:/\w+ly\b/i },
   /* ---- 第7章 介词迷宫 ---- */
-  { module:"grammar", topicId:7, name:"时间介词", how:/时间介词|介词.*时间/, howQ:/(in|on|at)\s+(the\s+)?(morning|afternoon|evening|night|Monday|Sunday|weekend|o'?clock|noon|\d{1,2}[:：]|\d{1,4}年|May|June|July|spring|summer|autumn|winter)|(___+|＿＿+)\s*(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|night)/i, opts:/^(in|on|at)$/i },
+  { module:"grammar", topicId:7, name:"时间介词", how:/时间介词|介词.*时间/, howQ:/(___+|＿＿+|（\s*）|\(\s*\))\s*(in|on|at)\b|(in|on|at)\b\s*(___+|＿＿+|（\s*）|\(\s*\))|(___+|＿＿+)\s*(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|night)/i, opts:/^(in|on|at)$/i },
   { module:"grammar", topicId:7, name:"地点方位介词", how:/地点介词|方位介词|介词/, opts:/^(under|behind|beside|near|between|above|over|next to|in front of)$/i },
   /* ---- 第8章 连词大桥 ---- */
   { module:"grammar", topicId:8, name:"并列连词and/but/or", how:/连词|并列/, opts:/^(and|but|or|so)$/i },
   { module:"grammar", topicId:8, name:"because与so", how:/because|因果/, opts:/^(because|so)$/i },
   /* ---- 第9章 动词城（一般现在时；there be 在 be 动词之前） ---- */
-  { module:"grammar", topicId:9, name:"there be句型", how:/there\s*be|There\s*be/i, howQ:/\bthere\s+(___+|＿＿+|is|are|was|were)\b/i, opts:/^(is|are|was|were|has|have)$/i },
+  { module:"grammar", topicId:9, name:"there be句型", how:/there\s*be|There\s*be/i, howQ:/\bthere\s+(___+|＿＿+)/i, opts:/^(is|are|was|were|has|have)$/i },
   { module:"grammar", topicId:9, name:"be动词am/is/are", how:/be动词|am\s*is\s*are|is\s*are/, opts:/^(am|is|are|be|was|were)$/i },
   { module:"grammar", topicId:9, name:"动词第三人称单数", how:/三单|第三人称单数|单三/, howQ:/\b(goes|does|watches|washes|studies|flies|has)\b|\bhe\s+\w+s\b|\bshe\s+\w+s\b/i },
   { module:"grammar", topicId:9, name:"do/does助动词", how:/助动词|do\s*does|don'?t|doesn'?t/, howQ:/\b(do|does|don'?t|doesn'?t|Do|Does|Don'?t|Doesn'?t)\b/ },
@@ -57263,6 +57266,9 @@ var BA_WHY_TPL = {
   "不规则名词复数": "本题考查不规则名词复数：man→men、woman→women、child→children、foot→feet、tooth→teeth、mouse→mice，这些词变复数不按规则，要单独记牢。{answer}",
   "名词所有格": "本题考查名词所有格：表示「某人的」在名词后加's，如Tom's book（汤姆的书）、my mother's bag（妈妈的包）。{answer}",
   "名词复数-加s规则": "本题考查名词复数：大多数名词变复数直接加s，如book→books、dog→dogs；两个以上要用复数形式。{answer}",
+  "专有名词": "本题考查专有名词：专有名词是特定的人、地名、国家、月份、节日等的名称，首字母要大写。人名如 Sally Green、地名如 Hong Kong、江河如 the Yellow River、月份如 May、节日如 National Day。{answer}",
+  "名词作定语": "本题考查名词作定语：名词修饰另一个名词时通常用单数形式，如 apple trees（苹果树）、apple pies（苹果派）。{answer}",
+  "名词固定搭配": "本题考查名词固定搭配：如 on foot（步行）、a pair of glasses（一副眼镜）、the key to the door（房门的钥匙），这些搭配要整体记忆。{answer}",
   "名词辨认": "本题考查名词辨析：名词是表示人、事物、地点名称的词。run/jump是动词，happy/sad是形容词，apple/teacher才是名词。{answer}",
   "a与an的区别": "本题考查a与an的用法：a用在辅音音素开头的单词前，an用在元音音素开头的单词前。an apple、an egg、an hour；a book、a useful book。{answer}",
   "定冠词the": "本题考查定冠词the：特指某（些）人或物、上文提过的事物、双方都知道的事物用the。{answer}",
