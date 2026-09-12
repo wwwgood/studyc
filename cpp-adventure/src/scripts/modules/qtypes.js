@@ -132,8 +132,16 @@ function qtPick(btn){
   var s = btn.getAttribute("data-s");
   var sel = '.qt-opt[data-p="' + p + '"]' + (s ? '[data-s="' + s + '"]' : '');
   var list = document.querySelectorAll(sel);
-  for (var i = 0; i < list.length; i++) list[i].classList.remove("picked");
+  for (var i = 0; i < list.length; i++){
+    list[i].classList.remove("picked");
+    /* 内联样式兜底清空：防止旧缓存 CSS 缺少 .picked 规则时看不到反馈 */
+    list[i].style.background = "";
+    list[i].style.borderColor = "";
+  }
   btn.classList.add("picked");
+  /* 内联样式兜底：保证任何环境下选中项都有明显高亮 */
+  btn.style.background = "#FEF3C7";
+  btn.style.borderColor = "#F59E0B";
 }
 function qtWordClick(btn){
   var p = btn.getAttribute("data-p");
@@ -277,7 +285,16 @@ function qtGrade(q, input){
 /* 判题后高亮正确答案（补全未填的空格） */
 function qtMarkRight(q, prefix){
   var t = qtTypeOf(q);
+  /* 先清掉选项上的内联兜底样式，让 qt-right/qt-wrong 类颜色正常显示 */
+  function qtClearInline(scope){
+    var all = scope.querySelectorAll('.qt-opt[data-p="' + prefix + '"]');
+    for (var i = 0; i < all.length; i++){
+      all[i].style.background = "";
+      all[i].style.borderColor = "";
+    }
+  }
   if (t === "choice"){
+    qtClearInline(document);
     var b = document.querySelector('.qt-opt[data-p="' + prefix + '"][data-i="' + q.a + '"]');
     if (b) b.classList.add("qt-right");
   }
@@ -288,6 +305,7 @@ function qtMarkRight(q, prefix){
     });
   }
   if (t === "reading"){
+    qtClearInline(document);
     (q.questions || []).forEach(function(sq, s){
       if (sq.o && sq.o.length){
         var b = document.querySelector('.qt-opt[data-p="' + prefix + '"][data-s="' + s + '"][data-i="' + sq.a + '"]');
@@ -312,3 +330,23 @@ function qtAnswerText(q){
   if (t === "writing") return "（作文：写 40 词以上，参考范文见解析）";
   return "";
 }
+
+/* ================= 事件委托兜底 =================
+ * 个别浏览器扩展（如广告过滤）或安全策略会拦截按钮的内联 onclick，
+ * 这里在 document 上统一委托 .qt-opt/.qt-word/.qt-blank 的点击，
+ * 保证任何环境下选项都可选。与内联 onclick 重复触发无害（qtPick 幂等）。 */
+(function(){
+  if (window.__qtDelegated) return;
+  if (typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+  window.__qtDelegated = true;
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    var opt = t.closest(".qt-opt");
+    if (opt){ qtPick(opt); return; }
+    var word = t.closest(".qt-word");
+    if (word){ qtWordClick(word); return; }
+    var blank = t.closest(".qt-blank");
+    if (blank){ qtBlankClick(blank); return; }
+  }, false);
+})();
