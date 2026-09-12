@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>BATEST</title></head>
+<body>
+<h1 id="STATUS">RUNNING</h1>
+<pre id="OUT"></pre>
+<script>
+/* 模拟最小环境，只测 baUpdateModuleTopic 相关逻辑 */
+var localStorage = { _s:{}, getItem:function(k){return this._s[k]===undefined?null:this._s[k];}, setItem:function(k,v){this._s[k]=String(v);} };
+
+/* 直接加载 bank-admin.js 源码 */
+var code = "";
+try {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "file:///E:/htdocs/studyc/cpp-adventure/src/scripts/modules/bank-admin.js", false);
+  xhr.send();
+  code = xhr.responseText;
+  document.getElementById("STATUS").textContent = "LOADED " + code.length + " chars";
+} catch(e) {
+  document.getElementById("STATUS").textContent = "LOAD FAIL: " + e.message;
+}
+
+if (code) {
+  try {
+    eval(code);
+    document.getElementById("OUT").textContent += "eval OK\n";
+    document.getElementById("OUT").textContent += "BA_CHAPTERS len=" + BA_CHAPTERS.length + "\n";
+    document.getElementById("OUT").textContent += "BA_UNITS len=" + BA_UNITS.length + "\n";
+    document.getElementById("OUT").textContent += "BA_MODULES.grammar=" + BA_MODULES.english[0].id + "\n";
+
+    /* 模拟 DOM：select 元素 */
+    function fakeSelect(){
+      return { options: [], innerHTML: "", value: "", set innerHTML_(v){}, 
+        get value2(){ return this.value; } };
+    }
+    /* 真实测试：创建 DOM */
+    var sel = document.createElement("select");
+    sel.id = "baModule";
+    var topicSel = document.createElement("select");
+    topicSel.id = "baModuleTopic";
+    document.body.appendChild(sel);
+    document.body.appendChild(topicSel);
+
+    /* 跑 baUpdateModules 的逻辑（手动模拟，因为依赖完整 DOM） */
+    var subject = "english";
+    var modules = BA_MODULES[subject] || [];
+    var opts = modules.map(function(m){ return '<option value="' + m.id + '">' + m.name + '</option>'; }).join("");
+    sel.innerHTML = opts;
+    document.getElementById("OUT").textContent += "baModule.options.length=" + sel.options.length + "\n";
+    document.getElementById("OUT").textContent += "baModule.value(第一个option自动选中)=" + sel.value + "\n";
+
+    /* 调用真实的 baUpdateModuleTopic */
+    baUpdateModuleTopic();
+    document.getElementById("OUT").textContent += "baModuleTopic.options.length=" + topicSel.options.length + "\n";
+    document.getElementById("OUT").textContent += "baModuleTopic.innerHTML(first 200)=" + topicSel.innerHTML.substring(0,200) + "\n";
+    document.getElementById("STATUS").textContent = "DONE";
+  } catch(e) {
+    document.getElementById("STATUS").textContent = "RUN FAIL: " + e.message;
+    document.getElementById("OUT").textContent += e.stack + "\n";
+  }
+}
+</script>
+</body>
+</html>

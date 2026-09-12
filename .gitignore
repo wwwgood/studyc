@@ -13,6 +13,20 @@ cpp-adventure/dist/
 .codegraph/
 .codeartsdoer/.codebase/
 .tmp/
+.arts/
+.workbuddy/
+.zcode/
+
+# 本地个人数据备份与临时工作文件（不上传仓库）
+cpp-adventure/build/backup/
+cpp-adventure/build/_shot.js
+cpp-adventure/build/_check_*.js
+cpp-adventure/build/_zh_*.json
+cpp-adventure/0
+
+# 历史遗留（早期独立 Supabase 版应用，非核心）
+package/
+package (1).zip
 
 # 编辑器
 .vscode/

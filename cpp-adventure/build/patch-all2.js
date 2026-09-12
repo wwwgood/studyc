@@ -1,0 +1,10 @@
+const fs = require("fs");
+const p = "E:\\htdocs\\studyc\\cpp-adventure\\src\\scripts\\modules\\topic-exam.js";
+let t = fs.readFileSync(p, "utf8");
+const NL = "\r\n";
+const old1 = '  if (questions.length === 0){' + NL + '    if (module === "grammar"';
+const new1 = '  if (questions.length === 0 && topicId !== "all"){' + NL + '    if (module === "grammar"';
+if (t.indexOf(old1) < 0) throw new Error("未命中");
+t = t.split(old1).join(new1);
+fs.writeFileSync(p, t, "utf8");
+console.log("all 模式回退保护已加");
