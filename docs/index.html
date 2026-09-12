@@ -62431,6 +62431,28 @@ function topicExamOpen(module, topicId, topicName, kp){
         questions = qbSelect(module, null, 9999, null, "english", kp, false);
         retest = questions.length > 0;
       }
+      /* 考点池太小（<8题）时，自动补充该考点所属章节的全部真题，保证每次都有足量可练 */
+      if (questions.length < 8 && typeof BA_KNOWLEDGE_MAP !== "undefined"){
+        var chTopic = 0;
+        for (var i = 0; i < BA_KNOWLEDGE_MAP.length; i++){
+          if (BA_KNOWLEDGE_MAP[i].name === kp){ chTopic = BA_KNOWLEDGE_MAP[i].topicId; break; }
+        }
+        if (chTopic){
+          var extra = qbSelect(module, chTopic, 9999, null, "english", undefined, true);
+          if (extra.length === 0) extra = qbSelect(module, chTopic, 9999, null, "english", undefined, false);
+          if (extra.length){
+            var seenKp = {};
+            questions.forEach(function(q){ seenKp[q.id] = 1; });
+            extra.forEach(function(q){ if (!seenKp[q.id]){ questions.push(q); seenKp[q.id] = 1; } });
+            retest = true;
+            for (var j = questions.length - 1; j > 0; j--){
+              var rj = Math.floor(Math.random() * (j + 1));
+              var tq = questions[j]; questions[j] = questions[rj]; questions[rj] = tq;
+            }
+            if (questions.length > 20) questions = questions.slice(0, 20);
+          }
+        }
+      }
     } else {
       if (topicId === "all") count = 9999;
       questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english", undefined, true);
