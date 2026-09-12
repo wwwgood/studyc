@@ -9,10 +9,10 @@ def esc(s):
 qs = []
 def cho(i, q, o, a, why, src):
     opts = ", ".join('"%s"' % esc(x) for x in o)
-    qs.append('    { id: "p1000-%03d", subject: "english", module: "paper1000", topicId: 2, type: "choice",\n      q: "%s",\n      o: [%s], a: %d,\n      why: "%s",\n      source: "%s" }' % (i, esc(q), opts, a, esc(why), esc(src)))
+    qs.append('    { id: "p1000-%03d", subject: "english", module: "grammar", topicId: 2, kp: ["冠词综合"], type: "choice",\n      q: "%s",\n      o: [%s], a: %d,\n      why: "%s",\n      source: "%s" }' % (i, esc(q), opts, a, esc(why), esc(src)))
 
 def fl(i, q, ans, why):
-    qs.append('    { id: "p1000-%03d", subject: "english", module: "paper1000", topicId: 2, type: "fill",\n      q: "%s",\n      ansText: "%s",\n      why: "%s",\n      source: "作业练习·冠词" }' % (i, esc(q), esc(ans), esc(why)))
+    qs.append('    { id: "p1000-%03d", subject: "english", module: "grammar", topicId: 2, kp: ["冠词综合"], type: "fill",\n      q: "%s",\n      ansText: "%s",\n      why: "%s",\n      source: "作业练习·冠词" }' % (i, esc(q), esc(ans), esc(why)))
 
 S1 = "作业练习·代词"
 # ===== 考点一：人称代词的主宾格转换 =====
@@ -65,7 +65,10 @@ p = r"E:\htdocs\studyc\cpp-adventure\src\scripts\data\english-paper-1000.js"
 src = io.open(p, encoding="utf8").read()
 idx = src.find('    { id: "p1000-1021"')
 if idx >= 0:
-    src = src[:idx].rstrip().rstrip(",") + "\n  ]\n};"
+    # 只裁掉旧作业题区间（到 questions 数组结尾为止），保留文件末尾的合并 IIFE
+    end = src.find("  ]\n};", idx)
+    assert end >= 0, "anchor after homework block not found"
+    src = src[:idx].rstrip().rstrip(",") + "\n" + src[end:]
 anchor = "  ]\n};"
 assert src.count(anchor) == 1, src.count(anchor)
 block = ",\n" + ",\n".join(qs) + "\n  ]\n};"

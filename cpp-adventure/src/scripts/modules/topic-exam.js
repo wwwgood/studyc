@@ -14,27 +14,41 @@ function teState(){
 var TE_SESSION = null;
 
 /* 从任意模块调用：module=grammar/vocab/reading/writing, topicId=章节/单元ID, topicName=名称
- * 优先从统一题库随机选题（每次不同），题库无题时回退到 TOPIC_EXAM_DATA */
+ * 优先从统一题库随机选题（每次不同），题库无题时回退到 TOPIC_EXAM_DATA。
+ * 全部做对过也允许重做：自动转入重做模式（重做时做错的题排最前，金币错题照常计算）。 */
 function topicExamOpen(module, topicId, topicName, kp){
   var questions = [];
   var count = 10;
+  var retest = false;
   if (typeof qbSelect === "function"){
     if (kp){
       questions = qbSelect(module, null, 9999, null, "english", kp, true);
+      if (questions.length === 0){
+        questions = qbSelect(module, null, 9999, null, "english", kp, false);
+        retest = questions.length > 0;
+      }
     } else {
       if (topicId === "all") count = 9999;
       questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english", undefined, true);
+      if (questions.length === 0){
+        questions = qbSelect(module, (topicId === "all" ? null : topicId), count, null, "english", undefined, false);
+        retest = questions.length > 0;
+      }
     }
   }
   if (questions.length === 0 && topicId !== "all" && !kp){
     if (module === "grammar" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.grammar[topicId]){
       questions = TOPIC_EXAM_DATA.grammar[topicId];
+      retest = true;
     } else if (module === "vocab" && typeof TOPIC_EXAM_DATA !== "undefined" && TOPIC_EXAM_DATA.vocab[topicId]){
       questions = TOPIC_EXAM_DATA.vocab[topicId];
+      retest = true;
     } else if (module === "reading" && typeof TOPIC_EXAM_DATA !== "undefined"){
       questions = TOPIC_EXAM_DATA.reading;
+      retest = true;
     } else if (module === "writing" && typeof TOPIC_EXAM_DATA !== "undefined"){
       questions = TOPIC_EXAM_DATA.writing;
+      retest = true;
     }
   }
   if (questions.length === 0){
@@ -54,7 +68,20 @@ function topicExamOpen(module, topicId, topicName, kp){
     }
     return;
   }
-  TE_SESSION = { module: module, topicId: topicId, kp: kp || null, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false };
+  /* 重做/重进时，把之前做错的题排到最前面，方便回顾当时怎么错的 */
+  try {
+    var ebItems = (S.errBook && S.errBook.items) ? S.errBook.items : [];
+    if (ebItems.length && questions.length){
+      var wrongQs = [], okQs = [];
+      questions.forEach(function(q){
+        var qtext = q.q || q.passage || "";
+        var hit = ebItems.some(function(e){ return e.q === qtext; });
+        (hit ? wrongQs : okQs).push(q);
+      });
+      questions = wrongQs.concat(okQs);
+    }
+  } catch(e){}
+  TE_SESSION = { module: module, topicId: topicId, kp: kp || null, topicName: topicName, questions: questions, idx: 0, wrong: 0, combo: 0, answered: false, retest: retest };
   teRenderQuiz();
   var mask = document.getElementById("teDialogMask");
   if (mask) mask.classList.add("open");
@@ -71,7 +98,7 @@ function teRenderQuiz(){
   dialog.innerHTML =
     '<div class="te-dlg-head">' +
       '<span class="te-cap">🎯 ' + TE_SESSION.topicName + ' · 考点真题 ' + (TE_SESSION.idx + 1) + '/' + TE_SESSION.questions.length +
-      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + '</span>' +
+      (typeof qtLabel === "function" ? ' · ' + qtLabel(qType) : '') + (TE_SESSION.retest ? ' · 🔁 重做' : '') + '</span>' +
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
     '<div class="te-dlg-body">' +
@@ -81,8 +108,16 @@ function teRenderQuiz(){
       '<div class="te-feedback" id="teFeedback"></div>' +
       '<div class="te-act" id="teAct">' +
         '<button class="qt-submit" type="button" onclick="teAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="teSkip()">👀 不做，看下一题</button>' +
       '</div>' +
     '</div>';
+}
+
+/* 跳过本题不答：不计分、不进错题本，纯浏览下一题 */
+function teSkip(){
+  if (TE_SESSION.answered) return;
+  TE_SESSION.answered = true;
+  teNext();
 }
 
 
