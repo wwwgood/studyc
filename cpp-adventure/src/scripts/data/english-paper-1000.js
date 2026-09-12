@@ -279,12 +279,20 @@ var PAPER1000_DATA = {
   ]
 };
 
-/* 合并进统一题库（幂等：按 id 去重），供 topic-exam 专题真题训练使用 */
+/* 合并进统一题库（幂等：按 id 去重），供 topic-exam 专题真题训练使用。
+ * 若本文件先于 question-bank.js 加载（QB_DATA 还不存在），则在页面加载完成后再合一次。 */
 (function(){
-  if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return;
-  var seen = {};
-  QB_DATA.questions.forEach(function(q){ if (q && q.id) seen[q.id] = true; });
-  PAPER1000_DATA.questions.forEach(function(q){
-    if (!seen[q.id]){ QB_DATA.questions.push(q); seen[q.id] = true; }
-  });
+  function mergePaper1000(){
+    if (typeof QB_DATA === "undefined" || !QB_DATA.questions) return false;
+    var seen = {};
+    QB_DATA.questions.forEach(function(q){ if (q && q.id) seen[q.id] = true; });
+    PAPER1000_DATA.questions.forEach(function(q){
+      if (!seen[q.id]){ QB_DATA.questions.push(q); seen[q.id] = true; }
+    });
+    return true;
+  }
+  if (!mergePaper1000()){
+    document.addEventListener("DOMContentLoaded", mergePaper1000);
+    window.addEventListener("load", mergePaper1000);
+  }
 })();
