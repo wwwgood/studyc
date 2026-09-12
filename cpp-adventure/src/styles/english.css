@@ -683,6 +683,59 @@
 .ba-import-btn:hover{background:#059669;}
 .ba-preview-success{background:#D1FAE5; color:#065F46; border-radius:10px; padding:20px; text-align:center; font-size:18px; font-weight:700;}
 
+/* ---------- 真题体检面板 ---------- */
+.ba-item-issues{margin:2px 0 6px; display:flex; flex-wrap:wrap; gap:4px;}
+.ba-audit-bar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px;}
+.ba-audit-scope{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:#6B7280; cursor:pointer;}
+.ba-audit-scope input{accent-color:#6366F1;}
+.ba-audit-bk-label{font-size:12px; color:#6B7280; margin-right:4px;}
+.ba-audit-backups{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px;}
+.ba-audit-summary{background:#F8FAFF; border-radius:10px; padding:12px 14px; font-size:14px; color:#4B5563; margin-bottom:10px;}
+.ba-audit-summary.has-bad{background:#FEF2F2;}
+.ba-audit-summary .ba-audit-bad{color:#DC2626;}
+.ba-audit-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+.ba-audit-chip{display:inline-block; padding:4px 10px; background:#EEF2FF; color:#4338CA; border-radius:999px; font-size:12px; font-weight:600;}
+.ba-audit-list{max-height:460px; overflow-y:auto;}
+.ba-audit-item{background:#fff; border:1.5px solid #E5E7EB; border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+.ba-audit-item.bad{border-color:#FCA5A5; background:#FFF7F7;}
+.ba-audit-item-head{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
+.ba-audit-sev{font-size:12px; font-weight:700; white-space:nowrap;}
+.ba-audit-stem{font-size:14px; font-weight:600; color:#1F2937; flex:1; min-width:200px; word-break:break-all;}
+.ba-audit-meta{font-size:11px; color:#9CA3AF; white-space:nowrap;}
+.ba-audit-issues{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px;}
+.ba-audit-issue{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600;}
+.ba-audit-issue.bad{background:#FEE2E2; color:#991B1B;}
+.ba-audit-issue.warn{background:#FEF3C7; color:#92400E;}
+.ba-audit-actions{display:flex; gap:6px;}
+.ba-pick-btn.danger{border-color:#FCA5A5; color:#DC2626;}
+.ba-pick-btn.danger:hover{background:#FEF2F2; border-color:#EF4444;}
+
+/* ---------- 小学语法1000题 ---------- */
+.p1000-body{max-width:560px;}
+.p1000-intro{background:#F8FAFF; border-radius:12px; padding:12px 14px; font-size:14px; color:#374151; margin-bottom:12px; line-height:1.6;}
+.p1000-tip{font-size:12px; color:#6B7280;}
+.p1000-list{max-height:52vh; overflow-y:auto;}
+.p1000-row{display:flex; align-items:center; gap:10px; width:100%; background:#fff; border:2px solid #E5E7EB; border-radius:12px; padding:10px 14px; margin-bottom:8px; cursor:pointer; text-align:left; transition:border-color .15s;}
+.p1000-row:hover{border-color:#6366F1;}
+.p1000-row.empty{opacity:.55; cursor:default;}
+.p1000-idx{width:28px; height:28px; border-radius:50%; background:#EEF2FF; color:#4338CA; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.p1000-name{flex:1; font-size:15px; font-weight:700; color:#1F2937;}
+.p1000-page{font-style:normal; font-size:11px; color:#9CA3AF; margin-left:6px; font-weight:400;}
+.p1000-meta{display:flex; align-items:center; gap:8px;}
+.p1000-cnt{font-size:12px; color:#059669; font-weight:600;}
+.p1000-todo{font-size:12px; color:#9CA3AF;}
+.te-star-row span{color:#D1D5DB; font-size:14px;}
+.te-star-row span.on{color:#F59E0B;}
+
+/* ---------- GitHub Gist 云同步 ---------- */
+.gs-ok{background:#D1FAE5; color:#065F46; border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:10px; line-height:1.7;}
+.gs-status{font-size:12px; color:#047857;}
+.gs-btns{display:flex; flex-wrap:wrap; gap:8px;}
+.gs-btns .sync-export-btn{width:auto; flex:1; min-width:120px; padding:10px; font-size:13px;}
+.gs-btns .sync-export-btn.gs-danger{background:#fff; color:#DC2626; border:1.5px solid #FCA5A5;}
+.gs-steps{background:#F8FAFF; border-radius:10px; padding:10px 12px; font-size:12px; color:#4B5563; line-height:1.8; margin-bottom:10px;}
+.gs-token{width:100%; padding:12px; border:2px solid #E5E7EB; border-radius:10px; font-size:14px; margin-bottom:10px; box-sizing:border-box;}
+
 .ba-stats-total{font-size:18px; font-weight:800; color:#1F2937; margin-bottom:16px; text-align:center;}
 .ba-stats-section{background:#F8FAFF; border-radius:10px; padding:12px; margin-bottom:12px;}
 .ba-stats-section h4{font-size:15px; font-weight:700; color:#4338CA; margin:0 0 8px;}

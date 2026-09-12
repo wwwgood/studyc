@@ -242,6 +242,8 @@ function saveS(){
   } catch(e){}
   /* 云端自动备份钩子：配置了云端后，进度变化 5 秒内自动上传 */
   try { if (typeof csMarkDirty === "function") csMarkDirty(); } catch(_){}
+  /* GitHub Gist 云同步钩子：连接并开启自动上传后，节流 8 秒推送 */
+  try { if (typeof gsMarkDirty === "function") gsMarkDirty(); } catch(_){}
   return true;
 }
 loadCurrentUser();

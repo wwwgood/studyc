@@ -106,16 +106,19 @@ function baRender(){
       '<button class="ba-tab' + (tab === 'import' ? ' active' : '') + '" data-tab="import" type="button" onclick="baSwitchTab(\'import\')">📥 导入真题</button>' +
       '<button class="ba-tab' + (tab === 'stats' ? ' active' : '') + '" data-tab="stats" type="button" onclick="baSwitchTab(\'stats\')">📊 题库统计</button>' +
       '<button class="ba-tab' + (tab === 'browse' ? ' active' : '') + '" data-tab="browse" type="button" onclick="baSwitchTab(\'browse\')">🔍 浏览题目</button>' +
+      '<button class="ba-tab' + (tab === 'audit' ? ' active' : '') + '" data-tab="audit" type="button" onclick="baSwitchTab(\'audit\')">🩺 真题体检</button>' +
       '<button class="ba-tab' + (tab === 'api' ? ' active' : '') + '" data-tab="api" type="button" onclick="baSwitchTab(\'api\')">🔑 API配置</button>' +
     '</div>' +
     '<div class="ba-panel" id="baPanelImport"' + panelShow('import') + '>' + baRenderImport() + '</div>' +
     '<div class="ba-panel" id="baPanelStats"' + panelShow('stats') + '>' + baRenderStats(stats) + '</div>' +
     '<div class="ba-panel" id="baPanelBrowse"' + panelShow('browse') + '>' + baRenderBrowse() + '</div>' +
+    '<div class="ba-panel" id="baPanelAudit"' + panelShow('audit') + '>' + baRenderAudit() + '</div>' +
     '<div class="ba-panel" id="baPanelAPI"' + panelShow('api') + '>' + baRenderAPI() + '</div>' +
   '</div>';
   dialog.innerHTML = html;
   baUpdateModules();
   if (tab === 'browse') baBrowseFilter();
+  if (tab === 'audit' && BA_AUDIT.done) baRenderAuditReport();
   baBindFileZone();
 }
 
@@ -148,8 +151,10 @@ function baSwitchTab(tab){
   document.getElementById("baPanelImport").style.display = tab === 'import' ? '' : 'none';
   document.getElementById("baPanelStats").style.display = tab === 'stats' ? '' : 'none';
   document.getElementById("baPanelBrowse").style.display = tab === 'browse' ? '' : 'none';
+  document.getElementById("baPanelAudit").style.display = tab === 'audit' ? '' : 'none';
   document.getElementById("baPanelAPI").style.display = tab === 'api' ? '' : 'none';
   if (tab === 'browse') baBrowseFilter();
+  if (tab === 'audit' && BA_AUDIT.done) baRenderAuditReport();
 }
 
 /* ---------- 导入面板 ---------- */
@@ -725,6 +730,20 @@ function baSplitSmallQuestions(block){
   return qBlocks;
 }
 
+/* 找到真正的题干行：跳过选项行、答案/解析行、孤行题号。
+ * 旧逻辑死取 lines[0]，OCR/PDF 把答案行或选项行排到最前时，题干就丢了、只剩答案。 */
+function baPickStemLine(lines){
+  for (var i = 0; i < lines.length; i++){
+    var l = lines[i].trim();
+    if (!l) continue;
+    if (/^[A-D][\.、．]/.test(l)) continue;
+    if (/^(答案|解析|解释|分析)[：:]/.test(l)) continue;
+    if (/^\d+[\.、．]?\s*$/.test(l)) continue;
+    return i;
+  }
+  return -1;
+}
+
 /* 解析单道题：行内答案优先，末尾答案表兜底；无解析时按考点自动生成 */
 function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceType){
   if (lines.length < 1) return null;
@@ -758,13 +777,16 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
   } else {
     treatAs = "solve";
   }
-  var qText = lines[0].replace(/^\d+[\.、．]\s*/, "").split(/答案[：:]/)[0].trim();
+  var stemIdx = baPickStemLine(lines);
+  if (stemIdx < 0) return null;
+  var qText = lines[stemIdx].replace(/^\d+[\.、．]\s*/, "").split(/答案[：:]/)[0].trim();
   var opts = [];
   var ans = 0;
   var ansSource = "未找到";
   var why = "";
   var whyAuto = false;
   var ansText = "";
+  var ansSuspect = false;
 
   if (treatAs === "single" || treatAs === "multi"){
     lines.forEach(function(line){
@@ -780,6 +802,8 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
         while ((mm = re.exec(optLine)) !== null) opts.push(mm[2].trim());
       }
     }
+    /* 选项清洗：去字母前缀残留、去空；清洗后不足 2 个就放弃这道题 */
+    opts = opts.map(function(s){ return s.replace(/^[A-D][\.、．]\s*/, "").trim(); }).filter(Boolean);
     if (opts.length < 2) return null;
     var ansLine = lines.find(function(l){ return /答案|answer/i.test(l); });
     var inlineFound = false;
@@ -799,9 +823,10 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
         ans = letter.split("").map(function(c){ return c.charCodeAt(0) - 65; });
       } else {
         ans = letter.charCodeAt(0) - 65;
-        if (ans < 0 || ans >= opts.length) ans = 0;
+        /* 答案越界说明答案表和题号对不上位：宁可标记存疑，也不要静默改成 A 张冠李戴 */
+        if (ans < 0 || ans >= opts.length){ ansSuspect = true; ansSource = "答案表存疑"; }
       }
-      ansSource = "答案表";
+      if (!ansSuspect) ansSource = "答案表";
     }
   } else if (treatAs === "judge"){
     opts = ["正确", "错误"];
@@ -814,6 +839,12 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
     }
   } else {
     qText = fullText.replace(/^\d+[\.、．]\s*/, "").split(/^答案[：:]/m)[0].trim();
+    /* 整块剥完答案后若为空或仍是答案，退回用题干行兜底 */
+    if (!qText || /^解析|解释|分析/.test(qText)){
+      var si2 = baPickStemLine(lines);
+      if (si2 >= 0) qText = lines[si2].replace(/^\d+[\.、．]\s*/, "").trim();
+    }
+    if (!qText) return null;
     var ansTxtLine = lines.find(function(l){ return /答案[：:]/i.test(l); });
     if (ansTxtLine){
       var am3 = ansTxtLine.match(/答案[：:]\s*([\s\S]*)$/);
@@ -832,6 +863,7 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
   }
 
   var q = { q: qText, o: opts, a: ans, ansText: ansText, why: why, kp: [], qType: qType, ansSource: ansSource };
+  if (ansSuspect) q._ansSuspect = true;
   if (qType === "fill") q.type = "fill";
   var kn = baDetectKnowledge(why, qText, opts);
   if (kn){
@@ -1067,7 +1099,11 @@ function baSimpleParse(text){
   var cur = null;
   function closeCur(){
     if (cur){
-      var hasQ = !!cur.q;
+      /* 题干有效性：空串、孤零零的题号都算没有题干，宁缺毋滥；
+       * 题干开头的题号前缀（"1. "）是排版残留，剥掉但不影响正文 */
+      var qs = String(cur.q || "").trim().replace(/^\d{1,3}[\.、．]\s*/, "").trim();
+      var hasQ = qs.length >= 2 && !/^\d+[\.、．]?$/.test(qs);
+      if (hasQ) cur.q = qs;
       var hasAns = cur.ansText || (cur.o && cur.o.length >= 2);
       if (hasQ && hasAns){
         if (cur.o && cur.o.length >= 2 && /^[A-D]$/i.test(String(cur.ansText).trim())){
@@ -1123,11 +1159,17 @@ function baSimpleParse(text){
       cur = { q: qq, ansText: (wm2 ? wm2[1] : rest2).trim(), why: wm2 ? wm2[2].trim() : "", type: "fill" };
       return;
     }
-    /* 选项行：A. xxx B. xxx（仅当已有题干时收集，独立小节标题不误当选项） */
+    /* 选项行：A. xxx B. xxx（仅当已有题干时收集，独立小节标题不误当选项）
+     * 行内多选项（A. x B. y C. z 挤一行）也要拆开，否则整行塞成一个巨型选项 */
     if (/^[A-D][\.、．]\s/.test(line)){
       if (cur && cur.q){
         if (!cur.o) cur.o = [];
-        cur.o.push(line.replace(/^[A-D][\.、．]\s*/, "").trim());
+        var rest = line.replace(/^[A-D][\.、．]\s*/, "");
+        var segs = rest.split(/\s+(?=[B-D][\.、．]\s*\S)/);
+        segs.forEach(function(s){
+          var v = s.replace(/^[A-D][\.、．]\s*/, "").trim();
+          if (v) cur.o.push(v);
+        });
       }
       return;
     }
@@ -1227,6 +1269,17 @@ function baParseAndPreview(){
   }
   /* 每题默认「采纳」，解析错的可单独取消，不会被导入 */
   questions.forEach(function(q){ if (q._pick === undefined) q._pick = true; });
+  /* 质量门：结构性坏题（没题干、纯答案、选项不足、答案越界）默认取消采纳并标红原因，
+   * 避免以前那种"坏题混进题库"的情况；用户仍可手动勾选采纳。 */
+  questions.forEach(function(q){
+    var gateMsg = baImportGate(q);
+    if (gateMsg){
+      q._pick = false;
+      q._issues = [{ id: "gate", sev: "bad", msg: gateMsg }];
+    } else if (q._ansSuspect){
+      q._issues = [{ id: "suspect", sev: "warn", msg: "答案表与题号对不上位，答案存疑，请人工核对" }];
+    }
+  });
 
   var preview = document.getElementById("baPreview");
   var html = '<div class="ba-preview-head">✅ 解析到 ' + questions.length + ' 道题';
@@ -1259,8 +1312,9 @@ function baParseAndPreview(){
   var defValidMods = (BA_MODULES[def.subject] || []).map(function(m){ return m.id; });
 
   /* 采纳控制条：解析错的题直接取消勾选，就不会被导入 */
+  var pickedCount = questions.filter(function(q){ return q._pick !== false; }).length;
   html += '<div class="ba-pick-bar">' +
-    '<span class="ba-pick-count">☑️ 已采纳 <b id="baPickCount">' + questions.length + '</b> / ' + questions.length +
+    '<span class="ba-pick-count">☑️ 已采纳 <b id="baPickCount">' + pickedCount + '</b> / ' + questions.length +
       ' 道　<span class="ba-pick-tip">解析错的题，取消该题上的「采纳」就不会导入</span></span>' +
     '<button type="button" class="ba-pick-btn" onclick="baPickAll(true)">全选</button>' +
     '<button type="button" class="ba-pick-btn" onclick="baPickAll(false)">全不选</button>' +
@@ -1286,12 +1340,19 @@ function baParseAndPreview(){
       ' · 章节 <b>' + baEsc(baTopicLabel(tgt.module, tgt.topicId)) + '</b>（' + tgt.by + '）</div>';
     var ansEditor = baAnsEditorFor(q, i);
     var whyEditor = '<div class="ba-why-edit"><label>解析：</label><textarea class="ba-why-input" rows="2" placeholder="粘贴或录入解析（可留空）" onchange="baSetWhy(' + i + ', this.value)">' + baEsc(q.why || "") + '</textarea></div>';
+    var issueHtml = "";
+    if (q._issues && q._issues.length){
+      issueHtml = '<div class="ba-item-issues">' + q._issues.map(function(x){
+        return '<span class="ba-audit-issue ' + x.sev + '">⚠️ ' + baEsc(x.msg) + '</span>';
+      }).join("") + '</div>';
+    }
     html += '<div class="ba-preview-item' + (q._pick === false ? ' ba-item-skip' : '') + '" id="ba-item-' + i + '">' +
       '<div class="ba-item-top">' +
         '<span class="ba-qtype-tag">' + typeLabel + '</span>' +
         '<label class="ba-item-pick"><input type="checkbox"' + (q._pick === false ? '' : ' checked') +
           ' onchange="baSetPick(' + i + ', this.checked)"> 采纳这道题</label>' +
       '</div>' +
+      issueHtml +
       '<div class="ba-preview-q">' + (i + 1) + '. ' + q.q + '</div>' +
       '<div class="ba-preview-opts">' + baRenderOptsHtml(q) + '</div>' +
       '<div class="ba-preview-badges">' + ansBadge + whyAutoBadge + '</div>' +
@@ -2146,7 +2207,13 @@ function baCleanBadImported(){
     var badHead = /^答案[：:]/.test(qq);
     var noReal = q.o && q.o.length === 1 && String(q.o[0]).indexOf("（主观题，需人工评分）") >= 0 &&
       !q.ansText && !q.words && !q.blanks && !q.passage && !q.sample;
-    if (badHead || noReal){ n++; return false; }
+    /* 无题干：解析失败最典型的残留，留着只会出现在练习里让孩子做一道空题 */
+    var noStem = !qq;
+    /* 选择题类但有效选项不足 2 个且没有任何文本答案可判：无法作答也无法判分 */
+    var isChoiceLike = q.type === "choice" || (!q.type && q.o);
+    var brokenChoice = isChoiceLike &&
+      (!q.o || q.o.filter(function(x){ return String(x || "").trim(); }).length < 2);
+    if (badHead || noReal || noStem || brokenChoice){ n++; return false; }
     return true;
   });
   if (n > 0) baPersistImported();
@@ -2173,6 +2240,351 @@ function baRestoreImported(){
   });
   baCleanBadImported();
   return n;
+}
+
+/* ==================== 真题体检（数据质量审计与清理） ====================
+ * 导入真题时解析器可能产出坏题：没题干只有答案、选项缺失、答案越界等。
+ * 体检面板按规则逐题打分：bad = 必须处理（建议删除），warn = 建议关注。
+ * 修复前自动把导入题备份到 localStorage（ba_backup_<时间戳>），并可导出 JSON 文件。
+ */
+var BA_AUDIT = { done: false, items: [], ignored: {}, includeAll: false };
+
+var BA_ISSUE_LABELS = {
+  "no-stem": "没有题干", "answer-only": "题干是答案不是题目", "short-stem": "题干过短",
+  "stem-opt-like": "题干以选项开头", "opts-few": "选项不足", "opts-empty": "有空选项",
+  "opts-dup": "有重复选项", "opts-prefix": "选项带字母前缀", "ans-range": "答案越界/缺失",
+  "no-answer": "没有答案", "no-expl": "没有解析", "no-type": "缺题型字段", "dirty": "题干带多余空白"
+};
+
+/* 推断题的题型（与 qtypes.js 的约定一致：有选项视为 choice，否则 fill） */
+function baQTypeOf(q){
+  if (q.type) return q.type;
+  if (q.o && q.o.length) return "choice";
+  return "fill";
+}
+
+/* 对一道题做体检，返回问题列表 [{id, sev:"bad"|"warn", fix:bool, msg}] */
+function baAuditQuestion(q){
+  var issues = [];
+  var raw = String(q.q || "");
+  var stem = raw.trim();
+  var t = baQTypeOf(q);
+
+  if (!stem){
+    issues.push({ id: "no-stem", sev: "bad", msg: "没有题干" });
+  } else if (/^答案[：:]/.test(stem)){
+    issues.push({ id: "answer-only", sev: "bad", msg: "题干是答案不是题目" });
+  } else if (/^[A-D][\.、．]/.test(stem)){
+    issues.push({ id: "stem-opt-like", sev: "bad", msg: "题干以选项开头（真实题干丢失）" });
+  } else if (stem.length < 6 && !/_{2,}|（\s*）|\(\s*\)/.test(stem)){
+    issues.push({ id: "short-stem", sev: "warn", msg: "题干过短（疑似残缺）" });
+  }
+
+  var opts = (q.o || []).map(function(x){ return String(x || "").trim(); });
+  if (t === "choice" || (q.o && q.o.length)){
+    if (opts.length < 2){
+      issues.push({ id: "opts-few", sev: "bad", msg: "选项不足 2 个" });
+    } else {
+      if (opts.some(function(x){ return !x; })) issues.push({ id: "opts-empty", sev: "bad", fix: true, msg: "有空选项" });
+      var seen = {};
+      for (var i = 0; i < opts.length; i++){
+        if (opts[i] && seen[opts[i]]){ issues.push({ id: "opts-dup", sev: "warn", fix: true, msg: "有重复选项" }); break; }
+        seen[opts[i]] = true;
+      }
+      if (opts.some(function(x){ return /^[A-D][\.、．]/.test(x); })) issues.push({ id: "opts-prefix", sev: "warn", fix: true, msg: "选项带字母前缀" });
+    }
+    if (typeof q.a !== "number" || q.a < 0 || q.a >= opts.length){
+      issues.push({ id: "ans-range", sev: "bad", msg: "答案标号越界或缺失" });
+    }
+  } else if (t === "judge"){
+    if (q.a !== 0 && q.a !== 1) issues.push({ id: "ans-range", sev: "bad", msg: "判断题答案缺失" });
+  } else if (t === "cloze"){
+    if (!(q.blanks || []).length && !String(q.ansText || "").trim()){
+      issues.push({ id: "no-answer", sev: "bad", msg: "选词填空没有答案" });
+    }
+  } else if (t === "reading"){
+    if (!(q.questions || []).length){
+      issues.push({ id: "no-answer", sev: "warn", msg: "阅读题没有子题" });
+    }
+  } else { /* fill / writing / 其他 */
+    if (!String(q.ansText || "").trim() && typeof q.a !== "number" && !(q.blanks || []).length && !q.sample){
+      issues.push({ id: "no-answer", sev: "bad", msg: "没有答案" });
+    }
+  }
+
+  if (raw && (/^\s|\s$|\n/.test(raw))) issues.push({ id: "dirty", sev: "warn", fix: true, msg: "题干带多余空白或换行" });
+  if (!String(q.why || "").trim() && !String(q.expl || "").trim() && !String(q.analysis || "").trim()){
+    issues.push({ id: "no-expl", sev: "warn", msg: "没有解析" });
+  }
+  if (!q.type) issues.push({ id: "no-type", sev: "warn", fix: true, msg: "缺题型字段" });
+  return issues;
+}
+
+/* 导入预览用的轻量质量门：只拦「绝对不能用」的结构性坏题 */
+function baImportGate(q){
+  var stem = String(q.q || "").trim();
+  if (!stem || /^答案[：:]/.test(stem) || /^[A-D][\.、．]/.test(stem)) return "题干缺失或非法";
+  if ((q.o && q.o.length)){
+    var opts = q.o.map(function(x){ return String(x || "").trim(); }).filter(Boolean);
+    if (opts.length < 2) return "选项不足 2 个";
+    if (typeof q.a === "number" && q.a >= q.o.length) return "答案标号越界";
+  }
+  return null;
+}
+
+/* 自动修复：能安全修的都修掉，返回修改说明数组 */
+function baFixQuestion(q){
+  var changed = [];
+  var raw = String(q.q || "");
+  var stem = raw.replace(/^\s+/, "").replace(/\s+$/, "").replace(/^答案[：:]\s*/, "").trim();
+  if (stem && stem !== raw){ q.q = stem; changed.push("题干去空白"); }
+
+  if (!q.type){
+    q.type = baQTypeOf(q);
+    changed.push("补题型=" + q.type);
+  }
+
+  if (q.o && q.o.length){
+    var cleaned = [];
+    var seen = {};
+    q.o.forEach(function(x){
+      var s = String(x || "").replace(/^[A-D][\.、．]\s*/, "").trim();
+      if (!s || seen[s]) return;
+      seen[s] = true;
+      cleaned.push(s);
+    });
+    if (cleaned.join("\u0001") !== q.o.join("\u0001")){
+      if (cleaned.length >= 2){
+        q.o = cleaned;
+        changed.push("清洗选项");
+      } else {
+        changed.push("⚠️选项清洗后不足2个，未改动");
+      }
+    }
+    if (typeof q.a === "number" && q.a >= q.o.length) changed.push("⚠️答案越界需人工处理");
+  }
+  return changed;
+}
+
+/* ---------- 备份与恢复 ---------- */
+function baBackupImported(silent){
+  try {
+    var list = QB_DATA.questions.filter(function(q){ return q.imported === true; });
+    var ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    localStorage.setItem("ba_backup_" + ts, JSON.stringify({ at: new Date().toISOString(), count: list.length, questions: list }));
+    /* 只保留最近 5 份 */
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if (k && k.indexOf("ba_backup_") === 0) keys.push(k);
+    }
+    keys.sort();
+    while (keys.length > 5){ localStorage.removeItem(keys.shift()); }
+    if (!silent) baToast("已备份 " + list.length + " 道导入题（ba_backup_" + ts + "）");
+    return ts;
+  } catch(e){ if (!silent) baToast("备份失败：" + e.message); return null; }
+}
+
+function baListBackups(){
+  var out = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if (k && k.indexOf("ba_backup_") === 0){
+        var v = null;
+        try { v = JSON.parse(localStorage.getItem(k)); } catch(e){}
+        out.push({ key: k, at: v && v.at ? v.at : k.replace("ba_backup_", ""), count: v && v.count ? v.count : "?" });
+      }
+    }
+  } catch(e){}
+  out.sort(function(a, b){ return a.key < b.key ? 1 : -1; });
+  return out;
+}
+
+function baRestoreBackup(key){
+  var v = null;
+  try { v = JSON.parse(localStorage.getItem(key)); } catch(e){}
+  if (!v || !Array.isArray(v.questions)){ baToast("这份备份无法读取"); return; }
+  if (!confirm("用 " + key + "（" + v.questions.length + " 道题）覆盖当前全部导入题？")) return;
+  QB_DATA.questions = QB_DATA.questions.filter(function(q){ return q.imported !== true; });
+  v.questions.forEach(function(q){ q.imported = true; QB_DATA.questions.push(q); });
+  baPersistImported();
+  baToast("已恢复 " + v.questions.length + " 道题，请重新体检");
+  baRunAudit();
+}
+
+function baDownloadImported(){
+  try {
+    var list = QB_DATA.questions.filter(function(q){ return q.imported === true; });
+    var blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ba_imported_backup_" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    baToast("已导出 " + list.length + " 道题的 JSON 备份文件");
+  } catch(e){ baToast("导出失败：" + e.message); }
+}
+
+/* ---------- 体检面板 ---------- */
+function baRenderAudit(){
+  return '<div class="ba-audit-bar">' +
+    '<button type="button" class="ba-pick-btn primary" onclick="baRunAudit()">🩺 开始体检</button>' +
+    '<label class="ba-audit-scope"><input type="checkbox" id="baAuditAllChk"> 包含内置题库（内置题删了刷新会回来，建议配合脚本修）</label>' +
+    '<button type="button" class="ba-pick-btn" onclick="baBackupImported()">💾 备份到本机存储</button>' +
+    '<button type="button" class="ba-pick-btn" onclick="baDownloadImported()">📤 导出备份(JSON)</button>' +
+    '<button type="button" class="ba-pick-btn" onclick="baFixAllAudit()">🛠 一键修复可修复项</button>' +
+    '<button type="button" class="ba-pick-btn danger" onclick="baDeleteBadAudit()">🗑 删除全部坏题</button>' +
+  '</div>' +
+  '<div class="ba-audit-backups" id="baAuditBackups"></div>' +
+  '<div class="ba-audit-report" id="baAuditReport"><div class="ba-empty">点「开始体检」检查导入题的数据质量</div></div>';
+}
+
+function baRunAudit(){
+  if (typeof QB_DATA === "undefined"){ baToast("题库未加载"); return; }
+  var includeAll = document.getElementById("baAuditAllChk") ? document.getElementById("baAuditAllChk").checked : false;
+  BA_AUDIT.includeAll = includeAll;
+  BA_AUDIT.ignored = {};
+  BA_AUDIT.items = QB_DATA.questions.filter(function(q){ return includeAll || q.imported === true; });
+  BA_AUDIT.done = true;
+  baRenderAuditReport();
+}
+
+function baAuditCompute(){
+  var problems = [];
+  var stemSeen = {};
+  BA_AUDIT.items.forEach(function(q, idx){
+    var issues = baAuditQuestion(q).filter(function(x){ return !BA_AUDIT.ignored[q.id + ":" + x.id]; });
+    /* 重复题干检测（同一题干出现多次） */
+    var stem = String(q.q || "").replace(/\s+/g, " ").trim().toLowerCase();
+    if (stem.length >= 10){
+      if (stemSeen[stem] !== undefined){
+        issues.push({ id: "dup", sev: "warn", msg: "与第 " + (stemSeen[stem] + 1) + " 道题题干重复" });
+      } else {
+        stemSeen[stem] = idx;
+      }
+    }
+    if (issues.length) problems.push({ q: q, idx: idx, issues: issues });
+  });
+  return problems;
+}
+
+function baRenderAuditReport(){
+  var el = document.getElementById("baAuditReport");
+  if (!el) return;
+  var backupsEl = document.getElementById("baAuditBackups");
+  if (backupsEl){
+    var bks = baListBackups();
+    backupsEl.innerHTML = bks.length
+      ? '<span class="ba-audit-bk-label">♻️ 可恢复备份：</span>' + bks.map(function(b){
+          return '<button type="button" class="ba-pick-btn" onclick="baRestoreBackup(\'' + b.key + '\')">' + b.at.slice(0, 16).replace("T", " ") + '（' + b.count + '题）</button>';
+        }).join(" ")
+      : "";
+  }
+  if (!BA_AUDIT.done){ el.innerHTML = '<div class="ba-empty">点「开始体检」检查导入题的数据质量</div>'; return; }
+
+  var problems = baAuditCompute();
+  var badCount = problems.filter(function(p){ return p.issues.some(function(x){ return x.sev === "bad"; }); }).length;
+  var scope = BA_AUDIT.includeAll ? "全部题库 " + BA_AUDIT.items.length : "我导入的题 " + BA_AUDIT.items.length;
+
+  var counts = {};
+  problems.forEach(function(p){ p.issues.forEach(function(x){ counts[x.msg] = (counts[x.msg] || 0) + 1; }); });
+  var html = '<div class="ba-audit-summary' + (badCount ? ' has-bad' : '') + '">' +
+    (problems.length === 0
+      ? '✅ <b>体检通过</b>：' + scope + ' 道题，没有发现问题'
+      : '体检范围：' + scope + ' 道题，<b class="ba-audit-bad">' + badCount + '</b> 道坏题、<b>' + (problems.length - badCount) + '</b> 道有警告') +
+    '</div>';
+  if (problems.length){
+    html += '<div class="ba-audit-chips">';
+    Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; }).forEach(function(msg){
+      html += '<span class="ba-audit-chip">' + baEsc(msg) + ' ×' + counts[msg] + '</span>';
+    });
+    html += '</div>';
+    html += '<div class="ba-audit-list">';
+    problems.forEach(function(p){
+      var bad = p.issues.some(function(x){ return x.sev === "bad"; });
+      var stem = String(p.q.q || "").trim();
+      var preview = stem ? (stem.length > 60 ? stem.slice(0, 60) + "…" : stem) : '<i>（无题干）</i>';
+      var fixes = p.issues.filter(function(x){ return x.fix && x.sev !== "bad" || x.fix; });
+      html += '<div class="ba-audit-item' + (bad ? ' bad' : '') + '">' +
+        '<div class="ba-audit-item-head">' +
+          '<span class="ba-audit-sev">' + (bad ? "🔴 坏题" : "🟡 警告") + '</span>' +
+          '<span class="ba-audit-stem">' + preview + '</span>' +
+          '<span class="ba-audit-meta">' + baEsc(p.q.id) + (p.q.sourceDetail ? " · " + baEsc(p.q.sourceDetail) : "") + '</span>' +
+        '</div>' +
+        '<div class="ba-audit-issues">' + p.issues.map(function(x){
+          return '<span class="ba-audit-issue ' + x.sev + '">' + baEsc(x.msg) + '</span>';
+        }).join("") + '</div>' +
+        '<div class="ba-audit-actions">' +
+          (fixes.length ? '<button type="button" class="ba-pick-btn" onclick="baAuditFixOne(' + p.idx + ')">🛠 修复</button>' : '') +
+          '<button type="button" class="ba-pick-btn danger" onclick="baAuditDeleteOne(' + p.idx + ')">🗑 删除</button>' +
+          '<button type="button" class="ba-pick-btn" onclick="baAuditIgnoreOne(' + p.idx + ')">🙈 忽略</button>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function baAuditFixOne(idx){
+  var q = BA_AUDIT.items[idx];
+  if (!q) return;
+  var changed = baFixQuestion(q);
+  if (q.imported === true) baPersistImported();
+  baToast(changed.length ? "已修复：" + changed.join("、") : "没有可修复的内容");
+  baRenderAuditReport();
+}
+
+function baAuditDeleteOne(idx){
+  var q = BA_AUDIT.items[idx];
+  if (!q) return;
+  if (!confirm("删除这道题？\n" + String(q.q || "").slice(0, 60))) return;
+  baBackupImported(true);
+  QB_DATA.questions = QB_DATA.questions.filter(function(x){ return x !== q; });
+  BA_AUDIT.items.splice(idx, 1);
+  if (q.imported === true) baPersistImported();
+  baRenderAuditReport();
+}
+
+function baAuditIgnoreOne(idx){
+  var q = BA_AUDIT.items[idx];
+  if (!q) return;
+  baAuditQuestion(q).forEach(function(x){ BA_AUDIT.ignored[q.id + ":" + x.id] = true; });
+  baRenderAuditReport();
+}
+
+function baFixAllAudit(){
+  if (!BA_AUDIT.done){ baToast("请先体检"); return; }
+  baBackupImported(true);
+  var n = 0, details = [];
+  BA_AUDIT.items.forEach(function(q){
+    var fixables = baAuditQuestion(q).filter(function(x){ return x.fix; });
+    if (!fixables.length) return;
+    var changed = baFixQuestion(q);
+    if (changed.length && changed.every(function(c){ return c.indexOf("⚠️") !== 0; })){ n++; }
+    if (changed.length) details.push(q.id + ": " + changed.join("、"));
+  });
+  baPersistImported();
+  baToast(n ? "已修复 " + n + " 道题" : "没有需要修复的项");
+  baRenderAuditReport();
+}
+
+function baDeleteBadAudit(){
+  if (!BA_AUDIT.done){ baToast("请先体检"); return; }
+  var problems = baAuditCompute();
+  var bads = problems.filter(function(p){ return p.issues.some(function(x){ return x.sev === "bad"; }); });
+  if (!bads.length){ baToast("没有坏题可删"); return; }
+  if (!confirm("删除 " + bads.length + " 道坏题？（删除前自动备份）")) return;
+  baBackupImported(true);
+  var del = {};
+  bads.forEach(function(p){ del[p.q.id] = true; });
+  QB_DATA.questions = QB_DATA.questions.filter(function(q){ return !del[q.id]; });
+  BA_AUDIT.items = BA_AUDIT.items.filter(function(q){ return !del[q.id]; });
+  baPersistImported();
+  baToast("已删除 " + bads.length + " 道坏题");
+  baRenderAuditReport();
 }
 
 /* ---------- 统计面板 ---------- */
