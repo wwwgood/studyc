@@ -306,6 +306,7 @@ function eqAnswer(btn){
   for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
   var fb = document.getElementById("eqFeedback");
   if (i === q.a){
+    if (typeof fxAnswer === "function") fxAnswer(true);
     btn.classList.add("ok");
     EQ_SESSION.combo++;
     var gain = EQ_COIN_PER_Q * EQ_SESSION.combo;
@@ -315,6 +316,7 @@ function eqAnswer(btn){
     fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
       '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
   } else {
+    if (typeof fxAnswer === "function") fxAnswer(false);
     btn.classList.add("no");
     opts[q.a].classList.add("ok");
     EQ_SESSION.combo = 0;

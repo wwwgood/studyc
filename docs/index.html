@@ -4215,6 +4215,19 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .gs-steps{background:#F8FAFF; border-radius:10px; padding:10px 12px; font-size:12px; color:#4B5563; line-height:1.8; margin-bottom:10px;}
 .gs-token{width:100%; padding:12px; border:2px solid #E5E7EB; border-radius:10px; font-size:14px; margin-bottom:10px; box-sizing:border-box;}
 
+/* ---------- 答题动效（答对庆祝/答错鼓励） ---------- */
+#fxAnswerLayer{position:fixed; inset:0; z-index:600; pointer-events:none; overflow:hidden;}
+#fxAnswerLayer .fx-answer{position:absolute; left:50%; top:36%; transform:translate(-50%,-50%); text-align:center; animation:fxPop .5s cubic-bezier(.2,1.6,.4,1);}
+#fxAnswerLayer .fx-emoji{font-size:76px; line-height:1; filter:drop-shadow(0 6px 14px rgba(0,0,0,.18)); animation:fxBounce .9s ease-in-out infinite alternate;}
+#fxAnswerLayer .fx-line{margin-top:10px; font-size:26px; font-weight:900; text-shadow:0 2px 0 #fff, 0 4px 12px rgba(0,0,0,.14);}
+#fxAnswerLayer.ok .fx-line{color:#059669;}
+#fxAnswerLayer.no .fx-line{color:#D97706;}
+#fxAnswerLayer .fx-particle{position:absolute; top:-18px; width:10px; height:14px; border-radius:3px; opacity:.9; animation:fxFall linear forwards;}
+@keyframes fxPop{0%{transform:translate(-50%,-50%) scale(.3); opacity:0;} 100%{transform:translate(-50%,-50%) scale(1); opacity:1;}}
+@keyframes fxBounce{from{transform:translateY(0) rotate(-4deg);} to{transform:translateY(-14px) rotate(4deg);}}
+@keyframes fxFall{to{transform:translateY(115vh) rotate(540deg); opacity:.5;}}
+@media (prefers-reduced-motion: reduce){ #fxAnswerLayer{display:none;} }
+
 .ba-stats-total{font-size:18px; font-weight:800; color:#1F2937; margin-bottom:16px; text-align:center;}
 .ba-stats-section{background:#F8FAFF; border-radius:10px; padding:12px; margin-bottom:12px;}
 .ba-stats-section h4{font-size:15px; font-weight:700; color:#4338CA; margin:0 0 8px;}
@@ -59499,6 +59512,7 @@ function eqAnswer(btn){
   for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
   var fb = document.getElementById("eqFeedback");
   if (i === q.a){
+    if (typeof fxAnswer === "function") fxAnswer(true);
     btn.classList.add("ok");
     EQ_SESSION.combo++;
     var gain = EQ_COIN_PER_Q * EQ_SESSION.combo;
@@ -59508,6 +59522,7 @@ function eqAnswer(btn){
     fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
       '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
   } else {
+    if (typeof fxAnswer === "function") fxAnswer(false);
     btn.classList.add("no");
     opts[q.a].classList.add("ok");
     EQ_SESSION.combo = 0;
@@ -61742,6 +61757,58 @@ function qtAnswerText(q){
 
 </script>
   <script>
+/* ---------------- 答题动效 answer-fx.js ----------------
+ * 每次答题后的全屏轻动效：
+ *   答对 → 彩纸雨 + 蹦出来的鼓励语（🎉🌟🎊）
+ *   答错 → 柔和的小雨点 + 暖心鼓励（💪 加油）
+ * 用法：fxAnswer(true) / fxAnswer(false)。
+ * 1.6 秒自动消失；层为 pointer-events:none，不挡任何点击。
+ * 系统开启"减少动态效果"时自动跳过。
+ */
+var FX_OK_LINES = ["太棒了！", "答对啦！", "你真棒！", "厉害了！", "继续冲！", "满分操作！", "脑子转得真快！"];
+var FX_NO_LINES = ["没关系，再来一次！", "错了不怕，学到就是赚到！", "就差一点点，加油！", "思考的孩子最棒～", "下次一定对！", "深呼吸，再看一眼解析"];
+
+function fxAnswer(ok){
+  try {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var old = document.getElementById("fxAnswerLayer");
+    if (old) old.remove();
+
+    var layer = document.createElement("div");
+    layer.id = "fxAnswerLayer";
+    layer.className = ok ? "ok" : "no";
+    var lines = ok ? FX_OK_LINES : FX_NO_LINES;
+    var line = lines[Math.floor(Math.random() * lines.length)];
+    var emojis = ok ? ["🎉", "🌟", "🎊", "🏆", "💯", "🚀"] : ["💪", "🌱", "🤗", "⚡"];
+    var emo = emojis[Math.floor(Math.random() * emojis.length)];
+    layer.innerHTML =
+      '<div class="fx-answer">' +
+        '<div class="fx-emoji">' + emo + '</div>' +
+        '<div class="fx-line">' + line + '</div>' +
+      '</div>';
+    var colors = ok
+      ? ["#FFC94D", "#FF8A3D", "#3B82F6", "#34D399", "#8B5CF6", "#F87171"]
+      : ["#93C5FD", "#FCD34D", "#A7F3D0", "#FDA4AF"];
+    var n = ok ? 26 : 12;
+    for (var i = 0; i < n; i++){
+      var s = document.createElement("span");
+      s.className = "fx-particle";
+      s.style.left = (5 + Math.random() * 90) + "%";
+      s.style.background = colors[Math.floor(Math.random() * colors.length)];
+      s.style.animationDelay = (Math.random() * 0.35) + "s";
+      s.style.animationDuration = (1 + Math.random() * 0.8) + "s";
+      layer.appendChild(s);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function(){
+      var l = document.getElementById("fxAnswerLayer");
+      if (l) l.remove();
+    }, 1600);
+  } catch(e){}
+}
+
+</script>
+  <script>
 /* ---------------- 真题演练 exam-quest.js ----------------
  * 小升初/分班考/密考真题。按套卷闯关，答错自动入错题本。
  * 进度保存在 S.exam = { done: { paperId: stars }, coins: 0 }。
@@ -62473,6 +62540,7 @@ function teAnswer(){
     sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
   }
   if (grade.ok){
+    if (typeof fxAnswer === "function") fxAnswer(true);
     TE_SESSION.combo++;
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
@@ -62485,6 +62553,7 @@ function teAnswer(){
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
+    if (qType !== "writing" && typeof fxAnswer === "function") fxAnswer(false);
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
     var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';

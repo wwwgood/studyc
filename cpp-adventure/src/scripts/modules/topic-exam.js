@@ -136,6 +136,7 @@ function teAnswer(){
     sampleHtml = '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>';
   }
   if (grade.ok){
+    if (typeof fxAnswer === "function") fxAnswer(true);
     TE_SESSION.combo++;
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
@@ -148,6 +149,7 @@ function teAnswer(){
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
+    if (qType !== "writing" && typeof fxAnswer === "function") fxAnswer(false);
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
     var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
