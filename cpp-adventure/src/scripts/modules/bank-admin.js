@@ -915,6 +915,7 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:3, name:"人称代词主格宾格", how:/主格|宾格|人称代词/, opts:/^(I|he|she|they|we|him|her|them|us|me)$/i },
   { module:"grammar", topicId:3, name:"指示代词", how:/指示代词/, opts:/^(this|that|these|those)$/i },
   { module:"grammar", topicId:3, name:"不定代词", how:/不定代词/, opts:/^(some|any|each|every|both|all|either|neither|something|anything|nothing|nobody|everyone)$/i },
+  { module:"grammar", topicId:3, name:"代词总览", how:/代词总览|代词分类|代词家族|六大类/, opts:null },
   /* ---- 第4章 数词矿井 ---- */
   { module:"grammar", topicId:4, name:"序数词", how:/序数词/, howQ:/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|twelfth|twentieth)\b/i },
   { module:"grammar", topicId:4, name:"基数词", how:/基数词|hundred|thousand/, howQ:/\b(hundred|thousand)\b|\d{2,}\s*[个只本名岁]|用英语.*(数字|数词)/i },
