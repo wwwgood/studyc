@@ -3526,6 +3526,50 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 /* 学习弹窗 */
 .eq-mask{position:fixed; inset:0; z-index:150; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
 .eq-mask.open{display:flex;}
+/* 大字答案浮层：要盖住所有引擎弹窗 */
+.ao-mask{z-index:400;}
+.ao-card{background:#FFFDF7; border-radius:24px; max-width:640px; width:100%; max-height:calc(100vh - 40px); overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.45); padding:26px 26px 22px; text-align:center; animation:eqPop .28s ease; border-bottom:6px solid #FFD86B; position:relative;}
+/* 返回原题 + 悬浮下一题 */
+.ao-backbtn{position:absolute; top:14px; right:16px; background:#F8FAFC; border:1px solid #E2E8F0; color:#64748B; font-size:13px; font-weight:600; padding:6px 13px; border-radius:999px; cursor:pointer; z-index:2;}
+.ao-backbtn:hover{background:#EEF2F7; color:#334155;}
+#aoPill{position:fixed; right:24px; bottom:28px; z-index:390;}
+.ao-pillbtn{background:#10B981; color:#fff; border:none; font-size:16px; font-weight:800; padding:14px 28px; border-radius:999px; cursor:pointer; box-shadow:0 10px 26px rgba(16,185,129,.45);}
+.ao-pillbtn:hover{background:#059669;}
+.ao-card.ok{border-bottom-color:#34D399;}
+.ao-card.bad{border-bottom-color:#F87171;}
+.ao-anshead{font-size:22px; font-weight:800; padding:10px 0 2px;}
+.ao-anshead.ok{color:#059669;}
+.ao-anshead.bad{color:#DC2626;}
+.ao-sub{font-size:15px; color:#6B7280; margin-top:4px;}
+.ao-yourans{font-size:15px; color:#9CA3AF; margin-top:10px;}
+.ao-yourans s{color:#DC2626; text-decoration-thickness:2px;}
+.ao-anslabel{font-size:13px; letter-spacing:.35em; color:#9CA3AF; margin-top:16px;}
+.ao-big{font-size:34px; font-weight:800; color:#1F2937; line-height:1.45; margin-top:6px; word-break:break-word;}
+.ao-letter{display:inline-block; background:#6366F1; color:#fff; font-size:24px; line-height:1; padding:8px 12px; border-radius:10px; margin-right:8px; vertical-align:middle;}
+.ao-atext{vertical-align:middle;}
+.ao-exp{background:linear-gradient(135deg,#FFF8E6,#FFF0D6) !important; border-left:5px solid var(--action) !important; color:var(--action-dark) !important; font-size:26px !important; font-weight:800 !important; line-height:2.2 !important; text-align:left !important; border-radius:16px !important; padding:24px 28px !important; margin-top:20px !important; box-shadow:0 6px 24px rgba(255,138,61,0.18) !important;}
+/* 原题回显块 */
+.ao-q{background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; margin-top:16px; text-align:left;}
+.ao-qtitle{font-size:12px; font-weight:700; color:#94A3B8; letter-spacing:4px; margin-bottom:6px;}
+.ao-qstem{font-size:16px; font-weight:600; color:#334155; line-height:1.7; word-break:break-word;}
+.ao-qopts{margin-top:8px; display:flex; flex-direction:column; gap:5px;}
+.ao-qopt{display:flex; align-items:baseline; gap:8px; font-size:14.5px; color:#475569; line-height:1.6; background:#fff; border:1px solid #EEF2F7; border-radius:8px; padding:6px 10px;}
+.ao-qopt b{color:#94A3B8; font-size:13px; flex:none;}
+.ao-qopt.good{background:#F0FDF4; border-color:#86EFAC; color:#166534;}
+.ao-qopt.good b{color:#16A34A;}
+.ao-qopt.no{background:#FEF2F2; border-color:#FCA5A5; color:#7F1D1D;}
+.ao-qopt.no b{color:#DC2626;}
+.ao-qopt.no span{text-decoration:line-through;}
+.ao-mark{font-style:normal; font-weight:800; margin-left:auto; flex:none; padding-left:8px;}
+.ao-extra{background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; font-size:14px; line-height:1.9; text-align:left; padding:12px 16px; margin-top:14px; max-height:34vh; overflow-y:auto;}
+.ao-nextbtn{display:block; width:100%; margin-top:18px; background:#E5E7EB; color:#9CA3AF; border:none; font-size:17px; font-weight:700; padding:14px 0; border-radius:12px; cursor:not-allowed;}
+.ao-nextbtn.ready{background:#10B981; color:#fff; cursor:pointer; box-shadow:0 6px 16px rgba(16,185,129,.35);}
+.ao-nextbtn.ready:hover{background:#059669;}
+/* 解析区「我已看懂」按钮 */
+.ao-exp-inner{padding-bottom:8px;}
+.ao-readok-btn{display:block; width:100%; margin-top:14px; background:var(--gold); color:#5A3A00; border:none; font-size:18px; font-weight:800; padding:14px 0; border-radius:14px; cursor:pointer; box-shadow:0 4px 16px rgba(255,201,77,.35); animation:aoPulse 1.2s ease infinite;}
+.ao-readok-btn:hover{background:var(--action); color:#fff; box-shadow:0 6px 20px rgba(255,138,61,.4);}
+@keyframes aoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 .eq-dialog{background:#FFFDF7; border-radius:24px; max-width:620px; width:100%; max-height:calc(100vh - 40px); overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.4); animation:eqPop .3s ease; border-bottom:6px solid #FFD86B;}
 @keyframes eqPop{from{transform:scale(.9) translateY(14px); opacity:0}to{transform:scale(1) translateY(0); opacity:1}}
 .eq-dlg-head{display:flex; align-items:center; gap:10px; padding:16px 18px 6px; position:sticky; top:0; background:#FFFDF7; border-radius:24px 24px 0 0; z-index:10;}
@@ -3539,6 +3583,16 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .eq-cap-bubble{position:relative; background:#EAF2FF; border-radius:16px; padding:14px 16px; font-size:15px; line-height:1.8; color:#26324B; margin-bottom:12px;}
 .eq-cap-bubble::before{content:"🧑‍✈️"; position:absolute; top:-16px; left:-10px; font-size:30px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));}
 .eq-motto{background:linear-gradient(150deg,#F0FFF8,#E8FBF2); border:1.5px solid #10B981; color:#065F46; border-radius:12px; padding:9px 13px; font-size:14px; font-weight:700; margin-bottom:14px;}
+.eq-book{background:#FFFDF5; border:1.5px solid #EAB308; border-left:5px solid #EAB308; border-radius:12px; padding:12px 14px; font-size:14px; line-height:1.85; color:#4A3A00; margin-bottom:14px; max-height:42vh; overflow-y:auto;}
+.eq-book-title{font-size:13px; font-weight:800; color:#92400E; margin-bottom:8px; letter-spacing:.5px;}
+.eq-book-card{background:#FFFEF0; border:1px solid #FDE68A; border-radius:10px; padding:10px 12px; margin-bottom:10px;}
+.eq-book-card:last-child{margin-bottom:0;}
+.eq-book-card-title{font-size:14px; font-weight:800; color:#92400E; margin-bottom:6px; padding-bottom:4px; border-bottom:1px dashed #FDE68A;}
+.eq-book-card-body{font-size:13.5px; line-height:1.8; color:#4A3A00;}
+.eq-book-line{margin-bottom:4px;}
+.eq-book-point{background:#FEF3C7; border-radius:6px; padding:3px 8px; margin-bottom:4px; font-weight:600;}
+.eq-book-en{color:#1E40AF; font-weight:700; background:#DBEAFE; padding:1px 4px; border-radius:4px;}
+.eq-say.sm{width:22px; height:22px; font-size:11px; margin-left:4px; vertical-align:middle;}
 
 /* 例句 */
 .eq-ex-box{background:#F8FAFF; border-radius:14px; padding:10px 12px; margin-bottom:16px;}
@@ -5373,7 +5427,6 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
         <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
-        <button class="eq-tab" data-tab="blank" onclick="eqSwitchTab('blank')">✅ 选择填空</button>
         <button class="eq-tab" type="button" onclick="p1000Open()">📚 1000题</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
@@ -5455,9 +5508,6 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
       <div class="xq-papers" id="xqPapers"></div>
     </div>
 
-    <!-- 选择填空子模块（blank-quest.js 渲染） -->
-    <div class="eq-subview" id="eqSubBlank" style="display:none"></div>
-
     <!-- 错题本子模块 -->
     <div class="eq-subview" id="eqSubErrBook" style="display:none">
       <p class="eq-progress-txt" id="ebTotalTxt">共 0 道错题</p>
@@ -5489,10 +5539,6 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <div class="eq-mask" id="oqDialogMask">
       <div class="eq-dialog" id="oqDialog" role="dialog" aria-modal="true" aria-label="口语训练"></div>
     </div>
-    <div class="eq-mask" id="bqDialogMask">
-      <div class="eq-dialog" id="bqDialog" role="dialog" aria-modal="true" aria-label="选择填空"></div>
-    </div>
-    <div class="eq-mask bq-ansmask" id="bqAnsMask"><div class="bq-anscard" id="bqAnsCard"></div></div>
 
     <div class="eq-combo" id="eqCombo"></div>
     <div class="eq-float" id="eqFloat"></div>
@@ -6973,9 +7019,29 @@ var EQ_DATA = {
     ]
   },
 
-  /* ============ 第三章 代词森林（11 例） ============ */
+  /* ============ 第三章 代词森林（12 例） ============ */
+  {
+    id: "pz", ch: 3, t: "代词总览与分类", tip: "先认全代词家族，再逐个击破",
+    body: "代词是代替名词（人或事物名称）的词，作用是避免啰嗦：Tom likes his car. He drives it.（用 his 和 it 代替重复）。英语代词分 6 大类：人称代词（我/你/他）、物主代词（我的/你的）、反身代词（我自己）、指示代词（这个/那个）、疑问代词（谁/什么）、不定代词（某人/某事）。",
+    say: "人称物主反身指，疑问不定共六类；代词一用不啰嗦，考点从此逐个破。",
+    book: "【什么是代词】用来代替名词（人或事物的名称）的词，作用是避免啰嗦。比如不说 “Tom likes Tom's car. Tom drives Tom's car”，而是说 “Tom likes his car. He drives it”。<br>【代词家族 6 大类（必考分类）】① 人称代词（我、你、他…）② 物主代词（我的、你的…）③ 反身代词（我自己、你自己…）④ 指示代词（这个、那个…）⑤ 疑问代词（谁、什么…）⑥ 不定代词（某人、某事、一切…）。<br>【极速记忆口诀】① 人称代词主宾格：主格作主头前站，宾格作宾后边站；动词介词后跟宾，切莫混淆记心间。② 物主代词：形物代，能力差，后面必须把名加；名物代，能力强，后面名词不能放；his、its 本是一样，单数复数不加长。③ 人称排序：单数并列二（你）三（他）一（我）；复数并列一（我们）二（你们）三（他们）。④ some/any：肯定 some，否定 any，疑问 usually 用 any；若表请求或建议，some 进句莫迟疑。<br>【学习建议】① 把「人称代词表」和「物主代词表」抄在笔记本第一页，这是所有代词题的根基。② 盯紧名词：做物主代词题，先看横线后面有没有名词——有名词选形容词性（my/your…），没名词选名词性（mine/yours…）。③ 注意单复数：看到 these/those、both/all、either/neither，立刻判断谓语动词用 is 还是 are。④ 特殊用法要敏感：it 表天气/时间、who 在介词后变 whom、some 在请求疑问句——都是拿分点。",
+    ex: [
+      { en: "Tom likes his car. He drives it.", zh: "汤姆喜欢他的车，他开着它。（his / it 代替重复）" },
+      { en: "This is my book. That is yours.", zh: "这是我的书，那是你的。（指示代词 + 物主代词）" },
+      { en: "Who is he? He is my friend.", zh: "他是谁？他是我的朋友。（疑问代词 + 人称代词）" }
+    ],
+    q: [
+      { q: "代词的作用是什么？", o: ["避免啰嗦、让句子简洁", "让句子变长", "代替动词"], a: 0, lv: 1, why: "代词用来代替名词，避免重复啰嗦：Tom likes his car. He drives it." },
+      { q: "「你的」属于哪类代词？", o: ["人称代词", "物主代词", "指示代词"], a: 1, lv: 1, why: "表示「谁的」的是物主代词（my、your、his…）。" },
+      { q: "「这个」属于哪类代词？", o: ["指示代词", "不定代词", "疑问代词"], a: 0, lv: 1, why: "this / that / these / those 是指示代词。" },
+      { q: "「某人」属于哪类代词？", o: ["反身代词", "不定代词", "物主代词"], a: 1, lv: 2, why: "somebody / someone / 某人 是不定代词，指不确定的人。" },
+      { q: "「谁」属于哪类代词？", o: ["疑问代词", "人称代词", "反身代词"], a: 0, lv: 2, why: "who / what / which 用来提问，是疑问代词。" },
+      { q: "下列哪个是代词？", o: ["happy", "nobody", "jump"], a: 1, lv: 2, why: "nobody（没有人）是不定代词；happy 是形容词，jump 是动词。" }
+    ]
+  },
   {
     id: "p1", ch: 3, t: "人称代词主格", tip: "干活的先锋队",
+    book: "【人称代词核心表格（建议背诵）】人称 单数（主格/宾格）复数（主格/宾格）：第一人称 I/me → we/us；第二人称 you/you → you/you；第三人称 he/him、she/her、it/it → they/them。<br>【主格与宾格铁律】主格（Subject）放在动词前面，作主语：She often goes shopping.（She 是动作发出者）。宾格（Object）放在动词或介词后面，作宾语：Who teaches us English?（us 在 teaches 后面）；We often write E-mails to her.（her 在介词 to 后面）。<br>【it 的“七十二变”（高分考点）】① 指动物：通常用 it；表示喜爱（宠物、故事里的动物）可以用 he/she：The rabbit didn't know where she was.（把兔子拟人化）② 指无生命物体：表达热爱、赞美时，祖国、大地、月亮可用 she：The moon… she looks like a round plate. ③ 指天气：It is hot today. ④ 指时间：It is 8 o'clock. ⑤ 指距离：It is 3 kilometres away.<br>【主格排序（礼貌原则）】单数并列：You > He/She > I（把别人放前面，自己放最后）：You, he and I are all fans. 复数并列：We > You > They（通常把自己这方放前面）：We, you and they will visit Shanghai Zoo.",
     body: "句子里「谁」做动作，就要用主格代词：I 我、you 你/你们、he 他、she 她、it 它、we 我们、they 他们。它们站在句子开头当主角，就像队伍里的先锋。",
     say: "我你他她它，我们和他们，主格站句首，动作它来发。",
     ex: [
@@ -6985,11 +7051,16 @@ var EQ_DATA = {
     ],
     q: [
       { q: "（我的妹妹）___ is seven.", o: ["He", "She", "It"], a: 1, why: "妹妹是女生，用 She。" },
-      { q: "Tom 和我 → ___ are friends.", o: ["We", "They", "You"], a: 0, why: "「Tom 和我」包括我们自己，用 We（我们）。" }
+      { q: "Tom 和我 → ___ are friends.", o: ["We", "They", "You"], a: 0, why: "「Tom 和我」包括我们自己，用 We（我们）。" },
+      { q: "______ went to the cinema last Sunday.", o: ["I and my father","My father and I","Me and my father"], a: 1, lv: 2, why: "作主语排除宾格开头的选项；礼貌原则单数并列“二、三、一”（别人在前），My father and I 最标准。" },
+      { q: "— Who is that woman? — Which one? — The woman under that tall tree. — ______ is my aunt.", o: ["She","Her","He"], a: 0, lv: 1, why: "指代“那位女士”（我的阿姨），作主语用主格 She。" },
+      { q: "My father is a worker. ______ works in a big factory.", o: ["He","She","It"], a: 0, lv: 1, why: "爸爸是男性，作主语用 He。" },
+      { q: "My mother is a teacher. ______ is a maths teacher.", o: ["He","She","It"], a: 1, lv: 1, why: "妈妈是女性，作主语用 She。" }
     ]
   },
   {
     id: "p2", ch: 3, t: "人称代词宾格", tip: "接受动作的接球队员",
+    book: "【主格与宾格用法铁律】主格放在动词前面作主语；宾格放在动词或介词后面作宾语。例（动词后）：Who teaches us English?（us 在 teaches 后面）例（介词后）：We often write E-mails to her.（her 在介词 to 后面）。<br>【口语提醒】口语中常用 Who 代替 Whom；介词后面只能用 Whom：With whom?",
     body: "动作「落到谁身上」，就用宾格：me、you、him、her、it、us、them。它们常站在动词或介词后面，像接住球（动作）的队员：Thank you. / Look at me. / I like him.",
     say: "动介后面站宾格，me him her it 接好球。",
     ex: [
@@ -6999,11 +7070,19 @@ var EQ_DATA = {
     ],
     q: [
       { q: "Miss Li teaches ___ English.", o: ["we", "us", "our"], a: 1, why: "teach 是动词，后面接宾格 us。" },
-      { q: "This gift is for ___（他们）.", o: ["they", "their", "them"], a: 2, why: "介词 for 后面用宾格 them。" }
+      { q: "This gift is for ___（他们）.", o: ["they", "their", "them"], a: 2, why: "介词 for 后面用宾格 them。" },
+      { q: "Let ______ play basketball after school. (we)", o: ["we","us","our"], a: 1, lv: 1, why: "Let 是动词，动词后接人称代词宾格，we 的宾格是 us。" },
+      { q: "Open the door for ______ (I, me) please.", o: ["I","me","my"], a: 1, lv: 1, why: "for 是介词，介词后必须接宾格 me。" },
+      { q: "Catch ______ (he, him)! He's a thief.", o: ["he","him","his"], a: 1, lv: 1, why: "Catch 是动词，后接宾格 him。" },
+      { q: "Look at ______ (they, them). They are drawing pictures.", o: ["they","them","their"], a: 1, lv: 1, why: "Look at 中 at 是介词，后接宾格 them。" },
+      { q: "Give ______ a bowl of rice.", o: ["I","she","her"], a: 2, lv: 1, why: "Give sb. sth. 中 sb. 用宾格，her 可以是宾格（她）。" },
+      { q: "— Do you know John? — Yes, can you give the books to ______?", o: ["he","him","his"], a: 1, lv: 1, why: "give sth. to sb.，介词 to 后接宾格 him，指代 John。" },
+      { q: "Her students like ______ very much.", o: ["she","her","hers"], a: 1, lv: 1, why: "like 是动词，后接宾格 her，指“喜欢她”。" }
     ]
   },
   {
     id: "p3", ch: 3, t: "形容词性物主代词", tip: "my / your 是小标签",
+    book: "【物主代词对比表格】类别 形容词性（我的…）名词性（我的东西）记忆技巧：第一人称单数 my / mine → my+名词；第二人称单数 your / yours → your+名词；第三人称单数 his / his、her / hers、its / its（注意：his 和 its 形式不变）；第一人称复数 our / ours → our+名词；第二人称复数 your / yours；第三人称复数 their / theirs → their+名词。<br>【核心区别】形容词性物主代词（弱）：后面必须跟名词，像形容词一样修饰名词：This is my book.（my 后面有 book）。名词性物主代词（强）：后面绝对不能跟名词，它自己就等于“形容词性物主代词 + 名词”：This is mine.（= my book）；Ours is very big.（= Our classroom）。<br>【口诀】形物代，能力差，后面必须把名加；名物代，能力强，后面名词不能放。",
     body: "表示「谁的」，后面必须跟名词的是形容词性物主代词：my 我的、your 你的、his 他的、her 她的、its 它的、our 我们的、their 他们的。像贴在东西上的小标签：my book 我的书，her bag 她的书包。",
     say: "物主代词是标签，后面必须跟名词。",
     ex: [
@@ -7013,11 +7092,16 @@ var EQ_DATA = {
     ],
     q: [
       { q: "___（她的）eyes are big.", o: ["She", "Her", "Hers"], a: 1, why: "eyes 是名词，前面要用形容词性物主代词 Her。" },
-      { q: "这是___（我们的）老师。 ___ teacher", o: ["We", "Us", "Our"], a: 2, why: "teacher 是名词，前面用 Our。" }
+      { q: "这是___（我们的）老师。 ___ teacher", o: ["We", "Us", "Our"], a: 2, why: "teacher 是名词，前面用 Our。" },
+      { q: "______ father is reading newspaper now. (he)", o: ["His","He","Him"], a: 0, lv: 2, why: "空格后有名词 father，需填形容词性物主代词 His（他的）。He 是主格，Him 是宾格。" },
+      { q: "These aren't ______ shoes. ______ are dark green. (I)", o: ["my; Mine","mine; My","my; my"], a: 0, lv: 2, why: "第一空后有名词 shoes 用形容词性 my；第二空后无名词、作主语指“我的鞋子”，用名词性 Mine。" },
+      { q: "Look at the car. ______ (It's, Its) color is black.", o: ["It's","Its","It"], a: 1, lv: 2, why: "空格后有名词 color 需填“它的”形容词性物主代词 Its；It's = It is。" },
+      { q: "Their school is in the country. ______ (Our, Ours) school is in the city.", o: ["Our","Ours","We"], a: 0, lv: 1, why: "空格后有名词 school，用形容词性物主代词 Our。" }
     ]
   },
   {
     id: "p4", ch: 3, t: "名词性物主代词", tip: "mine 独立站，名词不用带",
+    book: "【核心区别】名词性物主代词后面绝对不能跟名词，自己就等于“形容词性物主代词 + 名词”：This is mine.（= my book）；Ours is very big.（= Our classroom）。<br>【双重所有格（难点）】结构：of + 名词性物主代词，表示“…的一个/一些”。A friend of mine = 我的一个朋友（暗示我有很多朋友，这是其中之一）；My friend = 我的朋友（特指某一个，或强调关系）。",
     body: "mine、yours、his、hers、ours、theirs 是「独立版」物主代词，后面不再跟名词，自己就能代表「……的东西」：This is my book. = This book is mine. 它像一个「自带标签的背包」，不用再挂东西。",
     say: "名词性代词本领大，独自站岗不带娃（名词）。",
     ex: [
@@ -7027,11 +7111,17 @@ var EQ_DATA = {
     ],
     q: [
       { q: "That schoolbag isn't ___.（我的）", o: ["my", "me", "mine"], a: 2, why: "后面没有名词，要用名词性物主代词 mine。" },
-      { q: "___（她的）is on the desk.", o: ["Her", "Hers", "She"], a: 1, why: "单独作主语用名词性 Hers。" }
+      { q: "___（她的）is on the desk.", o: ["Her", "Hers", "She"], a: 1, why: "单独作主语用名词性 Hers。" },
+      { q: "Are these oranges ______ (their, theirs)?", o: ["their","theirs","them"], a: 1, lv: 2, why: "句末没有名词，意为“这些橘子是他们的吗？”，用名词性物主代词 theirs。" },
+      { q: "The blue bike is ______ (her, his), not mine.", o: ["her","his","hers"], a: 1, lv: 2, why: "句末无名词需填名词性物主代词，指“他的车”用 his（his 既是形容词性也是名词性）。" },
+      { q: "Your bags are green, ______ (their, theirs) are yellow.", o: ["their","theirs","they"], a: 1, lv: 2, why: "作主语且指“他们的包”，后无名词，用名词性物主代词 theirs。" },
+      { q: "The brown jacket is ______. ______ is white and black.", o: ["my, His","mine, His","me, Him"], a: 1, lv: 2, why: "第一空后无名词指“我的夹克”用名词性 mine；第二空作主语指“他的夹克”用 His。" },
+      { q: "A friend of ______ came to see ______ yesterday.", o: ["me, me","my, me","mine, me"], a: 2, lv: 2, why: "第一空双重所有格 a friend of mine 用名词性物主代词；第二空作 see 的宾语用宾格 me。" }
     ]
   },
   {
     id: "p5", ch: 3, t: "反身代词", tip: "照镜子的自己",
+    book: "【含义】反身代词表示“…自己”。<br>【构成】单数：-self（myself, yourself, himself, herself, itself）；复数：-selves（ourselves, yourselves, themselves）。<br>【用法】① 作宾语：enjoy oneself（玩得开心）。② 强调：I myself did it.（我自己做的）。",
     body: "myself、yourself、himself、herself、itself、ourselves、themselves 表示「某人自己」，像照镜子看到的自己：I can do it myself. 我自己能做。常用短语：by myself 独自、enjoy yourself 玩得开心、help yourself 随便吃。",
     say: "镜子里的自己：self 一照就出现。",
     ex: [
@@ -7046,6 +7136,7 @@ var EQ_DATA = {
   },
   {
     id: "p6", ch: 3, t: "指示代词 this / that / these / those", tip: "近处 these 远处 those",
+    book: "【近指与远指】近指：this（这个）、these（这些）；远指：that（那个）、those（那些）。<br>【电话用语】介绍自己：This is…（我是…）；询问对方：Is that…?（你是…吗？）<br>【指代前文】That's the problem.（That 指代前面提到的情况）",
     body: "this 这（近处单数）、that 那（远处单数）、these 这些（近处复数）、those 那些（远处复数）。像用手指东西：近的用 th-is，远的用 th-at；复数加尾巴 -e/-ose。打电话时「我是……」用 This is…（This is Mary speaking.）",
     say: "近单 this 远单 that，近复 these 远复 those。",
     ex: [
@@ -7060,6 +7151,7 @@ var EQ_DATA = {
   },
   {
     id: "p7", ch: 3, t: "some 和 any", tip: "some 逛超市，any 爱提问",
+    book: "【Some 与 Any 基本规则】Some 通常用于肯定句，表示“一些”，可修饰可数名词复数（some apples），也可修饰不可数名词（some water）。Any 通常用于否定句和疑问句，表示“一些”或“任何”。<br>【考试特例（必背）】① Some 用在疑问句：表示建议、请求，或希望得到肯定回答时用 some 不用 any：Would you like some coffee?（表示建议）；Can I have some money?（表示请求）② Any 用在肯定句：当意思变成“任何的”：You can ask any teacher here.<br>【记忆口诀】Some 肯定 Any 否，疑问句中 Any 走；若表请求或建议，Some 进疑问不用愁；Any 若译“任何”意，肯定句中也能留。<br>【复合不定代词】由 some/any/no/every + body/one/thing 构成（something, anyone, nobody…）。规则一：形容词修饰必须后置：I want to eat something delicious.（不能说 delicious something）规则二：作主语永远看作单数：Everybody is here.",
     body: "some 和 any 都表示「一些」。some 多用在肯定句（I have some milk.）；any 多用在疑问句和否定句（Do you have any milk? / I don't have any milk.）。但请求和邀请的问句很客气，还是用 some：Would you like some juice?",
     say: "肯定 some 疑否 any，客气邀请 some 回来。",
     ex: [
@@ -7069,11 +7161,14 @@ var EQ_DATA = {
     ],
     q: [
       { q: "I don't have ___ money.", o: ["some", "any", "many"], a: 1, why: "否定句用 any。" },
-      { q: "Would you like ___ bananas?", o: ["some", "any", "much"], a: 0, why: "礼貌邀请用 some。" }
+      { q: "Would you like ___ bananas?", o: ["some", "any", "much"], a: 0, why: "礼貌邀请用 some。" },
+      { q: "Are there ______ rulers in your pencil-box?", o: ["a","some","any"], a: 2, lv: 1, why: "一般疑问句用 any；some 用于肯定句。" },
+      { q: "David, I have ______ to tell you.", o: ["something interesting","interesting something","anything interesting"], a: 0, lv: 2, why: "肯定句用 something；形容词修饰不定代词要后置：something interesting。" }
     ]
   },
   {
     id: "p8", ch: 3, t: "many 和 much", tip: "many 数得清，much 数不清",
+    book: "【Few / A few 与 Little / A little】这组词不仅看数量，还要看“态度”：修饰可数名词（books）：a few 肯定“有一点，但还是有”；few 否定“几乎没有了”。修饰不可数名词（water）：a little 肯定“有一点”；little 否定“几乎没有了”。<br>【Many / Much】Many 修饰可数名词；Much 修饰不可数名词。<br>【A lot of / Lots of】通吃！既可修饰可数，也可修饰不可数，常用于肯定句。",
     body: "many 配可数名词复数（many apples 许多苹果、many books），much 配不可数名词（much water、much time）。「多少」提问也一样：How many books? / How much milk? 记住：How many 问可数，How much 问不可数（也问价格）。",
     say: "many 数一数，much 不可数；How much 还能问价格。",
     ex: [
@@ -7083,11 +7178,13 @@ var EQ_DATA = {
     ],
     q: [
       { q: "How ___ apples do you want?", o: ["much", "many", "some"], a: 1, why: "apples 可数复数，用 many。" },
-      { q: "How ___ is the T-shirt?（问价格）", o: ["many", "much", "old"], a: 1, why: "问价格用 How much。" }
+      { q: "How ___ is the T-shirt?（问价格）", o: ["many", "much", "old"], a: 1, why: "问价格用 How much。" },
+      { q: "—Can you speak French? —Yes, but only ______.", o: ["little","a little","some"], a: 1, lv: 2, why: "French 是不可数名词；回答 Yes 表肯定“会一点”用 a little（little 是否定含义“几乎不会”）。" }
     ]
   },
   {
     id: "p9", ch: 3, t: "both 和 all", tip: "both 俩人手拉手，all 大家手拉手",
+    book: "【Both 与 All 的数量游戏】Both 指两者都（2 个人/物）：Both of the boys… / The boys are both…。All 指三者或三者以上都（≥3），也可指整体（全部）：All of the students… / We all like…<br>【位置规则】放在 be 动词、助动词、情态动词之后，实义动词之前：They are all students.（be 动词后）；We all like swimming.（实义动词前）。",
     body: "both 表示「两者都」，all 表示「三者及以上都」或「全部」。Both of us like music.（我们俩都喜欢音乐。）All the students are here.（所有学生都到了。）位置诀窍：它们站在 be 动词后面、实义动词前面：We are both ten. / We both like dogs.",
     say: "两个用 both，全部用 all；be 后实义动词前。",
     ex: [
@@ -7097,11 +7194,13 @@ var EQ_DATA = {
     ],
     q: [
       { q: "___ of my hands are clean.（两只手）", o: ["All", "Both", "Every"], a: 1, why: "手有两只，用 Both。" },
-      { q: "___ the students passed the test.（全部学生）", o: ["Both", "All", "Some"], a: 1, why: "三个以上用 All。" }
+      { q: "___ the students passed the test.（全部学生）", o: ["Both", "All", "Some"], a: 1, why: "三个以上用 All。" },
+      { q: "Tom's parents are ______ teachers.", o: ["both","all","two"], a: 0, lv: 1, why: "parents 指父母两个人，两者都用 both；三者以上才用 all。" }
     ]
   },
   {
     id: "p10", ch: 3, t: "each 和 every", tip: "each 一个一个看，every 全体一起看",
+    book: "【No 与 None 的区别】No 是形容词，不能单独使用，后面必须加名词：I have no money.（= not any）。None 是代词，单独使用，后面不能直接加名词，常与 of 连用：I have none.（我一点也没有）；None of the students are/is here.（学生没一个在这儿）。谓语单复数：None of + 不可数名词，谓语用单数；None of + 可数名词复数，谓语单复数均可（口语常用复数）。<br>【“另一个”家族】Another：泛指“另一个、再一个”（总数不确定）：Give me another one. The other：特指“两者中的另一个”：One hand holds a book, the other holds a pen.（公式：One…, the other…）Others：泛指“别人、别的东西”（= other + 复数名词）：Some like football, others like basketball. The others：特指“其余的所有人/物”：Ten are on the playground, the others are in the classroom.（公式：Some…, the others…）<br>【记忆口诀】两者之间用 the other，三者以上 another 凑；others 泛指别的人，the others 剩的全都有。",
     body: "each 强调「各自、每个单独」，可单独用也可修饰单数名词：Each student has a pen.（每个学生各有一支笔。）every 只能修饰单数名词，强调「全体没有一个例外」：Every day is a new day. each of + 复数名词也常用：each of us。",
     say: "each 单独 each of 全，every 后面名词单数站。",
     ex: [
@@ -7116,6 +7215,7 @@ var EQ_DATA = {
   },
   {
     id: "p11", ch: 3, t: "疑问代词 who / what / which", tip: "提问三剑客",
+    book: "【疑问代词 5W1H】Who（谁 - 主格）/ Whom（谁 - 宾格）：口语中常用 Who 代替 Whom；介词后面只能用 Whom（With whom?）。Whose（谁的）：后面接名词（Whose book?）。What（什么）：问事物或职业。Which（哪一个）：在有限范围内选择。",
     body: "who 问「谁」（问人）：Who is your English teacher? what 问「什么」（问事物）：What is in your bag? which 问「哪一个」（在一定范围内选择）：Which color do you like, red or blue? 有选择范围时 which 更准！",
     say: "who 问人，what 问事，which 挑一个。",
     ex: [
@@ -37819,91 +37919,6 @@ var TOPIC_EXAM_DATA = {
 
 </script>
   <script>
-/* ---------------- 英语选择填空 · 专项练习 english-blank.js ----------------
- * 「✅ 选择填空」子模块数据：21 道题按 8 个语法章节归类，每题带答案和解析。
- * 来源：英语卷「四、选择填空」A~J 十题（原卷只复制到了选项，题干按经典考题还原）
- * + 为选项组补充的不同考点变体。src 字段区分：原卷X = 原卷题，新增 = 补充变体。
- * 做题交互在 modules/blank-quest.js：大字答案浮层 + 倒计时锁定「下一题」。
- */
-var BLANK_CHAPTERS = [
-  { id: 1, name: "非谓语动词（不定式与动名词）" },
-  { id: 2, name: "介词" },
-  { id: 3, name: "不定代词" },
-  { id: 4, name: "形容词与副词" },
-  { id: 5, name: "动词时态与主谓一致" },
-  { id: 6, name: "情态动词" },
-  { id: 7, name: "情景交际" },
-  { id: 8, name: "名词（可数与不可数）" }
-];
-
-var BLANK_QUESTIONS = [
-  { ch: 1, tag: "不定式 to do", src: "原卷 A", stem: "Nice ___ you again.",
-    opts: ["see", "to see", "seeing", "to seeing"], ans: 1,
-    exp: "nice / glad / happy 后面接不定式 to do：「很高兴再次见到你」就是 Nice to see you again." },
-  { ch: 1, tag: "go + 动名词", src: "原卷 B", stem: "Let's go ___ this afternoon.",
-    opts: ["swim", "swimming", "to swim", "swims"], ans: 1,
-    exp: "go swimming 去游泳是固定搭配，同类的还有 go shopping、go fishing。" },
-  { ch: 1, tag: "介词后接动名词", src: "新增 · F 题方向", stem: "Thank you for ___ our school.",
-    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 0,
-    exp: "for 是介词，介词后面的动词要用动名词 doing。" },
-  { ch: 2, tag: "时间介词", src: "原卷 C", stem: "Li Lei was born ___ the morning of June 1st.",
-    opts: ["in", "on", "for", "at"], ans: 1,
-    exp: "具体某一天的上午、下午、晚上用 on：on the morning of June 1st。" },
-  { ch: 2, tag: "时间介词", src: "新增", stem: "We have four classes ___ the morning.",
-    opts: ["in", "on", "for", "at"], ans: 0,
-    exp: "泛指在早上、下午、晚上用 in the morning。" },
-  { ch: 2, tag: "时间介词", src: "新增", stem: "He usually gets up ___ six thirty.",
-    opts: ["in", "on", "for", "at"], ans: 3,
-    exp: "具体到几点几分用 at。" },
-  { ch: 2, tag: "时间介词", src: "新增", stem: "What do you usually have ___ breakfast?",
-    opts: ["in", "on", "for", "at"], ans: 2,
-    exp: "三餐前面用 for：have eggs for breakfast。" },
-  { ch: 2, tag: "地点介词", src: "新增", stem: "There are many apples ___ the tree.",
-    opts: ["in", "on", "under", "at"], ans: 1,
-    exp: "树上长的果实用 on the tree。" },
-  { ch: 2, tag: "地点介词", src: "新增", stem: "Look! Two birds are singing ___ the tree.",
-    opts: ["in", "on", "under", "at"], ans: 0,
-    exp: "外来的东西落在树上用 in the tree。长在树上用 on、外来在树上用 in，是一对经典对比考点。" },
-  { ch: 3, tag: "some / any", src: "原卷 D", stem: "There aren't ___ apples on the table.",
-    opts: ["a", "the", "much", "any"], ans: 3,
-    exp: "否定句和疑问句里用 any；much 只能修饰不可数名词，apples 是复数可数名词。" },
-  { ch: 3, tag: "-body 不定代词", src: "原卷 G", stem: "The room is empty. ___ is in it.",
-    opts: ["Somebody", "Anybody", "Nobody", "Few people"], ans: 2,
-    exp: "房间是空的，说明「没有人在里面」；few people 后面要接复数动词 are。" },
-  { ch: 4, tag: "such / so", src: "原卷 E", stem: "It's ___ a fine day today. Let's go out for a walk.",
-    opts: ["such", "so", "very", "quite"], ans: 0,
-    exp: "such + a/an + 形容词 + 名词（such a fine day）；so / very / quite 只能直接修饰形容词（so fine）。" },
-  { ch: 5, tag: "一般现在时三单", src: "原卷 F", stem: "My uncle ___ us every year.",
-    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 3,
-    exp: "every year 提示一般现在时，uncle 是第三人称单数，动词加 s。" },
-  { ch: 5, tag: "现在进行时", src: "新增", stem: "Look! Tom's father ___ the factory now.",
-    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 1,
-    exp: "Look / now 提示动作正在进行，用现在进行时 is doing。如果题目是 Tom with his parents ___ the factory now，答案还是 is，因为 with 连接的人不算主语（就前原则）。" },
-  { ch: 6, tag: "must 表推测", src: "原卷 H", stem: "The light in his room is on. He ___ be at home.",
-    opts: ["may", "must", "can", "need"], ans: 1,
-    exp: "灯还亮着，说明他「一定」在家：must 表示有把握的肯定推测。" },
-  { ch: 6, tag: "may 请求许可", src: "新增", stem: "___ I come in? —Come in, please.",
-    opts: ["may", "must", "can", "need"], ans: 0,
-    exp: "请求许可的标准句型是 May I ...?" },
-  { ch: 6, tag: "can 表能力", src: "新增", stem: "___ you play the piano? —No, I can't.",
-    opts: ["may", "must", "can", "need"], ans: 2,
-    exp: "答语是 can't，说明问的是能力，用 Can you ...?" },
-  { ch: 6, tag: "needn't / mustn't", src: "新增", stem: "—Must I finish the work now? —No, you ___.",
-    opts: ["needn't", "mustn't", "can't", "don't"], ans: 0,
-    exp: "Must I ...? 的否定回答用 needn't（不必）；mustn't 的意思是「千万别、禁止」，不是「不必」，这是最容易错的地方。" },
-  { ch: 7, tag: "情景应答", src: "原卷 I", stem: "—Mary, please answer the phone. —___, Mum.",
-    opts: ["You'll help me", "I'm going", "I'm coming", "I'm leaving"], ans: 2,
-    exp: "「我马上就来」固定说 I'm coming：朝说话人过来的方向用 come 不用 go。" },
-  { ch: 8, tag: "不可数名词", src: "原卷 J", stem: "I want two ___.",
-    opts: ["bottle of milk", "bottles of milks", "bottles of milk", "bottle of milks"], ans: 2,
-    exp: "milk 是不可数名词，任何时候都不加 s；bottle 是可数名词，two 后面用复数。结构：数词 + 复数容器 + of + 不可数名词。" },
-  { ch: 8, tag: "可数名词", src: "新增 · F 题方向", stem: "Mr. Wang is a ___ from England.",
-    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 2,
-    exp: "a 后面要接可数名词单数，visitor（参观者）是名词，其他三项都是动词形式。这题考的是名词，所以放在名词章节。" }
-];
-
-</script>
-  <script>
 // AUTO-GENERATED by build/gen-question-bank.js — 统一题库（已由 build/fix-question-bank.js 整治）
 // 全部为按真题风格自编的仿真题（source=自编），不含真实真题
 // 所有题目均显式标注 type:choice；真实真题请通过「题库管理→导入真题」导入
@@ -53165,7 +53180,8 @@ var PAPER1000_DATA = {
     { id: 12, name: "被动语态",       page: "P211" },
     { id: 13, name: "句法之简单句",   page: "P238" },
     { id: 14, name: "句法之复合句",   page: "P255" },
-    { id: 15, name: "句法之祈使句",   page: "P271" }
+    { id: 15, name: "句法之祈使句",   page: "P271" },
+    { id: 16, name: "情景交际",       page: "补充" }
   ],
   questions: [
     /* ===== 第1章 名词（P3-P16，共50题） ===== */
@@ -58183,7 +58199,174 @@ var PAPER1000_DATA = {
       q: "Put the words in order to make a sentence.\nthe box Tick .",
       ansText: "Tick the box",
       why: "考查祈使句。句意为：在方框中打勾。",
-      source: "语法1000题·祈使句" }
+      source: "语法1000题·祈使句" },
+
+    /* ===== 补充章：选择填空专项（英语卷「四、选择填空」+ 按经典考题补充的变体，共 21 题） ===== */
+    { id: "xz-001", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "Nice ______ you again.",
+      o: ["see", "to see", "seeing", "to seeing"], a: 1,
+      why: "nice / glad / happy 后面接不定式 to do：「很高兴再次见到你」就是 Nice to see you again.",
+      source: "选择填空补充" },
+    { id: "xz-002", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "Let's go ______ this afternoon.",
+      o: ["swim", "swimming", "to swim", "swims"], a: 1,
+      why: "go swimming 去游泳是固定搭配，同类的还有 go shopping、go fishing。",
+      source: "选择填空补充" },
+    { id: "xz-003", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "Thank you for ______ our school.",
+      o: ["visiting", "is visiting", "visitor", "visits"], a: 0,
+      why: "for 是介词，介词后面的动词要用动名词 doing。",
+      source: "选择填空补充" },
+    { id: "xz-004", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "Li Lei was born ______ the morning of June 1st.",
+      o: ["in", "on", "for", "at"], a: 1,
+      why: "具体某一天的上午、下午、晚上用 on：on the morning of June 1st。",
+      source: "选择填空补充" },
+    { id: "xz-005", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "We have four classes ______ the morning.",
+      o: ["in", "on", "for", "at"], a: 0,
+      why: "泛指在早上、下午、晚上用 in the morning。",
+      source: "选择填空补充" },
+    { id: "xz-006", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "He usually gets up ______ six thirty.",
+      o: ["in", "on", "for", "at"], a: 3,
+      why: "具体到几点几分用 at。",
+      source: "选择填空补充" },
+    { id: "xz-007", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "What do you usually have ______ breakfast?",
+      o: ["in", "on", "for", "at"], a: 2,
+      why: "三餐前面用 for：have eggs for breakfast。",
+      source: "选择填空补充" },
+    { id: "xz-008", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "There are many apples ______ the tree.",
+      o: ["in", "on", "under", "at"], a: 1,
+      why: "树上长的果实用 on the tree。",
+      source: "选择填空补充" },
+    { id: "xz-009", subject: "english", module: "paper1000", topicId: 8, type: "choice",
+      q: "Look! Two birds are singing ______ the tree.",
+      o: ["in", "on", "under", "at"], a: 0,
+      why: "外来的东西落在树上用 in the tree。长在树上用 on、外来在树上用 in，是一对经典对比考点。",
+      source: "选择填空补充" },
+    { id: "xz-010", subject: "english", module: "paper1000", topicId: 4, type: "choice",
+      q: "There aren't ______ apples on the table.",
+      o: ["a", "the", "much", "any"], a: 3,
+      why: "否定句和疑问句里用 any；much 只能修饰不可数名词，apples 是复数可数名词。",
+      source: "选择填空补充" },
+    { id: "xz-011", subject: "english", module: "paper1000", topicId: 4, type: "choice",
+      q: "The room is empty. ______ is in it.",
+      o: ["Somebody", "Anybody", "Nobody", "Few people"], a: 2,
+      why: "房间是空的，说明「没有人在里面」；few people 后面要接复数动词 are。",
+      source: "选择填空补充" },
+    { id: "xz-012", subject: "english", module: "paper1000", topicId: 5, type: "choice",
+      q: "It's ______ a fine day today. Let's go out for a walk.",
+      o: ["such", "so", "very", "quite"], a: 0,
+      why: "such + a/an + 形容词 + 名词（such a fine day）；so / very / quite 只能直接修饰形容词（so fine）。",
+      source: "选择填空补充" },
+    { id: "xz-013", subject: "english", module: "paper1000", topicId: 11, type: "choice",
+      q: "My uncle ______ us every year.",
+      o: ["visiting", "is visiting", "visitor", "visits"], a: 3,
+      why: "every year 提示一般现在时，uncle 是第三人称单数，动词加 s。",
+      source: "选择填空补充" },
+    { id: "xz-014", subject: "english", module: "paper1000", topicId: 11, type: "choice",
+      q: "Look! Tom's father ______ the factory now.",
+      o: ["visiting", "is visiting", "visitor", "visits"], a: 1,
+      why: "Look / now 提示动作正在进行，用现在进行时 is doing。如果题目是 Tom with his parents ______ the factory now，答案还是 is，因为 with 连接的人不算主语（就前原则）。",
+      source: "选择填空补充" },
+    { id: "xz-015", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "The light in his room is on. He ______ be at home.",
+      o: ["may", "must", "can", "need"], a: 1,
+      why: "灯还亮着，说明他「一定」在家：must 表示有把握的肯定推测。",
+      source: "选择填空补充" },
+    { id: "xz-016", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "______ I come in? —Come in, please.",
+      o: ["may", "must", "can", "need"], a: 0,
+      why: "请求许可的标准句型是 May I ...?",
+      source: "选择填空补充" },
+    { id: "xz-017", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "______ you play the piano? —No, I can't.",
+      o: ["may", "must", "can", "need"], a: 2,
+      why: "答语是 can't，说明问的是能力，用 Can you ...?",
+      source: "选择填空补充" },
+    { id: "xz-018", subject: "english", module: "paper1000", topicId: 10, type: "choice",
+      q: "—Must I finish the work now? —No, you ______.",
+      o: ["needn't", "mustn't", "can't", "don't"], a: 0,
+      why: "Must I ...? 的否定回答用 needn't（不必）；mustn't 的意思是「千万别、禁止」，不是「不必」，这是最容易错的地方。",
+      source: "选择填空补充" },
+    { id: "xz-019", subject: "english", module: "paper1000", topicId: 16, type: "choice",
+      q: "—Mary, please answer the phone. —______, Mum.",
+      o: ["You'll help me", "I'm going", "I'm coming", "I'm leaving"], a: 2,
+      why: "「我马上就来」固定说 I'm coming：朝说话人过来的方向用 come 不用 go。",
+      source: "选择填空补充" },
+    { id: "xz-020", subject: "english", module: "paper1000", topicId: 1, type: "choice",
+      q: "I want two ______.",
+      o: ["bottle of milk", "bottles of milks", "bottles of milk", "bottle of milks"], a: 2,
+      why: "milk 是不可数名词，任何时候都不加 s；bottle 是可数名词，two 后面用复数。结构：数词 + 复数容器 + of + 不可数名词。",
+      source: "选择填空补充" },
+    { id: "xz-021", subject: "english", module: "paper1000", topicId: 1, type: "choice",
+      q: "Mr. Wang is a ______ from England.",
+      o: ["visiting", "is visiting", "visitor", "visits"], a: 2,
+      why: "a 后面要接可数名词单数，visitor（参观者）是名词，其他三项都是动词形式。",
+      source: "选择填空补充" },
+    { id: "xd-001", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "It's 2:00 in the afternoon. The children __________ (make) a kite.",
+      ansText: "are making",
+      why: "It's + 钟点时间 表示「此刻正在……」，是现在进行时的标志，用 be动词 + 动词ing：children 是复数，be 动词用 are，所以是 are making。本题最容易踩的坑是只盯着 children（复数）想名词，其实括号提示词 make 考的是动词形式。",
+      source: "适当形式填空补充" },
+    { id: "xd-002", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "Look! The boys __________ (play) football on the playground.",
+      ansText: "are playing",
+      why: "Look!（看！）提示动作正在发生，用现在进行时：be + doing。boys 是复数，be 动词用 are，即 are playing。",
+      source: "适当形式填空补充" },
+    { id: "xd-003", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "Listen! Someone __________ (sing) in the classroom.",
+      ansText: "is singing",
+      why: "Listen!（听！）提示动作正在进行，用现在进行时。someone 是单数，be 动词用 is，即 is singing。",
+      source: "适当形式填空补充" },
+    { id: "xd-004", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "My mother __________ (cook) dinner for us every day.",
+      ansText: "cooks",
+      why: "every day 是一般现在时的标志。主语 my mother 是第三人称单数，动词要加 s：cook → cooks。",
+      source: "适当形式填空补充" },
+    { id: "xd-005", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "Tom often __________ (go) to school by bike.",
+      ansText: "goes",
+      why: "often 是一般现在时标志。Tom 是第三人称单数，go 以 o 结尾要加 es：go → goes。",
+      source: "适当形式填空补充" },
+    { id: "xd-006", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "We __________ (visit) the Great Wall next week.",
+      ansText: "will visit|are going to visit",
+      why: "next week 是一般将来时的标志：will + 动词原形，或 be going to + 动词原形。we 配 are going to visit，两种写法都对。",
+      source: "适当形式填空补充" },
+    { id: "xd-007", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "I __________ (see) a film with my friends yesterday.",
+      ansText: "saw",
+      why: "yesterday 是一般过去时的标志。see 是不规则动词，过去式是 saw（不是 seed 或 seeed）。",
+      source: "适当形式填空补充" },
+    { id: "xd-008", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "She __________ (be) at home last night.",
+      ansText: "was",
+      why: "last night 是一般过去时的标志。she 是单数，be 动词的过去式用 was（复数才用 were）。",
+      source: "适当形式填空补充" },
+    { id: "xd-009", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "They __________ (not watch) TV last Monday.",
+      ansText: "didn't watch|did not watch",
+      why: "last Monday 是过去时，否定句要用助动词 did not（didn't）+ 动词原形：didn't watch。注意 watch 要还原成原形，不能加 ed。",
+      source: "适当形式填空补充" },
+    { id: "xd-010", subject: "english", module: "paper1000", topicId: 10, type: "fill",
+      q: "There __________ (be) some milk in the glass.",
+      ansText: "is",
+      why: "考查 there be 句型的就近原则：milk（牛奶）是不可数名词，be 动词用 is。",
+      source: "适当形式填空补充" },
+    { id: "xd-011", subject: "english", module: "paper1000", topicId: 1, type: "fill",
+      q: "There are five __________ (box) on the desk.",
+      ansText: "boxes",
+      why: "five（五）后面接可数名词复数。box 以 x 结尾，变复数要加 es：box → boxes。",
+      source: "适当形式填空补充" },
+    { id: "xd-012", subject: "english", module: "paper1000", topicId: 11, type: "fill",
+      q: "Nancy __________ (have) two big eyes and long hair.",
+      ansText: "has",
+      why: "描述外貌特征用一般现在时。Nancy 是第三人称单数，have 是不规则变化：have → has。",
+      source: "适当形式填空补充" },
 
 
 
@@ -59500,6 +59683,7 @@ var EQ_KP_MAP = [
   ["go to school", "名词固定搭配"],
   ["a / an 的数量含义", "a与an的区别"],
   ["as ... as", "as同级比较"],
+  ["代词总览与分类", "代词总览"],
   ["反身代词", null],
   ["many 和 much", "可数与不可数名词"],
   ["both 和 all", "不定代词"],
@@ -59603,10 +59787,56 @@ function eqDialogLearn(){
       '<div style="margin-bottom:12px;">' + statusHtml + '</div>' +
       '<div class="eq-tip">💡 ' + l.tip + '</div>' +
       '<div class="eq-cap-bubble">' + l.body + '</div>' +
-      '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' +
+      (l.book ? '<div class="eq-book"><div class="eq-book-title">📖 教材精讲（《小学英语语法100例》）</div>' + eqRenderBook(l.book) + '</div>' : '') +
+      (l.say ? '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' : '') +
       '<div class="eq-ex-box">' + exHtml + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">' + quizBtn + kpBtn + nextBtn + '</div>' +
     '</div>';
+}
+
+/* 把 book 文本拆成教学卡片：按【标题】分段，英文例句自动加朗读按钮 */
+function eqRenderBook(book){
+  if (!book) return "";
+  /* 按【标题】拆分 */
+  var parts = book.split(/【([^】]+)】/);
+  if (parts.length <= 1){
+    /* 没有【标题】结构，整段增强 */
+    return eqEnhanceBookText(book);
+  }
+  var html = "";
+  for (var i = 1; i < parts.length; i += 2){
+    var title = parts[i];
+    var content = parts[i + 1] || "";
+    html += '<div class="eq-book-card">' +
+      '<div class="eq-book-card-title">📌 ' + title + '</div>' +
+      '<div class="eq-book-card-body">' + eqEnhanceBookText(content) + '</div>' +
+    '</div>';
+  }
+  /* 前导文本（【标题】之前的内容） */
+  if (parts[0] && parts[0].trim()){
+    html = '<div class="eq-book-card-body">' + eqEnhanceBookText(parts[0]) + '</div>' + html;
+  }
+  return html;
+}
+
+/* 增强 book 文本：按 <br> 分行，英文引号例句加朗读按钮，①②③ 分点高亮 */
+function eqEnhanceBookText(text){
+  var lines = text.split(/<br\s*\/?>/i).filter(function(l){ return l.trim(); });
+  return lines.map(function(line){
+    var t = line.trim();
+    /* 英文引号例句加朗读按钮 */
+    t = t.replace(/"([^"]{2,})"/g, function(m, en){
+      if (/[a-zA-Z]/.test(en) && en.length > 3){
+        return '"<span class="eq-book-en">' + en + '</span>"<button class="eq-say sm" type="button" onclick="eqSpeak(this)" data-en="' + en.replace(/"/g, "&quot;") + '" title="听发音">🔊</button>';
+      }
+      return m;
+    });
+    /* ①②③ 开头的分点行加高亮 */
+    if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(t)){
+      return '<div class="eq-book-point">' + t + '</div>';
+    }
+    return '<div class="eq-book-line">' + t + '</div>';
+  }).join("");
 }
 
 function eqSpeak(btn){
@@ -59674,8 +59904,12 @@ function eqAnswer(btn){
     eqState().coins += gain;
     eqFloatCoin("+" + gain + " 🪙");
     if (EQ_SESSION.combo >= 2) eqShowCombo(EQ_SESSION.combo);
-    fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
-      '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain + " · 🔥 连击 ×" + EQ_SESSION.combo, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: eqNextQ });
+    } else {
+      fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
+        '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
+    }
   } else {
     if (typeof fxAnswer === "function") fxAnswer(false);
     btn.classList.add("no");
@@ -59683,8 +59917,12 @@ function eqAnswer(btn){
     EQ_SESSION.combo = 0;
     EQ_SESSION.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("grammar", { q: q.q, o: q.o, a: q.a, why: q.why, source: EQ_SESSION.lesson.t });
-    fb.innerHTML = '<div class="eq-fb no">❌ 再想想：' + q.why + '</div>' +
-      '<button class="eq-again-btn" type="button" onclick="eqNextQ()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: eqNextQ });
+    } else {
+      fb.innerHTML = '<div class="eq-fb no">❌ 再想想：' + q.why + '</div>' +
+        '<button class="eq-again-btn" type="button" onclick="eqNextQ()">继续 →</button>';
+    }
   }
   saveS();
 }
@@ -59769,7 +60007,6 @@ function eqSwitchTab(tab){
   document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
   document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
   document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
-  document.getElementById('eqSubBlank').style.display = tab === 'blank' ? '' : 'none';
   document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
@@ -59778,253 +60015,12 @@ function eqSwitchTab(tab){
   if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
   if (tab === 'exam' && typeof ppRender === "function") ppRender();
-  if (tab === 'blank' && typeof bqRender === "function") bqRender();
   if (tab === 'errbook' && typeof ebRender === "function") ebRender();
 }
 
 window.addEventListener("load", function(){
   if (document.getElementById("eqChapters")) eqRender();
 });
-</script>
-  <script>
-/* ---------------- 英语选择填空 · 做题模块 blank-quest.js ----------------
- * 「✅ 选择填空」子模块：按章节练习 BLANK_QUESTIONS（data/english-blank.js）。
- * 交互规则（家长指定）：
- *   1. 作答或点「直接看答案」后弹出全屏大字答案浮层，正确答案放大显示；
- *   2. 浮层里的「下一题」按钮倒计时锁定：答对 3 秒、答错/看答案 6 秒后才亮起；
- *   3. 浮层无关闭按钮、无其他前进入口，必须看完答案才能进下一题（答错停留更久）；
- *   4. 做完出成绩和错题本（错题答案同样大字显示），可只重做错题。
- * 进度为当次会话有效，不写入 S 全局状态；函数全部 bq 前缀，避免冲突。
- */
-var BQ_WAIT_OK = 3;   /* 答对后强制停留秒数 */
-var BQ_WAIT_BAD = 6;  /* 答错 / 直接看答案后强制停留秒数 */
-var BQ_LETTERS = ["A", "B", "C", "D"];
-
-var bqQueue = [], bqPos = 0, bqResults = {}, bqLastWrong = [];
-var bqAnswered = false, bqPicked = null, bqTimer = null, bqReady = false, bqIsLast = false;
-
-function bqChName(chId) {
-  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
-    if (BLANK_CHAPTERS[i].id === chId) return BLANK_CHAPTERS[i].name;
-  }
-  return "";
-}
-function bqChips(qi) {
-  var q = BLANK_QUESTIONS[qi];
-  return '<span class="bq-chip bq-chip-ch">第' + q.ch + '章 · ' + bqChName(q.ch) + '</span>' +
-    '<span class="bq-chip bq-chip-tag">考点：' + q.tag + '</span>' +
-    '<span class="bq-chip">' + q.src + '</span>';
-}
-function bqCountCorrect() {
-  var n = 0;
-  for (var i = 0; i < bqPos; i++) { if (bqResults[bqQueue[i]] && bqResults[bqQueue[i]].ok) n++; }
-  return n;
-}
-
-/* ---------- 开始面板（子模块页） ---------- */
-function bqRender() {
-  var box = document.getElementById("eqSubBlank");
-  if (!box || typeof BLANK_QUESTIONS === "undefined") return;
-  var rows = "";
-  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
-    var c = BLANK_CHAPTERS[i], n = 0;
-    for (var j = 0; j < BLANK_QUESTIONS.length; j++) { if (BLANK_QUESTIONS[j].ch === c.id) n++; }
-    rows += '<div class="bq-chrow"><span>第' + c.id + '章 ' + c.name + '</span><b>' + n + ' 题</b></div>';
-  }
-  var rules = '<div class="bq-rules">' +
-    '<p>① 每题先自己作答，不会做可点「直接看答案」；</p>' +
-    '<p>② 答案用<b>大字浮层</b>显示：答对停留 ' + BQ_WAIT_OK + ' 秒、答错停留 ' + BQ_WAIT_BAD + ' 秒，「下一题」才亮起；</p>' +
-    '<p>③ 浮层没有关闭按钮 —— <b>必须看完答案才能进下一题</b>，错题停留更久；</p>' +
-    '<p>④ 做完出成绩和错题本，可以只重做错题。</p></div>';
-  var redo = bqLastWrong.length
-    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>'
-    : "";
-  box.innerHTML =
-    '<div class="bq-panel">' +
-      '<p class="bq-total">共 <b>' + BLANK_QUESTIONS.length + '</b> 题 · ' + BLANK_CHAPTERS.length + ' 个语法章节</p>' +
-      rules +
-      '<div class="bq-chlist">' + rows + '</div>' +
-      '<div class="bq-btnrow"><button class="bq-btn" type="button" onclick="bqStartAll()">开始刷题 ▶</button>' + redo + '</div>' +
-    '</div>';
-}
-
-/* ---------- 流程控制 ---------- */
-function bqStartAll() {
-  bqQueue = []; for (var i = 0; i < BLANK_QUESTIONS.length; i++) bqQueue.push(i);
-  bqPos = 0; bqResults = {};
-  bqOpenDialog(); bqShowIntro();
-}
-function bqStartWrong() {
-  bqQueue = bqLastWrong.slice();
-  if (!bqQueue.length) { bqRender(); return; }
-  for (var i = 0; i < bqQueue.length; i++) delete bqResults[bqQueue[i]];
-  bqPos = 0;
-  bqOpenDialog(); bqShowIntro();
-}
-function bqOpenDialog() {
-  var mask = document.getElementById("bqDialogMask");
-  if (!mask) return;
-  mask.classList.add("open");
-  document.body.style.overflow = "hidden";
-}
-function bqClose() {
-  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
-  var m1 = document.getElementById("bqDialogMask"), m2 = document.getElementById("bqAnsMask");
-  if (m1) m1.classList.remove("open");
-  if (m2) m2.classList.remove("open");
-  document.body.style.overflow = "";
-  bqRender();
-}
-function bqDlgHead(title) {
-  return '<div class="eq-dlg-head"><span class="eq-cap">✅ 选择填空</span>' +
-    '<h3>' + title + '</h3>' +
-    '<button class="eq-close" type="button" onclick="bqClose()">×</button></div>';
-}
-
-function bqShowIntro() {
-  var dlg = document.getElementById("bqDialog");
-  if (!dlg) return;
-  var qi = bqQueue[bqPos], chId = BLANK_QUESTIONS[qi].ch, n = 0;
-  for (var i = bqPos; i < bqQueue.length; i++) { if (BLANK_QUESTIONS[bqQueue[i]].ch === chId) n++; }
-  dlg.innerHTML = bqDlgHead(bqChName(chId)) +
-    '<div class="bq-body bq-intro">' +
-      '<div class="bq-chnum">第 ' + chId + ' 章</div>' +
-      '<p class="bq-muted">本章共 ' + n + ' 题 · 先自己作答，再看大字答案</p>' +
-      '<button class="bq-btn" type="button" onclick="bqShowQuestion()">开始本章 ▶</button>' +
-    '</div>';
-}
-
-function bqShowQuestion() {
-  bqAnswered = false; bqPicked = null;
-  var dlg = document.getElementById("bqDialog");
-  if (!dlg) return;
-  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
-  var correct = bqCountCorrect(), wrong = bqPos - correct;
-  var pct = Math.round(bqPos / bqQueue.length * 100);
-  var opts = "";
-  for (var i = 0; i < q.opts.length; i++) {
-    opts += '<button class="bq-opt" type="button" onclick="bqPick(' + i + ')">' +
-      '<span class="bq-lt">' + BQ_LETTERS[i] + '</span><span>' + q.opts[i] + '</span></button>';
-  }
-  dlg.innerHTML = bqDlgHead('第 ' + (bqPos + 1) + ' / ' + bqQueue.length + ' 题') +
-    '<div class="bq-body">' +
-      '<div class="bq-topbar">' +
-        '<span class="bq-stat okc">✓ ' + correct + '</span>' +
-        '<span class="bq-stat badc">✗ ' + wrong + '</span>' +
-        '<span class="bq-bar"><i style="width:' + pct + '%"></i></span>' +
-      '</div>' +
-      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
-      '<div class="bq-stem">' + q.stem + '</div>' +
-      '<div class="bq-opts">' + opts + '</div>' +
-      '<button class="bq-peek" type="button" onclick="bqPeek()">不会做？直接看答案 →</button>' +
-    '</div>';
-}
-
-function bqPick(i) {
-  if (bqAnswered) return;
-  bqAnswered = true; bqPicked = i;
-  var qi = bqQueue[bqPos], ok = (BLANK_QUESTIONS[qi].ans === i);
-  bqResults[qi] = { p: i, ok: ok };
-  bqAnswerOverlay(ok ? "ok" : "bad");
-}
-function bqPeek() {
-  if (bqAnswered) return;
-  bqAnswered = true; bqPicked = null;
-  bqResults[bqQueue[bqPos]] = { p: null, ok: false };
-  bqAnswerOverlay("peek");
-}
-
-/* ---------- 大字答案浮层 ---------- */
-function bqAnswerOverlay(mode) {
-  var mask = document.getElementById("bqAnsMask"), card = document.getElementById("bqAnsCard");
-  if (!mask || !card) return;
-  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
-  bqIsLast = (bqPos === bqQueue.length - 1);
-  var head = "", extra = "";
-  if (mode === "ok") {
-    head = '<div class="bq-anshead ok">回答正确 ✓</div>';
-  } else if (mode === "bad") {
-    head = '<div class="bq-anshead bad">回答错误 ✗</div>';
-    extra = '<div class="bq-yourans">你的答案：<s>' + BQ_LETTERS[bqPicked] + '. ' + q.opts[bqPicked] + '</s></div>';
-  } else {
-    head = '<div class="bq-anshead peek">正确答案</div>';
-  }
-  var wait = (mode === "ok") ? BQ_WAIT_OK : BQ_WAIT_BAD;
-  card.className = "bq-anscard " + mode;
-  card.innerHTML = head + extra +
-    '<div class="bq-anslabel">正 确 答 案</div>' +
-    '<div class="bq-big"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
-    '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
-    '<button id="bqNextBtn" class="bq-nextbtn" type="button" disabled onclick="bqNext()">⏳ ' + wait + ' 秒后可继续</button>';
-  mask.classList.add("open");
-
-  bqReady = false;
-  var left = wait;
-  bqTimer = setInterval(function () {
-    left--;
-    var b = document.getElementById("bqNextBtn");
-    if (!b) { clearInterval(bqTimer); bqTimer = null; return; }
-    if (left > 0) {
-      b.textContent = "⏳ " + left + " 秒后可继续";
-    } else {
-      clearInterval(bqTimer); bqTimer = null; bqReady = true;
-      b.disabled = false; b.classList.add("ready");
-      b.textContent = bqIsLast ? "查看成绩 ▶" : "下一题 ▶";
-    }
-  }, 1000);
-}
-
-function bqNext() {
-  if (!bqReady) return;
-  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
-  var m = document.getElementById("bqAnsMask");
-  if (m) m.classList.remove("open");
-  bqPos++;
-  if (bqPos >= bqQueue.length) { bqSummary(); return; }
-  var prevCh = BLANK_QUESTIONS[bqQueue[bqPos - 1]].ch;
-  var curCh = BLANK_QUESTIONS[bqQueue[bqPos]].ch;
-  if (prevCh !== curCh) { bqShowIntro(); } else { bqShowQuestion(); }
-}
-
-/* ---------- 成绩 + 错题本 ---------- */
-function bqSummary() {
-  var dlg = document.getElementById("bqDialog");
-  if (!dlg) return;
-  var total = bqQueue.length;
-  bqLastWrong = [];
-  for (var i = 0; i < bqQueue.length; i++) {
-    var r = bqResults[bqQueue[i]];
-    if (!r || !r.ok) bqLastWrong.push(bqQueue[i]);
-  }
-  var correct = total - bqLastWrong.length;
-  var rate = total ? Math.round(correct / total * 100) : 0;
-
-  var cards = "";
-  for (var j = 0; j < bqLastWrong.length; j++) {
-    var qi = bqLastWrong[j], q = BLANK_QUESTIONS[qi], r2 = bqResults[qi];
-    var your = (r2 && r2.p !== null && r2.p !== undefined)
-      ? BQ_LETTERS[r2.p] + ". " + q.opts[r2.p] : "未作答";
-    cards += '<div class="bq-wcard">' +
-      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
-      '<div class="bq-stem">' + q.stem + '</div>' +
-      '<div class="bq-yourans">你的答案：<s>' + your + '</s></div>' +
-      '<div class="bq-big sm"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
-      '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
-    '</div>';
-  }
-  var redoBtn = bqLastWrong.length
-    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>' : "";
-  dlg.innerHTML = bqDlgHead("练习完成 🎉") +
-    '<div class="bq-body bq-center">' +
-      '<div class="bq-score"><span class="bq-num">' + correct + '</span><span class="bq-slash"> / ' + total + '</span></div>' +
-      '<p class="bq-muted">正确率 ' + rate + '% · 错题 ' + bqLastWrong.length + ' 题（正确答案大字显示）</p>' +
-      '<div class="bq-btnrow">' + redoBtn +
-        '<button class="bq-btn" type="button" onclick="bqStartAll()">全部重做</button>' +
-      '</div>' +
-    '</div>' +
-    (bqLastWrong.length ? cards : "");
-}
-
 </script>
   <script>
 /* ---------------- 英语词汇大冒险 vocab-quest.js ----------------
@@ -60194,7 +60190,7 @@ function vqAnswer(btn){
     btn.classList.add("no");
     opts[q.ans].classList.add("ok");
     if (typeof errBookAdd === "function") errBookAdd("vocab", { q: q.q + " = ?", o: q.opts, a: q.ans, why: q.word.en + " 的意思是 " + q.word.zh, source: q.word.en });
-    vqWrong(q.word.en + " = " + q.word.zh);
+    vqWrong(q.word.en + " = " + q.word.zh, q.opts[i]);
   }
 }
 
@@ -60222,7 +60218,7 @@ function vqCheckSpell(){
       var ansIdx = opts.indexOf(q.word.en);
       errBookAdd("vocab", { q: "拼写：" + q.word.zh + " [" + q.word.pos + "]", o: opts, a: ansIdx, why: "正确拼写：" + q.word.en, source: q.word.en });
     }
-    vqWrong("正确：" + q.word.en + " = " + q.word.zh);
+    vqWrong("正确：" + q.word.en + " = " + q.word.zh, ans);
   }
 }
 
@@ -60230,20 +60226,35 @@ function vqCorrect(){
   VQ_SESSION.combo++;
   var gain = VQ_COIN_PER_Q * (1 + Math.floor(VQ_SESSION.combo / 3));
   vqState().coins += gain;
-  vqState().learned[VQ_SESSION.quizList[VQ_SESSION.idx].word.en] = true;
+  var w = VQ_SESSION.quizList[VQ_SESSION.idx].word;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  vqState().learned[w.en] = true;
   var fb = document.getElementById("vqFeedback");
-  fb.innerHTML = '<div class="vq-fb ok">✅ 正确！+🪙' + gain + '</div>' +
-    '<button class="vq-next-btn" type="button" onclick="vqNext()">下一题 →</button>';
+  if (typeof aoShow === "function"){
+    aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }), bigHtml: aoBig("", w.en + " · " + w.zh), onNext: vqNext });
+  } else {
+    fb.innerHTML = '<div class="vq-fb ok">✅ 正确！+🪙' + gain + '</div>' +
+      '<button class="vq-next-btn" type="button" onclick="vqNext()">下一题 →</button>';
+  }
   saveS();
   if (typeof portalRenderTopbar === "function") portalRenderTopbar();
 }
 
-function vqWrong(hint){
+function vqWrong(hint, pickText){
   VQ_SESSION.combo = 0;
   VQ_SESSION.wrong++;
+  var w = VQ_SESSION.quizList[VQ_SESSION.idx].word;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  var pi = (quiz.opts && pickText) ? quiz.opts.indexOf(pickText) : -1;
   var fb = document.getElementById("vqFeedback");
-  fb.innerHTML = '<div class="vq-fb no">❌ ' + hint + '</div>' +
-    '<button class="vq-next-btn" type="button" onclick="vqNext()">继续 →</button>';
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false,
+      qHtml: pi >= 0 ? aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }, pi) : aoQHtml({ q: quiz.q || ("拼写：" + w.zh + " [" + (w.pos || "") + "]") }),
+      bigHtml: aoBig("", w.en + " = " + w.zh), userHtml: pickText ? aoEsc(pickText) : "", onNext: vqNext });
+  } else {
+    fb.innerHTML = '<div class="vq-fb no">❌ ' + hint + '</div>' +
+      '<button class="vq-next-btn" type="button" onclick="vqNext()">继续 →</button>';
+  }
   saveS();
 }
 
@@ -60444,8 +60455,12 @@ function rqAnswer(btn){
     RQ_SESSION.combo++;
     var gain = RQ_COIN_PER_Q * (1 + Math.floor(RQ_SESSION.combo / 3));
     rqState().coins += gain;
-    fb.innerHTML = '<div class="rq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
-      '<button class="rq-next-btn" type="button" onclick="rqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: rqNext });
+    } else {
+      fb.innerHTML = '<div class="rq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+        '<button class="rq-next-btn" type="button" onclick="rqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -60454,8 +60469,12 @@ function rqAnswer(btn){
     RQ_SESSION.combo = 0;
     RQ_SESSION.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("reading", { q: q.q, o: q.o, a: q.a, why: q.why, source: RQ_SESSION.passage.title });
-    fb.innerHTML = '<div class="rq-fb no">❌ ' + q.why + '</div>' +
-      '<button class="rq-next-btn" type="button" onclick="rqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: rqNext });
+    } else {
+      fb.innerHTML = '<div class="rq-fb no">❌ ' + q.why + '</div>' +
+        '<button class="rq-next-btn" type="button" onclick="rqNext()">继续 →</button>';
+    }
     saveS();
   }
 }
@@ -61827,7 +61846,12 @@ var QT_OPTIONS = [
   { v: "writing", label: "✍️ 作文" }
 ];
 function qtLabel(t){ return QT_LABELS[t] || QT_LABELS.choice; }
-function qtTypeOf(q){ return (q && q.type) || "choice"; }
+/* 判断题在渲染与判分层等同两选项选择题（正/误），统一按 choice 走；
+ * 导入层（bank-admin）仍保留 judge 类型名用于标签与校验 */
+function qtTypeOf(q){
+  var t = (q && q.type) || "choice";
+  return t === "judge" ? "choice" : t;
+}
 
 /* 归一化：小写、去首尾空格、折叠空格、去常见标点（判题宽松） */
 function qtNorm(s){
@@ -62154,6 +62178,189 @@ function qtAnswerText(q){
 
 </script>
   <script>
+/* ---------------- 大字答案浮层 answer-overlay.js ----------------
+ * 所有答题引擎共用的「答案展示 + 前进锁定」浮层：
+ *   1. 作答后弹出全屏浮层，正确答案超大字显示，答错同时划线展示错选；
+ *   2. 浮层里唯一的「下一题」按钮倒计时锁定：答对 3 秒、答错 6 秒后才亮起；
+ *   3. 两条路都可走：点「← 返回原题」关掉浮层回题目界面慢慢看（右下角会出现
+ *      悬浮「下一题 ▶」，看完随时点它继续）；或直接等倒计时点浮层里的「下一题」；
+ *   4. 引擎的判分、金币、连击、错题本逻辑不变，只接管「展示答案 + 前进」。
+ * 引擎里均以 typeof aoShow === "function" 判断启用，未加载时退回原行内反馈。
+ * 可调参数：AO_WAIT_OK / AO_WAIT_BAD（秒）。
+ */
+var AO_WAIT_OK = 3;
+var AO_WAIT_BAD = 6;
+var aoTimer = null, aoReady = false, aoOnNext = null;
+
+function aoKillPill(){
+  var p = document.getElementById("aoPill");
+  if (p) p.remove();
+}
+/* 返回原题后，右下角悬浮「下一题」按钮（已看过答案，不再锁定） */
+function aoShowPill(){
+  aoKillPill();
+  var d = document.createElement("div");
+  d.id = "aoPill";
+  d.innerHTML = '<button class="ao-pillbtn" type="button" onclick="aoResume()">下一题 ▶</button>';
+  document.body.appendChild(d);
+}
+/* 关闭浮层、回到原题界面（不清空 onNext，之后仍可前进） */
+function aoBack(){
+  try{
+    if (aoTimer){ clearInterval(aoTimer); aoTimer = null; }
+    var m = document.getElementById("aoMask");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+    aoShowPill();
+  }catch(e){}
+}
+/* 悬浮按钮前进，与 aoNext 等效 */
+function aoResume(){
+  if (!aoReady) return;
+  aoKillPill();
+  var f = aoOnNext; aoOnNext = null; aoReady = false;
+  if (typeof f === "function") f();
+}
+
+function aoMask(){
+  var m = document.getElementById("aoMask");
+  if (!m){
+    m = document.createElement("div");
+    m.id = "aoMask";
+    m.className = "eq-mask ao-mask";
+    m.innerHTML = '<div class="ao-card" id="aoCard"></div>';
+    document.body.appendChild(m);
+  }
+  return m;
+}
+
+/* 大字答案排版：letter 是选项字母（可为空），text 是答案内容 */
+function aoBig(letter, text){
+  return '<span class="ao-letter">' + letter + '</span>' +
+         '<span class="ao-atext">' + (letter ? ". " : "") + text + '</span>';
+}
+function aoEsc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+/* 题库类题目（choice/fill/cloze/reading）的正确答案大字 */
+function aoBigAns(q){
+  if (qtTypeOf(q) === "choice"){
+    return aoBig(String.fromCharCode(65 + q.a), q.o && q.o[q.a] != null ? q.o[q.a] : "");
+  }
+  return aoBig("", (typeof qtAnswerText === "function") ? qtAnswerText(q) : "");
+}
+/* 用户错选的小字展示（划线用） */
+function aoUserPick(q, input){
+  if (qtTypeOf(q) === "choice"){
+    if (typeof input === "number" && input >= 0 && q.o && q.o[input] != null){
+      return aoEsc(String.fromCharCode(65 + input) + " " + q.o[input]);
+    }
+    return "未作答";
+  }
+  return input != null && input !== "" ? aoEsc(String(input)) : "未作答";
+}
+
+/* 原题回显：题干 + 选项列表，答对项标绿 ✓、错选项标红 ✗。
+ * q 至少含 { q:题干, o:[选项], a:正确下标 }；input 是用户选择（选项下标或填空文本，可为空）。
+ * 只传题干（写作题等）时不渲染选项。 */
+function aoQHtml(q, input){
+  if (!q) return "";
+  var stem = q.q || q.passage || "";
+  if (!stem) return "";
+  var html = '<div class="ao-qtitle">原题</div><div class="ao-qstem">' + aoEsc(stem) + '</div>';
+  if (q.o && q.o.length){
+    var rows = "";
+    for (var k = 0; k < q.o.length; k++){
+      var cls = "ao-qopt", mark = "";
+      if (typeof q.a === "number" && k === q.a){ cls += " good"; mark = " ✓"; }
+      else if (typeof input === "number" && k === input){ cls += " no"; mark = " ✗"; }
+      rows += '<div class="' + cls + '"><b>' + String.fromCharCode(65 + k) + '</b>' +
+              '<span>' + aoEsc(q.o[k]) + '</span>' +
+              (mark ? '<em class="ao-mark">' + mark + '</em>' : '') +
+            '</div>';
+    }
+    html += '<div class="ao-qopts">' + rows + '</div>';
+  }
+  return '<div class="ao-q">' + html + '</div>';
+}
+
+function aoShow(opts){
+  try{
+    aoKillPill();
+    var m = aoMask();
+    var card = document.getElementById("aoCard");
+    var ok = !!opts.ok;
+    var cls = opts.cardClass || (ok ? "ok" : "bad");
+    var head = opts.head || (ok ? "回答正确 ✓" : "回答错误 ✗");
+    var wait = opts.wait || (ok ? AO_WAIT_OK : AO_WAIT_BAD);
+    var hasWhy = !!opts.whyHtml;
+    var html = '<button class="ao-backbtn" type="button" onclick="aoBack()" title="关闭浮层，返回原题界面">← 返回原题</button>' +
+               '<div class="ao-anshead ' + cls + '">' + head + '</div>';
+    if (opts.sub) html += '<div class="ao-sub">' + opts.sub + '</div>';
+    if (opts.qHtml) html += opts.qHtml;
+    if (opts.userHtml) html += '<div class="ao-yourans">你的答案：<s>' + opts.userHtml + '</s></div>';
+    if (opts.bigHtml){
+      html += '<div class="ao-anslabel">正 确 答 案</div>' +
+              '<div class="ao-big">' + opts.bigHtml + '</div>';
+    }
+    if (opts.whyHtml) html += '<div class="ao-exp" id="aoExpBox"><div class="ao-exp-inner">💡 解析：' + opts.whyHtml + '</div><button class="ao-readok-btn" type="button" id="aoReadOkBtn" onclick="aoReadOk()" style="display:none;">✅ 我已看懂</button></div>';
+    if (opts.extraHtml) html += '<div class="ao-extra">' + opts.extraHtml + '</div>';
+    html += '<button id="aoNextBtn" class="ao-nextbtn" type="button" disabled onclick="aoNext()">⏳ ' + wait + ' 秒后可继续</button>';
+    card.className = "ao-card " + cls;
+    card.innerHTML = html;
+    m.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    aoReady = false; aoOnNext = opts.onNext || null;
+    if (aoTimer) clearInterval(aoTimer);
+    var left = wait;
+    aoTimer = setInterval(function(){
+      left--;
+      var b = document.getElementById("aoNextBtn");
+      if (!b){ clearInterval(aoTimer); aoTimer = null; return; }
+      if (left > 0){
+        b.textContent = "⏳ " + left + " 秒后可继续" + (hasWhy ? "（必须看解析）" : "");
+      } else {
+        clearInterval(aoTimer); aoTimer = null;
+        if (hasWhy){
+          b.textContent = "⚠️ 请先点击解析区的「我已看懂」";
+          var rbtn = document.getElementById("aoReadOkBtn");
+          if (rbtn) rbtn.style.display = "block";
+        } else {
+          aoReady = true;
+          b.disabled = false; b.classList.add("ready");
+          b.textContent = "下一题 ▶";
+        }
+      }
+    }, 1000);
+  }catch(e){}
+}
+
+function aoReadOk(){
+  var rbtn = document.getElementById("aoReadOkBtn");
+  if (rbtn) rbtn.textContent = "✅ 已看懂";
+  aoReady = true;
+  var b = document.getElementById("aoNextBtn");
+  if (b){
+    b.disabled = false;
+    b.classList.add("ready");
+    b.textContent = "下一题 ▶";
+  }
+}
+function aoNext(){
+  if (!aoReady) return;
+  aoReady = false;
+  aoKillPill();
+  if (aoTimer){ clearInterval(aoTimer); aoTimer = null; }
+  var m = document.getElementById("aoMask");
+  if (m) m.classList.remove("open");
+  var f = aoOnNext; aoOnNext = null;
+  if (typeof f === "function") f();
+}
+
+</script>
+  <script>
 /* ---------------- 答题动效 answer-fx.js ----------------
  * 每次答题后的全屏轻动效：
  *   答对 → 彩纸雨 + 蹦出来的鼓励语（🎉🌟🎊）
@@ -62315,9 +62522,17 @@ function xqAnswer(){
     XQ_SESSION.combo++;
     var gain = XQ_COIN_PER_Q * (1 + Math.floor(XQ_SESSION.combo / 3));
     xqState().coins += gain;
-    fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
-      (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
-      '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: true, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "+🪙" + gain, qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: xqNext });
+      } else {
+        aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: xqNext });
+      }
+    } else {
+      fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+        (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
+        '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -62333,8 +62548,16 @@ function xqAnswer(){
         why: q.why, source: p.name
       });
     }
-    fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
-      '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: false, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "写满 20 词以上才算过关哦", qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: xqNext });
+      } else {
+        aoShow({ ok: false, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), userHtml: aoUserPick(q, input), whyHtml: q.why, onNext: xqNext });
+      }
+    } else {
+      fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
+        '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
+    }
     saveS();
   }
 }
@@ -62632,19 +62855,30 @@ function ebAnswer(){
     var willDormant = it.correctStreak >= EB_DORMANT_THRESHOLD && (it.status || "active") === "active";
     if (willDormant) it.status = "dormant";
     saveS();
-    var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
-    if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
-    else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
-    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
-      '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      var notice = "";
+      if (willDormant) notice = "🎉 连续答对 " + EB_DORMANT_THRESHOLD + " 次，这道题已沉没！";
+      else if (it.correctStreak > 0) notice = "连续答对 " + it.correctStreak + "/" + EB_DORMANT_THRESHOLD + " 次，再答对 " + (EB_DORMANT_THRESHOLD - it.correctStreak) + " 次就沉没";
+      aoShow({ ok: true, sub: notice, qHtml: aoQHtml(it), bigHtml: aoBigAns(it), whyHtml: it.why, extraHtml: sampleHtml, onNext: ebNext });
+    } else {
+      var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
+      if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
+      else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
+      fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
+        '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
+    }
   } else {
     it.count = (it.count || 1) + 1;
     it.correctStreak = 0;
     it.status = "active";
     saveS();
-    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
-    fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
-      '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(it, input), bigHtml: aoBigAns(it), userHtml: aoUserPick(it, input), whyHtml: it.why, extraHtml: sampleHtml, onNext: ebNext });
+    } else {
+      var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+      fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
+        '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
+    }
   }
 }
 
@@ -62964,18 +63198,26 @@ function teAnswer(){
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
     if (q.id){ if (!S.examPass) S.examPass = {}; S.examPass[q.id] = 1; }
-    var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
-    fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
-      (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
-      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
-      '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: true, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "+🪙" + gain, qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: teNext });
+      } else {
+        aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: teNext });
+      }
+    } else {
+      var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
+      fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+        (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
+        (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
+        '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
     if (qType !== "writing" && typeof fxAnswer === "function") fxAnswer(false);
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
-    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    var showTxt2 = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
     if (typeof errBookAdd === "function"){
       errBookAdd(TE_SESSION.module, {
         q: q.q || q.passage || "", type: qType,
@@ -62985,11 +63227,19 @@ function teAnswer(){
         why: q.why, source: TE_SESSION.topicName + " 专题真题"
       });
     }
-    var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
-    fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
-      (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
-      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
-      '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: false, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "写满 20 词以上才算过关哦", qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: teNext });
+      } else {
+        aoShow({ ok: false, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), userHtml: aoUserPick(q, input), whyHtml: q.why, onNext: teNext });
+      }
+    } else {
+      var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
+      fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt2 +
+        (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
+        (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
+        '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
+    }
     saveS();
   }
 }
@@ -63746,12 +63996,18 @@ function baGuessSubject(text){
   return { subject: "other", reason: "未识别出明显科目特征" };
 }
 
+/* 「空 + 括号提示词」结构：__________(make) / （make）______ —— 这是「用所给词适当形式填空」的标志性格式，
+ * 判断题永远不会长这样，出现它就按填空题处理（防止解析里提到「正确/错误」时被误判成判断题） */
+var BA_FILL_HINT_RE = /_{2,}\s*[（(][A-Za-z][^）)]*[）)]|[（(][A-Za-z][^）)]*[）)]\s*_{2,}/;
+
 /* 识别题型 */
 function baGuessQType(text){
   var optCount = (text.match(/[A-D][\.、．]/g) || []).length;
   var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空|汉译英|英译汉|改错|适当形式|翻译|句型转换|按要求改写|完成句子|补全/.test(text);
   var hasCloze = /(选词填空|方框.*词|用方框|词库)/.test(text) && hasFill;
-  var hasJudge = /判断题|对\s*错|正确.*错误|√|×|(?:^|[（(])\s*[TF]\s*[）)]|答案[：:]\s*[TF]\s*(?:[、，]|$)/i.test(text);
+  /* 判断题证据必须是强信号：字面「判断题/判断正误」、√×、(T/F)、答案T/F、或选项里明确列着「A. 正确 B. 错误」。
+   * 不能用「正确.*错误」这种宽匹配——填空题的解析里常出现「这样写才正确、那样写是错误」，会误伤 */
+  var hasJudge = /判断题|判断正误|判断对错|√|×|(?:^|[（(])\s*[TF]\s*[）)]|答案[：:]\s*[TF]\s*(?:[、，]|$)|[A-D][\.、．]\s*(正确|错误|对|错)(?![a-zA-Z])/.test(text);
   var hasSolve = /(解答|计算|证明|求\s|试求|解方程|列式)/.test(text);
   var hasEssay = /(作文|写作|范文|以「|以"|题目：|不少于.*字|写一篇)/.test(text);
   var hasReading = /(阅读|读下面|读以下|根据短文|根据文章| passage|Read the)/i.test(text);
@@ -63762,6 +64018,8 @@ function baGuessQType(text){
   if (hasCloze) return "cloze";
   if (optCount >= 2 && ansMulti) return "multi";
   if (optCount >= 4) return "single";
+  /* 空里带括号提示词（如 __________(make)）→ 一定是适当形式填空，优先于判断/普通填空判断 */
+  if (BA_FILL_HINT_RE.test(text)) return "fill";
   if (hasJudge) return "judge";
   if (hasFill) return "fill";
   if (hasSolve) return "solve";
@@ -63851,7 +64109,11 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
   var fullText = lines.join("\n");
   var qType;
   if (forceType) qType = forceType;
-  else if (sectionType && sectionType !== "single") qType = sectionType;
+  else if (sectionType && sectionType !== "single"){
+    qType = sectionType;
+    /* 大题标题说「判断」，但题干长着「空+括号提示词」的填空脸 → 按填空处理（判断题不会有 __________(make)） */
+    if (qType === "judge" && BA_FILL_HINT_RE.test(fullText)) qType = "fill";
+  }
   else qType = baGuessQType(fullText);
   /* 旧题型名统一映射到新题型体系 */
   if (qType === "choice") qType = "single";
@@ -64001,6 +64263,7 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:3, name:"人称代词主格宾格", how:/主格|宾格|人称代词/, opts:/^(I|he|she|they|we|him|her|them|us|me)$/i },
   { module:"grammar", topicId:3, name:"指示代词", how:/指示代词/, opts:/^(this|that|these|those)$/i },
   { module:"grammar", topicId:3, name:"不定代词", how:/不定代词/, opts:/^(some|any|each|every|both|all|either|neither|something|anything|nothing|nobody|everyone)$/i },
+  { module:"grammar", topicId:3, name:"代词总览", how:/代词总览|代词分类|代词家族|六大类/, opts:null },
   /* ---- 第4章 数词矿井 ---- */
   { module:"grammar", topicId:4, name:"序数词", how:/序数词/, howQ:/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|twelfth|twentieth)\b/i },
   { module:"grammar", topicId:4, name:"基数词", how:/基数词|hundred|thousand/, howQ:/\b(hundred|thousand)\b|\d{2,}\s*[个只本名岁]|用英语.*(数字|数词)/i },
@@ -64026,7 +64289,7 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:9, name:"情态动词", how:/情态动词/, opts:/^(can|could|must|should|may)$/i },
   { module:"grammar", topicId:9, name:"一般现在时", how:/一般现在时/, howQ:/\b(every day|every week|usually|always|often)\b/i },
   /* ---- 第10章 进行时码头 ---- */
-  { module:"grammar", topicId:10, name:"现在进行时", how:/现在进行时|进行时/, howQ:/\b(now|Look!|Listen!|right now|at the moment)\b|\bis\s+\w+ing\b|\bare\s+\w+ing\b/i, opts:/ing$/i },
+  { module:"grammar", topicId:10, name:"现在进行时", how:/现在进行时|进行时/, howQ:/\b(now|Look!|Listen!|right now|at the moment)\b|\bIt'?s\s+\d{1,2}\s*[:：]?\d*\b|\bis\s+\w+ing\b|\bare\s+\w+ing\b/i, opts:/ing$/i },
   { module:"grammar", topicId:10, name:"动词ing形式", how:/ing形式|现在分词|双写.*ing|去e加ing/, opts:/\w+ing/i },
   /* ---- 第11章 时光列车 ---- */
   { module:"grammar", topicId:11, name:"一般过去时", how:/过去式|过去时/, howQ:/\b(yesterday|last (week|night|month|year|Sunday)|ago)\b|\bwas\b|\bwere\b|\b(went|saw|ate|had|did|took|made|came|got|bought|read|wrote)\b/i },
@@ -64055,13 +64318,19 @@ var BA_KNOWLEDGE_MAP = [
 function baDetectKnowledge(why, qText, opts){
   var optText = (opts || []).join(" ");
   var qo = (qText || "") + " " + optText;
+  /* 题干带「空+括号提示词」（如 __________(make)）时，考的是括号里那个词的形式；
+   * 句中其它名词的特征（如 children 是复数）只是背景，不当考点 */
+  var hintVerb = qText && BA_FILL_HINT_RE.test(qText);
   for (var i = 0; i < BA_KNOWLEDGE_MAP.length; i++){
     var k = BA_KNOWLEDGE_MAP[i];
     if (k.how && why && k.how.test(why)) return { name: k.name, module: k.module, topicId: k.topicId, src: "解析" };
   }
   for (var j = 0; j < BA_KNOWLEDGE_MAP.length; j++){
     var kq = BA_KNOWLEDGE_MAP[j];
-    if (kq.howQ && qo && kq.howQ.test(qo)) return { name: kq.name, module: kq.module, topicId: kq.topicId, src: "题干" };
+    if (kq.howQ && qo && kq.howQ.test(qo)){
+      if (hintVerb && kq.module === "grammar" && kq.topicId === 1 && kq.name.indexOf("复数") > -1) continue;
+      return { name: kq.name, module: kq.module, topicId: kq.topicId, src: "题干" };
+    }
   }
   var optList = opts || [];
   for (var oi = 0; oi < optList.length; oi++){
@@ -64206,7 +64475,12 @@ function baSimpleParse(text){
       if (hasQ && hasAns){
         if (cur.o && cur.o.length >= 2 && /^[A-D]$/i.test(String(cur.ansText).trim())){
           cur.a = String(cur.ansText).trim().toUpperCase().charCodeAt(0) - 65;
-          cur.type = "choice";
+          /* 两个选项恰好是 正确/错误（或 对/错、T/F、√/×）→ 这是判断题，标成 judge，
+           * 不然会显示成普通选择题，考点和答案校验都按选择走，容易跑偏 */
+          var ol = cur.o.map(function(x){ return String(x).trim(); });
+          var isJudgePair = cur.o.length === 2 &&
+            ol.every(function(x){ return /^(正确|错误|对|错|T|F|√|×)$/i.test(x); });
+          cur.type = isJudgePair ? "judge" : "choice";
         } else {
           cur.type = "fill";
         }
@@ -64747,6 +65021,7 @@ function baRenderOptsHtml(q){
     if (qTypeShow === "writing") sum = "✍️ 作文题" + (q.tips && q.tips.length ? "（" + q.tips.length + " 个要点）" : "") + (q.sample ? "，含范文" : "");
     return '<div class="ba-preview-subj">' + sum + '</div>';
   }
+  if (!q.o || !q.o.length) return '<div class="ba-preview-subj">📝 ' + (q.ansText ? "标准答案：" + q.ansText : "文本答案") + '</div>';
   return q.o.map(function(opt, j){
     var letter = String.fromCharCode(65 + j);
     var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);

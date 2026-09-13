@@ -243,11 +243,56 @@ function eqDialogLearn(){
       '<div style="margin-bottom:12px;">' + statusHtml + '</div>' +
       '<div class="eq-tip">💡 ' + l.tip + '</div>' +
       '<div class="eq-cap-bubble">' + l.body + '</div>' +
-      (l.book ? '<div class="eq-book"><div class="eq-book-title">📖 教材精讲（《小学英语语法100例》）</div>' + l.book + '</div>' : '') +
-      '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' +
+      (l.book ? '<div class="eq-book"><div class="eq-book-title">📖 教材精讲（《小学英语语法100例》）</div>' + eqRenderBook(l.book) + '</div>' : '') +
+      (l.say ? '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' : '') +
       '<div class="eq-ex-box">' + exHtml + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">' + quizBtn + kpBtn + nextBtn + '</div>' +
     '</div>';
+}
+
+/* 把 book 文本拆成教学卡片：按【标题】分段，英文例句自动加朗读按钮 */
+function eqRenderBook(book){
+  if (!book) return "";
+  /* 按【标题】拆分 */
+  var parts = book.split(/【([^】]+)】/);
+  if (parts.length <= 1){
+    /* 没有【标题】结构，整段增强 */
+    return eqEnhanceBookText(book);
+  }
+  var html = "";
+  for (var i = 1; i < parts.length; i += 2){
+    var title = parts[i];
+    var content = parts[i + 1] || "";
+    html += '<div class="eq-book-card">' +
+      '<div class="eq-book-card-title">📌 ' + title + '</div>' +
+      '<div class="eq-book-card-body">' + eqEnhanceBookText(content) + '</div>' +
+    '</div>';
+  }
+  /* 前导文本（【标题】之前的内容） */
+  if (parts[0] && parts[0].trim()){
+    html = '<div class="eq-book-card-body">' + eqEnhanceBookText(parts[0]) + '</div>' + html;
+  }
+  return html;
+}
+
+/* 增强 book 文本：按 <br> 分行，英文引号例句加朗读按钮，①②③ 分点高亮 */
+function eqEnhanceBookText(text){
+  var lines = text.split(/<br\s*\/?>/i).filter(function(l){ return l.trim(); });
+  return lines.map(function(line){
+    var t = line.trim();
+    /* 英文引号例句加朗读按钮 */
+    t = t.replace(/"([^"]{2,})"/g, function(m, en){
+      if (/[a-zA-Z]/.test(en) && en.length > 3){
+        return '"<span class="eq-book-en">' + en + '</span>"<button class="eq-say sm" type="button" onclick="eqSpeak(this)" data-en="' + en.replace(/"/g, "&quot;") + '" title="听发音">🔊</button>';
+      }
+      return m;
+    });
+    /* ①②③ 开头的分点行加高亮 */
+    if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(t)){
+      return '<div class="eq-book-point">' + t + '</div>';
+    }
+    return '<div class="eq-book-line">' + t + '</div>';
+  }).join("");
 }
 
 function eqSpeak(btn){
