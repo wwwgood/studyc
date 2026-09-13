@@ -242,19 +242,30 @@ function ebAnswer(){
     var willDormant = it.correctStreak >= EB_DORMANT_THRESHOLD && (it.status || "active") === "active";
     if (willDormant) it.status = "dormant";
     saveS();
-    var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
-    if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
-    else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
-    fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
-      '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      var notice = "";
+      if (willDormant) notice = "🎉 连续答对 " + EB_DORMANT_THRESHOLD + " 次，这道题已沉没！";
+      else if (it.correctStreak > 0) notice = "连续答对 " + it.correctStreak + "/" + EB_DORMANT_THRESHOLD + " 次，再答对 " + (EB_DORMANT_THRESHOLD - it.correctStreak) + " 次就沉没";
+      aoShow({ ok: true, sub: notice, qHtml: aoQHtml(it), bigHtml: aoBigAns(it), whyHtml: it.why, extraHtml: sampleHtml, onNext: ebNext });
+    } else {
+      var msg = '✅ ' + (qType === "writing" ? "写完了！" : "正确！") + (grade.show ? ' · ' + grade.show : '') + (it.why ? ' · ' + it.why : '');
+      if (willDormant) msg += '<br><span class="eb-dormant-notice">🎉 连续答对 ' + EB_DORMANT_THRESHOLD + ' 次，这道题已沉没！</span>';
+      else if (it.correctStreak > 0) msg += '<br><span class="eb-streak-notice">连续答对 ' + it.correctStreak + '/' + EB_DORMANT_THRESHOLD + ' 次，再答对 ' + (EB_DORMANT_THRESHOLD - it.correctStreak) + ' 次就沉没</span>';
+      fb.innerHTML = '<div class="eb-fb ok">' + msg + '</div>' + sampleHtml +
+        '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
+    }
   } else {
     it.count = (it.count || 1) + 1;
     it.correctStreak = 0;
     it.status = "active";
     saveS();
-    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
-    fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
-      '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(it, input), bigHtml: aoBigAns(it), userHtml: aoUserPick(it, input), whyHtml: it.why, extraHtml: sampleHtml, onNext: ebNext });
+    } else {
+      var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+      fb.innerHTML = '<div class="eb-fb no">❌ ' + showTxt + (it.why ? ' · ' + it.why : '') + '</div>' + sampleHtml +
+        '<button class="eb-next-btn" type="button" onclick="ebNext()">继续 →</button>';
+    }
   }
 }
 

@@ -648,12 +648,18 @@ function baGuessSubject(text){
   return { subject: "other", reason: "未识别出明显科目特征" };
 }
 
+/* 「空 + 括号提示词」结构：__________(make) / （make）______ —— 这是「用所给词适当形式填空」的标志性格式，
+ * 判断题永远不会长这样，出现它就按填空题处理（防止解析里提到「正确/错误」时被误判成判断题） */
+var BA_FILL_HINT_RE = /_{2,}\s*[（(][A-Za-z][^）)]*[）)]|[（(][A-Za-z][^）)]*[）)]\s*_{2,}/;
+
 /* 识别题型 */
 function baGuessQType(text){
   var optCount = (text.match(/[A-D][\.、．]/g) || []).length;
   var hasFill = /____|＿＿|（\s*）|\(\s*\)|〔\s*〕|填空|汉译英|英译汉|改错|适当形式|翻译|句型转换|按要求改写|完成句子|补全/.test(text);
   var hasCloze = /(选词填空|方框.*词|用方框|词库)/.test(text) && hasFill;
-  var hasJudge = /判断题|对\s*错|正确.*错误|√|×|(?:^|[（(])\s*[TF]\s*[）)]|答案[：:]\s*[TF]\s*(?:[、，]|$)/i.test(text);
+  /* 判断题证据必须是强信号：字面「判断题/判断正误」、√×、(T/F)、答案T/F、或选项里明确列着「A. 正确 B. 错误」。
+   * 不能用「正确.*错误」这种宽匹配——填空题的解析里常出现「这样写才正确、那样写是错误」，会误伤 */
+  var hasJudge = /判断题|判断正误|判断对错|√|×|(?:^|[（(])\s*[TF]\s*[）)]|答案[：:]\s*[TF]\s*(?:[、，]|$)|[A-D][\.、．]\s*(正确|错误|对|错)(?![a-zA-Z])/.test(text);
   var hasSolve = /(解答|计算|证明|求\s|试求|解方程|列式)/.test(text);
   var hasEssay = /(作文|写作|范文|以「|以"|题目：|不少于.*字|写一篇)/.test(text);
   var hasReading = /(阅读|读下面|读以下|根据短文|根据文章| passage|Read the)/i.test(text);
@@ -664,6 +670,8 @@ function baGuessQType(text){
   if (hasCloze) return "cloze";
   if (optCount >= 2 && ansMulti) return "multi";
   if (optCount >= 4) return "single";
+  /* 空里带括号提示词（如 __________(make)）→ 一定是适当形式填空，优先于判断/普通填空判断 */
+  if (BA_FILL_HINT_RE.test(text)) return "fill";
   if (hasJudge) return "judge";
   if (hasFill) return "fill";
   if (hasSolve) return "solve";
@@ -753,7 +761,11 @@ function baParseOneQuestion(lines, subject, answerKey, qNo, sectionType, forceTy
   var fullText = lines.join("\n");
   var qType;
   if (forceType) qType = forceType;
-  else if (sectionType && sectionType !== "single") qType = sectionType;
+  else if (sectionType && sectionType !== "single"){
+    qType = sectionType;
+    /* 大题标题说「判断」，但题干长着「空+括号提示词」的填空脸 → 按填空处理（判断题不会有 __________(make)） */
+    if (qType === "judge" && BA_FILL_HINT_RE.test(fullText)) qType = "fill";
+  }
   else qType = baGuessQType(fullText);
   /* 旧题型名统一映射到新题型体系 */
   if (qType === "choice") qType = "single";
@@ -928,7 +940,7 @@ var BA_KNOWLEDGE_MAP = [
   { module:"grammar", topicId:9, name:"情态动词", how:/情态动词/, opts:/^(can|could|must|should|may)$/i },
   { module:"grammar", topicId:9, name:"一般现在时", how:/一般现在时/, howQ:/\b(every day|every week|usually|always|often)\b/i },
   /* ---- 第10章 进行时码头 ---- */
-  { module:"grammar", topicId:10, name:"现在进行时", how:/现在进行时|进行时/, howQ:/\b(now|Look!|Listen!|right now|at the moment)\b|\bis\s+\w+ing\b|\bare\s+\w+ing\b/i, opts:/ing$/i },
+  { module:"grammar", topicId:10, name:"现在进行时", how:/现在进行时|进行时/, howQ:/\b(now|Look!|Listen!|right now|at the moment)\b|\bIt'?s\s+\d{1,2}\s*[:：]?\d*\b|\bis\s+\w+ing\b|\bare\s+\w+ing\b/i, opts:/ing$/i },
   { module:"grammar", topicId:10, name:"动词ing形式", how:/ing形式|现在分词|双写.*ing|去e加ing/, opts:/\w+ing/i },
   /* ---- 第11章 时光列车 ---- */
   { module:"grammar", topicId:11, name:"一般过去时", how:/过去式|过去时/, howQ:/\b(yesterday|last (week|night|month|year|Sunday)|ago)\b|\bwas\b|\bwere\b|\b(went|saw|ate|had|did|took|made|came|got|bought|read|wrote)\b/i },
@@ -957,13 +969,19 @@ var BA_KNOWLEDGE_MAP = [
 function baDetectKnowledge(why, qText, opts){
   var optText = (opts || []).join(" ");
   var qo = (qText || "") + " " + optText;
+  /* 题干带「空+括号提示词」（如 __________(make)）时，考的是括号里那个词的形式；
+   * 句中其它名词的特征（如 children 是复数）只是背景，不当考点 */
+  var hintVerb = qText && BA_FILL_HINT_RE.test(qText);
   for (var i = 0; i < BA_KNOWLEDGE_MAP.length; i++){
     var k = BA_KNOWLEDGE_MAP[i];
     if (k.how && why && k.how.test(why)) return { name: k.name, module: k.module, topicId: k.topicId, src: "解析" };
   }
   for (var j = 0; j < BA_KNOWLEDGE_MAP.length; j++){
     var kq = BA_KNOWLEDGE_MAP[j];
-    if (kq.howQ && qo && kq.howQ.test(qo)) return { name: kq.name, module: kq.module, topicId: kq.topicId, src: "题干" };
+    if (kq.howQ && qo && kq.howQ.test(qo)){
+      if (hintVerb && kq.module === "grammar" && kq.topicId === 1 && kq.name.indexOf("复数") > -1) continue;
+      return { name: kq.name, module: kq.module, topicId: kq.topicId, src: "题干" };
+    }
   }
   var optList = opts || [];
   for (var oi = 0; oi < optList.length; oi++){
@@ -1108,7 +1126,12 @@ function baSimpleParse(text){
       if (hasQ && hasAns){
         if (cur.o && cur.o.length >= 2 && /^[A-D]$/i.test(String(cur.ansText).trim())){
           cur.a = String(cur.ansText).trim().toUpperCase().charCodeAt(0) - 65;
-          cur.type = "choice";
+          /* 两个选项恰好是 正确/错误（或 对/错、T/F、√/×）→ 这是判断题，标成 judge，
+           * 不然会显示成普通选择题，考点和答案校验都按选择走，容易跑偏 */
+          var ol = cur.o.map(function(x){ return String(x).trim(); });
+          var isJudgePair = cur.o.length === 2 &&
+            ol.every(function(x){ return /^(正确|错误|对|错|T|F|√|×)$/i.test(x); });
+          cur.type = isJudgePair ? "judge" : "choice";
         } else {
           cur.type = "fill";
         }
@@ -1649,6 +1672,7 @@ function baRenderOptsHtml(q){
     if (qTypeShow === "writing") sum = "✍️ 作文题" + (q.tips && q.tips.length ? "（" + q.tips.length + " 个要点）" : "") + (q.sample ? "，含范文" : "");
     return '<div class="ba-preview-subj">' + sum + '</div>';
   }
+  if (!q.o || !q.o.length) return '<div class="ba-preview-subj">📝 ' + (q.ansText ? "标准答案：" + q.ansText : "文本答案") + '</div>';
   return q.o.map(function(opt, j){
     var letter = String.fromCharCode(65 + j);
     var isAns = (qType === "multi" ? (Array.isArray(q.a) && q.a.indexOf(j) >= 0) : j === q.a);

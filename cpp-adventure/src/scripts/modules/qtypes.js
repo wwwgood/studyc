@@ -26,7 +26,12 @@ var QT_OPTIONS = [
   { v: "writing", label: "✍️ 作文" }
 ];
 function qtLabel(t){ return QT_LABELS[t] || QT_LABELS.choice; }
-function qtTypeOf(q){ return (q && q.type) || "choice"; }
+/* 判断题在渲染与判分层等同两选项选择题（正/误），统一按 choice 走；
+ * 导入层（bank-admin）仍保留 judge 类型名用于标签与校验 */
+function qtTypeOf(q){
+  var t = (q && q.type) || "choice";
+  return t === "judge" ? "choice" : t;
+}
 
 /* 归一化：小写、去首尾空格、折叠空格、去常见标点（判题宽松） */
 function qtNorm(s){

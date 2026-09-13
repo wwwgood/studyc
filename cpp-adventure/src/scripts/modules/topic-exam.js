@@ -163,18 +163,26 @@ function teAnswer(){
     var gain = TE_COIN_PER_Q * (1 + Math.floor(TE_SESSION.combo / 3));
     teState().coins += gain;
     if (q.id){ if (!S.examPass) S.examPass = {}; S.examPass[q.id] = 1; }
-    var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
-    fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
-      (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
-      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
-      '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: true, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "+🪙" + gain, qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: teNext });
+      } else {
+        aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: teNext });
+      }
+    } else {
+      var okAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
+      fb.innerHTML = '<div class="te-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+        (okAns && qType !== "writing" ? '<div class="qt-grade-show"><b>正确答案：</b>' + okAns + '</div>' : '') +
+        (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
+        '<button class="te-next-btn" type="button" onclick="teNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
     if (qType !== "writing" && typeof fxAnswer === "function") fxAnswer(false);
     TE_SESSION.combo = 0;
     TE_SESSION.wrong++;
-    var showTxt = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
+    var showTxt2 = grade.show ? '<div class="qt-grade-show">' + grade.show + '</div>' : '';
     if (typeof errBookAdd === "function"){
       errBookAdd(TE_SESSION.module, {
         q: q.q || q.passage || "", type: qType,
@@ -184,11 +192,19 @@ function teAnswer(){
         why: q.why, source: TE_SESSION.topicName + " 专题真题"
       });
     }
-    var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
-    fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt +
-      (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
-      (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
-      '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: false, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "写满 20 词以上才算过关哦", qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: teNext });
+      } else {
+        aoShow({ ok: false, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), userHtml: aoUserPick(q, input), whyHtml: q.why, onNext: teNext });
+      }
+    } else {
+      var noAns = (typeof qtAnswerText === "function") ? qtAnswerText(q) : "";
+      fb.innerHTML = '<div class="te-fb no">❌ ' + showTxt2 +
+        (noAns ? '<div class="qt-grade-show"><b>正确答案：</b>' + noAns + '</div>' : '') +
+        (q.why ? '<div class="te-fb-why">' + q.why + '</div>' : '') + '</div>' + sampleHtml +
+        '<button class="te-next-btn" type="button" onclick="teNext()">继续 →</button>';
+    }
     saveS();
   }
 }

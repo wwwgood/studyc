@@ -58,6 +58,7 @@ const sandbox = {
   IDBKeyRange: { bound(){ return {}; } },
 };
 sandbox.window = sandbox;
+sandbox.addEventListener = function(){}; /* papers.js 顶部 window.addEventListener("popstate") 需要 */
 sandbox.indexedDB = undefined;
 
 try {

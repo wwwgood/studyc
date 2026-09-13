@@ -107,9 +107,17 @@ function xqAnswer(){
     XQ_SESSION.combo++;
     var gain = XQ_COIN_PER_Q * (1 + Math.floor(XQ_SESSION.combo / 3));
     xqState().coins += gain;
-    fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
-      (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
-      '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: true, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "+🪙" + gain, qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: xqNext });
+      } else {
+        aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: xqNext });
+      }
+    } else {
+      fb.innerHTML = '<div class="xq-fb ok">✅ ' + (qType === "writing" ? "写完了！" : "正确！") + '+🪙' + gain +
+        (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
+        '<button class="xq-next-btn" type="button" onclick="xqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -125,8 +133,16 @@ function xqAnswer(){
         why: q.why, source: p.name
       });
     }
-    fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
-      '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      if (qType === "writing"){
+        aoShow({ ok: false, head: "✍️ 写完了，看范文", cardClass: "peek", sub: "写满 20 词以上才算过关哦", qHtml: aoQHtml(q), extraHtml: sampleHtml, wait: AO_WAIT_BAD, onNext: xqNext });
+      } else {
+        aoShow({ ok: false, qHtml: aoQHtml(q, input), bigHtml: aoBigAns(q), userHtml: aoUserPick(q, input), whyHtml: q.why, onNext: xqNext });
+      }
+    } else {
+      fb.innerHTML = '<div class="xq-fb no">❌ ' + showTxt + (q.why ? ' · ' + q.why : '') + '</div>' + sampleHtml +
+        '<button class="xq-next-btn" type="button" onclick="xqNext()">继续 →</button>';
+    }
     saveS();
   }
 }

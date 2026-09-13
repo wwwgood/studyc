@@ -144,8 +144,12 @@ function rqAnswer(btn){
     RQ_SESSION.combo++;
     var gain = RQ_COIN_PER_Q * (1 + Math.floor(RQ_SESSION.combo / 3));
     rqState().coins += gain;
-    fb.innerHTML = '<div class="rq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
-      '<button class="rq-next-btn" type="button" onclick="rqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: rqNext });
+    } else {
+      fb.innerHTML = '<div class="rq-fb ok">✅ 正确！+🪙' + gain + ' · ' + q.why + '</div>' +
+        '<button class="rq-next-btn" type="button" onclick="rqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -154,8 +158,12 @@ function rqAnswer(btn){
     RQ_SESSION.combo = 0;
     RQ_SESSION.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("reading", { q: q.q, o: q.o, a: q.a, why: q.why, source: RQ_SESSION.passage.title });
-    fb.innerHTML = '<div class="rq-fb no">❌ ' + q.why + '</div>' +
-      '<button class="rq-next-btn" type="button" onclick="rqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: rqNext });
+    } else {
+      fb.innerHTML = '<div class="rq-fb no">❌ ' + q.why + '</div>' +
+        '<button class="rq-next-btn" type="button" onclick="rqNext()">继续 →</button>';
+    }
     saveS();
   }
 }

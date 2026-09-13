@@ -165,7 +165,7 @@ function vqAnswer(btn){
     btn.classList.add("no");
     opts[q.ans].classList.add("ok");
     if (typeof errBookAdd === "function") errBookAdd("vocab", { q: q.q + " = ?", o: q.opts, a: q.ans, why: q.word.en + " 的意思是 " + q.word.zh, source: q.word.en });
-    vqWrong(q.word.en + " = " + q.word.zh);
+    vqWrong(q.word.en + " = " + q.word.zh, q.opts[i]);
   }
 }
 
@@ -193,7 +193,7 @@ function vqCheckSpell(){
       var ansIdx = opts.indexOf(q.word.en);
       errBookAdd("vocab", { q: "拼写：" + q.word.zh + " [" + q.word.pos + "]", o: opts, a: ansIdx, why: "正确拼写：" + q.word.en, source: q.word.en });
     }
-    vqWrong("正确：" + q.word.en + " = " + q.word.zh);
+    vqWrong("正确：" + q.word.en + " = " + q.word.zh, ans);
   }
 }
 
@@ -201,20 +201,35 @@ function vqCorrect(){
   VQ_SESSION.combo++;
   var gain = VQ_COIN_PER_Q * (1 + Math.floor(VQ_SESSION.combo / 3));
   vqState().coins += gain;
-  vqState().learned[VQ_SESSION.quizList[VQ_SESSION.idx].word.en] = true;
+  var w = VQ_SESSION.quizList[VQ_SESSION.idx].word;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  vqState().learned[w.en] = true;
   var fb = document.getElementById("vqFeedback");
-  fb.innerHTML = '<div class="vq-fb ok">✅ 正确！+🪙' + gain + '</div>' +
-    '<button class="vq-next-btn" type="button" onclick="vqNext()">下一题 →</button>';
+  if (typeof aoShow === "function"){
+    aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }), bigHtml: aoBig("", w.en + " · " + w.zh), onNext: vqNext });
+  } else {
+    fb.innerHTML = '<div class="vq-fb ok">✅ 正确！+🪙' + gain + '</div>' +
+      '<button class="vq-next-btn" type="button" onclick="vqNext()">下一题 →</button>';
+  }
   saveS();
   if (typeof portalRenderTopbar === "function") portalRenderTopbar();
 }
 
-function vqWrong(hint){
+function vqWrong(hint, pickText){
   VQ_SESSION.combo = 0;
   VQ_SESSION.wrong++;
+  var w = VQ_SESSION.quizList[VQ_SESSION.idx].word;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  var pi = (quiz.opts && pickText) ? quiz.opts.indexOf(pickText) : -1;
   var fb = document.getElementById("vqFeedback");
-  fb.innerHTML = '<div class="vq-fb no">❌ ' + hint + '</div>' +
-    '<button class="vq-next-btn" type="button" onclick="vqNext()">继续 →</button>';
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false,
+      qHtml: pi >= 0 ? aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }, pi) : aoQHtml({ q: quiz.q || ("拼写：" + w.zh + " [" + (w.pos || "") + "]") }),
+      bigHtml: aoBig("", w.en + " = " + w.zh), userHtml: pickText ? aoEsc(pickText) : "", onNext: vqNext });
+  } else {
+    fb.innerHTML = '<div class="vq-fb no">❌ ' + hint + '</div>' +
+      '<button class="vq-next-btn" type="button" onclick="vqNext()">继续 →</button>';
+  }
   saveS();
 }
 
