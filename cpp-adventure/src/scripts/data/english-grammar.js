@@ -292,7 +292,11 @@ var EQ_DATA = {
     ],
     q: [
       { q: "（我的妹妹）___ is seven.", o: ["He", "She", "It"], a: 1, why: "妹妹是女生，用 She。" },
-      { q: "Tom 和我 → ___ are friends.", o: ["We", "They", "You"], a: 0, why: "「Tom 和我」包括我们自己，用 We（我们）。" }
+      { q: "Tom 和我 → ___ are friends.", o: ["We", "They", "You"], a: 0, why: "「Tom 和我」包括我们自己，用 We（我们）。" },
+      { q: "______ went to the cinema last Sunday.", o: ["I and my father","My father and I","Me and my father"], a: 1, lv: 2, why: "作主语排除宾格开头的选项；礼貌原则单数并列“二、三、一”（别人在前），My father and I 最标准。" },
+      { q: "— Who is that woman? — Which one? — The woman under that tall tree. — ______ is my aunt.", o: ["She","Her","He"], a: 0, lv: 1, why: "指代“那位女士”（我的阿姨），作主语用主格 She。" },
+      { q: "My father is a worker. ______ works in a big factory.", o: ["He","She","It"], a: 0, lv: 1, why: "爸爸是男性，作主语用 He。" },
+      { q: "My mother is a teacher. ______ is a maths teacher.", o: ["He","She","It"], a: 1, lv: 1, why: "妈妈是女性，作主语用 She。" }
     ]
   },
   {
@@ -307,7 +311,14 @@ var EQ_DATA = {
     ],
     q: [
       { q: "Miss Li teaches ___ English.", o: ["we", "us", "our"], a: 1, why: "teach 是动词，后面接宾格 us。" },
-      { q: "This gift is for ___（他们）.", o: ["they", "their", "them"], a: 2, why: "介词 for 后面用宾格 them。" }
+      { q: "This gift is for ___（他们）.", o: ["they", "their", "them"], a: 2, why: "介词 for 后面用宾格 them。" },
+      { q: "Let ______ play basketball after school. (we)", o: ["we","us","our"], a: 1, lv: 1, why: "Let 是动词，动词后接人称代词宾格，we 的宾格是 us。" },
+      { q: "Open the door for ______ (I, me) please.", o: ["I","me","my"], a: 1, lv: 1, why: "for 是介词，介词后必须接宾格 me。" },
+      { q: "Catch ______ (he, him)! He's a thief.", o: ["he","him","his"], a: 1, lv: 1, why: "Catch 是动词，后接宾格 him。" },
+      { q: "Look at ______ (they, them). They are drawing pictures.", o: ["they","them","their"], a: 1, lv: 1, why: "Look at 中 at 是介词，后接宾格 them。" },
+      { q: "Give ______ a bowl of rice.", o: ["I","she","her"], a: 2, lv: 1, why: "Give sb. sth. 中 sb. 用宾格，her 可以是宾格（她）。" },
+      { q: "— Do you know John? — Yes, can you give the books to ______?", o: ["he","him","his"], a: 1, lv: 1, why: "give sth. to sb.，介词 to 后接宾格 him，指代 John。" },
+      { q: "Her students like ______ very much.", o: ["she","her","hers"], a: 1, lv: 1, why: "like 是动词，后接宾格 her，指“喜欢她”。" }
     ]
   },
   {
@@ -322,7 +333,11 @@ var EQ_DATA = {
     ],
     q: [
       { q: "___（她的）eyes are big.", o: ["She", "Her", "Hers"], a: 1, why: "eyes 是名词，前面要用形容词性物主代词 Her。" },
-      { q: "这是___（我们的）老师。 ___ teacher", o: ["We", "Us", "Our"], a: 2, why: "teacher 是名词，前面用 Our。" }
+      { q: "这是___（我们的）老师。 ___ teacher", o: ["We", "Us", "Our"], a: 2, why: "teacher 是名词，前面用 Our。" },
+      { q: "______ father is reading newspaper now. (he)", o: ["His","He","Him"], a: 0, lv: 2, why: "空格后有名词 father，需填形容词性物主代词 His（他的）。He 是主格，Him 是宾格。" },
+      { q: "These aren't ______ shoes. ______ are dark green. (I)", o: ["my; Mine","mine; My","my; my"], a: 0, lv: 2, why: "第一空后有名词 shoes 用形容词性 my；第二空后无名词、作主语指“我的鞋子”，用名词性 Mine。" },
+      { q: "Look at the car. ______ (It's, Its) color is black.", o: ["It's","Its","It"], a: 1, lv: 2, why: "空格后有名词 color 需填“它的”形容词性物主代词 Its；It's = It is。" },
+      { q: "Their school is in the country. ______ (Our, Ours) school is in the city.", o: ["Our","Ours","We"], a: 0, lv: 1, why: "空格后有名词 school，用形容词性物主代词 Our。" }
     ]
   },
   {
@@ -337,7 +352,12 @@ var EQ_DATA = {
     ],
     q: [
       { q: "That schoolbag isn't ___.（我的）", o: ["my", "me", "mine"], a: 2, why: "后面没有名词，要用名词性物主代词 mine。" },
-      { q: "___（她的）is on the desk.", o: ["Her", "Hers", "She"], a: 1, why: "单独作主语用名词性 Hers。" }
+      { q: "___（她的）is on the desk.", o: ["Her", "Hers", "She"], a: 1, why: "单独作主语用名词性 Hers。" },
+      { q: "Are these oranges ______ (their, theirs)?", o: ["their","theirs","them"], a: 1, lv: 2, why: "句末没有名词，意为“这些橘子是他们的吗？”，用名词性物主代词 theirs。" },
+      { q: "The blue bike is ______ (her, his), not mine.", o: ["her","his","hers"], a: 1, lv: 2, why: "句末无名词需填名词性物主代词，指“他的车”用 his（his 既是形容词性也是名词性）。" },
+      { q: "Your bags are green, ______ (their, theirs) are yellow.", o: ["their","theirs","they"], a: 1, lv: 2, why: "作主语且指“他们的包”，后无名词，用名词性物主代词 theirs。" },
+      { q: "The brown jacket is ______. ______ is white and black.", o: ["my, His","mine, His","me, Him"], a: 1, lv: 2, why: "第一空后无名词指“我的夹克”用名词性 mine；第二空作主语指“他的夹克”用 His。" },
+      { q: "A friend of ______ came to see ______ yesterday.", o: ["me, me","my, me","mine, me"], a: 2, lv: 2, why: "第一空双重所有格 a friend of mine 用名词性物主代词；第二空作 see 的宾语用宾格 me。" }
     ]
   },
   {
@@ -382,7 +402,9 @@ var EQ_DATA = {
     ],
     q: [
       { q: "I don't have ___ money.", o: ["some", "any", "many"], a: 1, why: "否定句用 any。" },
-      { q: "Would you like ___ bananas?", o: ["some", "any", "much"], a: 0, why: "礼貌邀请用 some。" }
+      { q: "Would you like ___ bananas?", o: ["some", "any", "much"], a: 0, why: "礼貌邀请用 some。" },
+      { q: "Are there ______ rulers in your pencil-box?", o: ["a","some","any"], a: 2, lv: 1, why: "一般疑问句用 any；some 用于肯定句。" },
+      { q: "David, I have ______ to tell you.", o: ["something interesting","interesting something","anything interesting"], a: 0, lv: 2, why: "肯定句用 something；形容词修饰不定代词要后置：something interesting。" }
     ]
   },
   {
@@ -397,7 +419,8 @@ var EQ_DATA = {
     ],
     q: [
       { q: "How ___ apples do you want?", o: ["much", "many", "some"], a: 1, why: "apples 可数复数，用 many。" },
-      { q: "How ___ is the T-shirt?（问价格）", o: ["many", "much", "old"], a: 1, why: "问价格用 How much。" }
+      { q: "How ___ is the T-shirt?（问价格）", o: ["many", "much", "old"], a: 1, why: "问价格用 How much。" },
+      { q: "—Can you speak French? —Yes, but only ______.", o: ["little","a little","some"], a: 1, lv: 2, why: "French 是不可数名词；回答 Yes 表肯定“会一点”用 a little（little 是否定含义“几乎不会”）。" }
     ]
   },
   {
@@ -412,7 +435,8 @@ var EQ_DATA = {
     ],
     q: [
       { q: "___ of my hands are clean.（两只手）", o: ["All", "Both", "Every"], a: 1, why: "手有两只，用 Both。" },
-      { q: "___ the students passed the test.（全部学生）", o: ["Both", "All", "Some"], a: 1, why: "三个以上用 All。" }
+      { q: "___ the students passed the test.（全部学生）", o: ["Both", "All", "Some"], a: 1, why: "三个以上用 All。" },
+      { q: "Tom's parents are ______ teachers.", o: ["both","all","two"], a: 0, lv: 1, why: "parents 指父母两个人，两者都用 both；三者以上才用 all。" }
     ]
   },
   {
