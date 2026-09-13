@@ -4607,6 +4607,68 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .qt-sample{margin-top:10px; padding:12px 14px; background:#FDF2F8; border-left:4px solid #EC4899; border-radius:8px; font-size:14px; line-height:1.8; white-space:pre-wrap;}
 .qt-sample b{color:#BE185D;}
 
+/* ---------------- 选择填空 blank-quest ---------------- */
+.bq-panel{background:#FFFDF7; border:1.5px solid #FDE68A; border-radius:16px; padding:16px;}
+.bq-total{font-size:14px; color:#7A4B12; margin-bottom:10px;}
+.bq-rules{background:#FFFBEB; border:1.5px solid #FDE68A; border-radius:12px; padding:10px 14px; margin-bottom:12px;}
+.bq-rules p{font-size:13px; line-height:1.9; color:#475569;}
+.bq-chlist{margin-bottom:14px;}
+.bq-chrow{display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border-bottom:1px dashed #E2E8F0; font-size:13.5px; color:#334155;}
+.bq-chrow:last-child{border-bottom:none;}
+.bq-chrow b{color:#D97706;}
+.bq-btnrow{display:flex; gap:10px; flex-wrap:wrap;}
+.bq-btn{background:linear-gradient(150deg,#FFE7A0,#FFD86B); color:#7A4B12; border:none; border-radius:12px; padding:12px 24px; font-size:15px; font-weight:800; cursor:pointer;}
+.bq-btn:hover{filter:brightness(1.04);}
+.bq-btn.warn{background:#F97316; color:#fff;}
+.bq-btn.warn:hover{background:#EA580C;}
+.bq-chnum{font-size:14px; color:#D97706; font-weight:800; letter-spacing:4px; margin-bottom:6px;}
+.bq-muted{font-size:13px; color:#94A3B8; margin:6px 0 14px;}
+.bq-center{text-align:center;}
+.bq-topbar{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.bq-stat{font-size:13.5px; font-weight:700;}
+.bq-stat.okc{color:#16A34A;}
+.bq-stat.badc{color:#DC2626;}
+.bq-bar{flex:1; height:7px; background:#E2E8F0; border-radius:99px; overflow:hidden;}
+.bq-bar i{display:block; height:100%; background:#F59E0B; border-radius:99px; transition:width .3s;}
+.bq-chip{display:inline-block; font-size:11.5px; padding:3px 10px; border-radius:99px; background:#F1F5F9; color:#64748B; margin:0 6px 6px 0;}
+.bq-chip.bq-chip-ch{background:#DCFCE7; color:#15803D;}
+.bq-chip.bq-chip-tag{background:#FFEDD5; color:#C2410C;}
+.bq-stem{font-size:18px; font-weight:700; line-height:1.7; color:#1F2937; margin:8px 0 14px;}
+.bq-opts{display:flex; flex-direction:column; gap:9px;}
+.bq-opt{display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:12px 14px; border:2px solid #E2E8F0; border-radius:12px; background:#fff; font-size:16px; color:#1F2937; cursor:pointer; font-family:inherit; transition:all .15s;}
+.bq-opt:hover{border-color:#F59E0B; background:#FFFBEB;}
+.bq-lt{width:28px; height:28px; border-radius:50%; background:#FDE68A; color:#7A4B12; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13.5px; flex:none;}
+.bq-peek{background:none; border:none; color:#94A3B8; font-size:13px; cursor:pointer; margin-top:14px; text-decoration:underline; font-family:inherit;}
+.bq-ansmask{z-index:180; padding:14px;}
+.bq-anscard{background:#FFFDF7; border-radius:20px; width:min(94vw,560px); padding:24px 20px 20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4); animation:eqPop .25s ease; border-top:10px solid #94A3B8; max-height:calc(100vh - 30px); overflow-y:auto;}
+.bq-anscard.ok{border-top-color:#16A34A;}
+.bq-anscard.bad{border-top-color:#DC2626;}
+.bq-anscard.peek{border-top-color:#2563EB;}
+.bq-anshead{font-size:21px; font-weight:800; margin-bottom:4px;}
+.bq-anshead.ok{color:#16A34A;}
+.bq-anshead.bad{color:#DC2626;}
+.bq-anshead.peek{color:#2563EB;}
+.bq-yourans{font-size:15.5px; color:#64748B; margin:4px 0 2px;}
+.bq-yourans s{color:#DC2626; font-weight:700;}
+.bq-anslabel{font-size:12px; color:#94A3B8; letter-spacing:6px; margin-top:8px;}
+.bq-big{display:flex; align-items:baseline; justify-content:center; margin:2px 0 8px;}
+.bq-big .bq-letter{font-size:clamp(4rem,19vw,6.4rem); font-weight:900; line-height:1.15;}
+.bq-big .bq-atext{font-size:clamp(1.6rem,7vw,2.4rem); font-weight:800;}
+.bq-anscard.ok .bq-letter,.bq-anscard.ok .bq-atext{color:#16A34A;}
+.bq-anscard.bad .bq-letter,.bq-anscard.bad .bq-atext{color:#DC2626;}
+.bq-anscard.peek .bq-letter,.bq-anscard.peek .bq-atext{color:#2563EB;}
+.bq-big.sm .bq-letter{font-size:clamp(2.3rem,9vw,3.2rem);}
+.bq-big.sm .bq-atext{font-size:clamp(1.15rem,4.6vw,1.55rem);}
+.bq-exp{background:#FFFBEB; border:1.5px solid #FDE68A; border-radius:12px; padding:11px 14px; font-size:14px; line-height:1.8; color:#475569; text-align:left;}
+.bq-nextbtn{width:100%; margin-top:14px; padding:14px; font-size:17px; font-weight:800; border:none; border-radius:12px; background:#E2E8F0; color:#94A3B8; cursor:not-allowed; font-family:inherit;}
+.bq-nextbtn.ready{background:#16A34A; color:#fff; cursor:pointer;}
+.bq-nextbtn.ready:hover{background:#15803D;}
+.bq-score{margin:8px 0 2px;}
+.bq-score .bq-num{font-size:60px; font-weight:900; color:#D97706;}
+.bq-score .bq-slash{font-size:24px; color:#94A3B8; font-weight:700;}
+.bq-wcard{background:#fff; border:1.5px solid #FDE68A; border-radius:16px; padding:14px; margin-top:12px; text-align:left;}
+.bq-wcard .bq-stem{font-size:16px; margin:6px 0 10px;}
+
 </style>
 <style>
 /* ---------------- 奖品店样式 awards.css ---------------- */
@@ -5311,6 +5373,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
         <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
+        <button class="eq-tab" data-tab="blank" onclick="eqSwitchTab('blank')">✅ 选择填空</button>
         <button class="eq-tab" type="button" onclick="p1000Open()">📚 1000题</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
@@ -5392,6 +5455,9 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
       <div class="xq-papers" id="xqPapers"></div>
     </div>
 
+    <!-- 选择填空子模块（blank-quest.js 渲染） -->
+    <div class="eq-subview" id="eqSubBlank" style="display:none"></div>
+
     <!-- 错题本子模块 -->
     <div class="eq-subview" id="eqSubErrBook" style="display:none">
       <p class="eq-progress-txt" id="ebTotalTxt">共 0 道错题</p>
@@ -5423,6 +5489,10 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <div class="eq-mask" id="oqDialogMask">
       <div class="eq-dialog" id="oqDialog" role="dialog" aria-modal="true" aria-label="口语训练"></div>
     </div>
+    <div class="eq-mask" id="bqDialogMask">
+      <div class="eq-dialog" id="bqDialog" role="dialog" aria-modal="true" aria-label="选择填空"></div>
+    </div>
+    <div class="eq-mask bq-ansmask" id="bqAnsMask"><div class="bq-anscard" id="bqAnsCard"></div></div>
 
     <div class="eq-combo" id="eqCombo"></div>
     <div class="eq-float" id="eqFloat"></div>
@@ -37749,6 +37819,91 @@ var TOPIC_EXAM_DATA = {
 
 </script>
   <script>
+/* ---------------- 英语选择填空 · 专项练习 english-blank.js ----------------
+ * 「✅ 选择填空」子模块数据：21 道题按 8 个语法章节归类，每题带答案和解析。
+ * 来源：英语卷「四、选择填空」A~J 十题（原卷只复制到了选项，题干按经典考题还原）
+ * + 为选项组补充的不同考点变体。src 字段区分：原卷X = 原卷题，新增 = 补充变体。
+ * 做题交互在 modules/blank-quest.js：大字答案浮层 + 倒计时锁定「下一题」。
+ */
+var BLANK_CHAPTERS = [
+  { id: 1, name: "非谓语动词（不定式与动名词）" },
+  { id: 2, name: "介词" },
+  { id: 3, name: "不定代词" },
+  { id: 4, name: "形容词与副词" },
+  { id: 5, name: "动词时态与主谓一致" },
+  { id: 6, name: "情态动词" },
+  { id: 7, name: "情景交际" },
+  { id: 8, name: "名词（可数与不可数）" }
+];
+
+var BLANK_QUESTIONS = [
+  { ch: 1, tag: "不定式 to do", src: "原卷 A", stem: "Nice ___ you again.",
+    opts: ["see", "to see", "seeing", "to seeing"], ans: 1,
+    exp: "nice / glad / happy 后面接不定式 to do：「很高兴再次见到你」就是 Nice to see you again." },
+  { ch: 1, tag: "go + 动名词", src: "原卷 B", stem: "Let's go ___ this afternoon.",
+    opts: ["swim", "swimming", "to swim", "swims"], ans: 1,
+    exp: "go swimming 去游泳是固定搭配，同类的还有 go shopping、go fishing。" },
+  { ch: 1, tag: "介词后接动名词", src: "新增 · F 题方向", stem: "Thank you for ___ our school.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 0,
+    exp: "for 是介词，介词后面的动词要用动名词 doing。" },
+  { ch: 2, tag: "时间介词", src: "原卷 C", stem: "Li Lei was born ___ the morning of June 1st.",
+    opts: ["in", "on", "for", "at"], ans: 1,
+    exp: "具体某一天的上午、下午、晚上用 on：on the morning of June 1st。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "We have four classes ___ the morning.",
+    opts: ["in", "on", "for", "at"], ans: 0,
+    exp: "泛指在早上、下午、晚上用 in the morning。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "He usually gets up ___ six thirty.",
+    opts: ["in", "on", "for", "at"], ans: 3,
+    exp: "具体到几点几分用 at。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "What do you usually have ___ breakfast?",
+    opts: ["in", "on", "for", "at"], ans: 2,
+    exp: "三餐前面用 for：have eggs for breakfast。" },
+  { ch: 2, tag: "地点介词", src: "新增", stem: "There are many apples ___ the tree.",
+    opts: ["in", "on", "under", "at"], ans: 1,
+    exp: "树上长的果实用 on the tree。" },
+  { ch: 2, tag: "地点介词", src: "新增", stem: "Look! Two birds are singing ___ the tree.",
+    opts: ["in", "on", "under", "at"], ans: 0,
+    exp: "外来的东西落在树上用 in the tree。长在树上用 on、外来在树上用 in，是一对经典对比考点。" },
+  { ch: 3, tag: "some / any", src: "原卷 D", stem: "There aren't ___ apples on the table.",
+    opts: ["a", "the", "much", "any"], ans: 3,
+    exp: "否定句和疑问句里用 any；much 只能修饰不可数名词，apples 是复数可数名词。" },
+  { ch: 3, tag: "-body 不定代词", src: "原卷 G", stem: "The room is empty. ___ is in it.",
+    opts: ["Somebody", "Anybody", "Nobody", "Few people"], ans: 2,
+    exp: "房间是空的，说明「没有人在里面」；few people 后面要接复数动词 are。" },
+  { ch: 4, tag: "such / so", src: "原卷 E", stem: "It's ___ a fine day today. Let's go out for a walk.",
+    opts: ["such", "so", "very", "quite"], ans: 0,
+    exp: "such + a/an + 形容词 + 名词（such a fine day）；so / very / quite 只能直接修饰形容词（so fine）。" },
+  { ch: 5, tag: "一般现在时三单", src: "原卷 F", stem: "My uncle ___ us every year.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 3,
+    exp: "every year 提示一般现在时，uncle 是第三人称单数，动词加 s。" },
+  { ch: 5, tag: "现在进行时", src: "新增", stem: "Look! Tom's father ___ the factory now.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 1,
+    exp: "Look / now 提示动作正在进行，用现在进行时 is doing。如果题目是 Tom with his parents ___ the factory now，答案还是 is，因为 with 连接的人不算主语（就前原则）。" },
+  { ch: 6, tag: "must 表推测", src: "原卷 H", stem: "The light in his room is on. He ___ be at home.",
+    opts: ["may", "must", "can", "need"], ans: 1,
+    exp: "灯还亮着，说明他「一定」在家：must 表示有把握的肯定推测。" },
+  { ch: 6, tag: "may 请求许可", src: "新增", stem: "___ I come in? —Come in, please.",
+    opts: ["may", "must", "can", "need"], ans: 0,
+    exp: "请求许可的标准句型是 May I ...?" },
+  { ch: 6, tag: "can 表能力", src: "新增", stem: "___ you play the piano? —No, I can't.",
+    opts: ["may", "must", "can", "need"], ans: 2,
+    exp: "答语是 can't，说明问的是能力，用 Can you ...?" },
+  { ch: 6, tag: "needn't / mustn't", src: "新增", stem: "—Must I finish the work now? —No, you ___.",
+    opts: ["needn't", "mustn't", "can't", "don't"], ans: 0,
+    exp: "Must I ...? 的否定回答用 needn't（不必）；mustn't 的意思是「千万别、禁止」，不是「不必」，这是最容易错的地方。" },
+  { ch: 7, tag: "情景应答", src: "原卷 I", stem: "—Mary, please answer the phone. —___, Mum.",
+    opts: ["You'll help me", "I'm going", "I'm coming", "I'm leaving"], ans: 2,
+    exp: "「我马上就来」固定说 I'm coming：朝说话人过来的方向用 come 不用 go。" },
+  { ch: 8, tag: "不可数名词", src: "原卷 J", stem: "I want two ___.",
+    opts: ["bottle of milk", "bottles of milks", "bottles of milk", "bottle of milks"], ans: 2,
+    exp: "milk 是不可数名词，任何时候都不加 s；bottle 是可数名词，two 后面用复数。结构：数词 + 复数容器 + of + 不可数名词。" },
+  { ch: 8, tag: "可数名词", src: "新增 · F 题方向", stem: "Mr. Wang is a ___ from England.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 2,
+    exp: "a 后面要接可数名词单数，visitor（参观者）是名词，其他三项都是动词形式。这题考的是名词，所以放在名词章节。" }
+];
+
+</script>
+  <script>
 // AUTO-GENERATED by build/gen-question-bank.js — 统一题库（已由 build/fix-question-bank.js 整治）
 // 全部为按真题风格自编的仿真题（source=自编），不含真实真题
 // 所有题目均显式标注 type:choice；真实真题请通过「题库管理→导入真题」导入
@@ -59614,6 +59769,7 @@ function eqSwitchTab(tab){
   document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
   document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
   document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
+  document.getElementById('eqSubBlank').style.display = tab === 'blank' ? '' : 'none';
   document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
@@ -59622,12 +59778,253 @@ function eqSwitchTab(tab){
   if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
   if (tab === 'exam' && typeof ppRender === "function") ppRender();
+  if (tab === 'blank' && typeof bqRender === "function") bqRender();
   if (tab === 'errbook' && typeof ebRender === "function") ebRender();
 }
 
 window.addEventListener("load", function(){
   if (document.getElementById("eqChapters")) eqRender();
 });
+</script>
+  <script>
+/* ---------------- 英语选择填空 · 做题模块 blank-quest.js ----------------
+ * 「✅ 选择填空」子模块：按章节练习 BLANK_QUESTIONS（data/english-blank.js）。
+ * 交互规则（家长指定）：
+ *   1. 作答或点「直接看答案」后弹出全屏大字答案浮层，正确答案放大显示；
+ *   2. 浮层里的「下一题」按钮倒计时锁定：答对 3 秒、答错/看答案 6 秒后才亮起；
+ *   3. 浮层无关闭按钮、无其他前进入口，必须看完答案才能进下一题（答错停留更久）；
+ *   4. 做完出成绩和错题本（错题答案同样大字显示），可只重做错题。
+ * 进度为当次会话有效，不写入 S 全局状态；函数全部 bq 前缀，避免冲突。
+ */
+var BQ_WAIT_OK = 3;   /* 答对后强制停留秒数 */
+var BQ_WAIT_BAD = 6;  /* 答错 / 直接看答案后强制停留秒数 */
+var BQ_LETTERS = ["A", "B", "C", "D"];
+
+var bqQueue = [], bqPos = 0, bqResults = {}, bqLastWrong = [];
+var bqAnswered = false, bqPicked = null, bqTimer = null, bqReady = false, bqIsLast = false;
+
+function bqChName(chId) {
+  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
+    if (BLANK_CHAPTERS[i].id === chId) return BLANK_CHAPTERS[i].name;
+  }
+  return "";
+}
+function bqChips(qi) {
+  var q = BLANK_QUESTIONS[qi];
+  return '<span class="bq-chip bq-chip-ch">第' + q.ch + '章 · ' + bqChName(q.ch) + '</span>' +
+    '<span class="bq-chip bq-chip-tag">考点：' + q.tag + '</span>' +
+    '<span class="bq-chip">' + q.src + '</span>';
+}
+function bqCountCorrect() {
+  var n = 0;
+  for (var i = 0; i < bqPos; i++) { if (bqResults[bqQueue[i]] && bqResults[bqQueue[i]].ok) n++; }
+  return n;
+}
+
+/* ---------- 开始面板（子模块页） ---------- */
+function bqRender() {
+  var box = document.getElementById("eqSubBlank");
+  if (!box || typeof BLANK_QUESTIONS === "undefined") return;
+  var rows = "";
+  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
+    var c = BLANK_CHAPTERS[i], n = 0;
+    for (var j = 0; j < BLANK_QUESTIONS.length; j++) { if (BLANK_QUESTIONS[j].ch === c.id) n++; }
+    rows += '<div class="bq-chrow"><span>第' + c.id + '章 ' + c.name + '</span><b>' + n + ' 题</b></div>';
+  }
+  var rules = '<div class="bq-rules">' +
+    '<p>① 每题先自己作答，不会做可点「直接看答案」；</p>' +
+    '<p>② 答案用<b>大字浮层</b>显示：答对停留 ' + BQ_WAIT_OK + ' 秒、答错停留 ' + BQ_WAIT_BAD + ' 秒，「下一题」才亮起；</p>' +
+    '<p>③ 浮层没有关闭按钮 —— <b>必须看完答案才能进下一题</b>，错题停留更久；</p>' +
+    '<p>④ 做完出成绩和错题本，可以只重做错题。</p></div>';
+  var redo = bqLastWrong.length
+    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>'
+    : "";
+  box.innerHTML =
+    '<div class="bq-panel">' +
+      '<p class="bq-total">共 <b>' + BLANK_QUESTIONS.length + '</b> 题 · ' + BLANK_CHAPTERS.length + ' 个语法章节</p>' +
+      rules +
+      '<div class="bq-chlist">' + rows + '</div>' +
+      '<div class="bq-btnrow"><button class="bq-btn" type="button" onclick="bqStartAll()">开始刷题 ▶</button>' + redo + '</div>' +
+    '</div>';
+}
+
+/* ---------- 流程控制 ---------- */
+function bqStartAll() {
+  bqQueue = []; for (var i = 0; i < BLANK_QUESTIONS.length; i++) bqQueue.push(i);
+  bqPos = 0; bqResults = {};
+  bqOpenDialog(); bqShowIntro();
+}
+function bqStartWrong() {
+  bqQueue = bqLastWrong.slice();
+  if (!bqQueue.length) { bqRender(); return; }
+  for (var i = 0; i < bqQueue.length; i++) delete bqResults[bqQueue[i]];
+  bqPos = 0;
+  bqOpenDialog(); bqShowIntro();
+}
+function bqOpenDialog() {
+  var mask = document.getElementById("bqDialogMask");
+  if (!mask) return;
+  mask.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function bqClose() {
+  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
+  var m1 = document.getElementById("bqDialogMask"), m2 = document.getElementById("bqAnsMask");
+  if (m1) m1.classList.remove("open");
+  if (m2) m2.classList.remove("open");
+  document.body.style.overflow = "";
+  bqRender();
+}
+function bqDlgHead(title) {
+  return '<div class="eq-dlg-head"><span class="eq-cap">✅ 选择填空</span>' +
+    '<h3>' + title + '</h3>' +
+    '<button class="eq-close" type="button" onclick="bqClose()">×</button></div>';
+}
+
+function bqShowIntro() {
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var qi = bqQueue[bqPos], chId = BLANK_QUESTIONS[qi].ch, n = 0;
+  for (var i = bqPos; i < bqQueue.length; i++) { if (BLANK_QUESTIONS[bqQueue[i]].ch === chId) n++; }
+  dlg.innerHTML = bqDlgHead(bqChName(chId)) +
+    '<div class="bq-body bq-intro">' +
+      '<div class="bq-chnum">第 ' + chId + ' 章</div>' +
+      '<p class="bq-muted">本章共 ' + n + ' 题 · 先自己作答，再看大字答案</p>' +
+      '<button class="bq-btn" type="button" onclick="bqShowQuestion()">开始本章 ▶</button>' +
+    '</div>';
+}
+
+function bqShowQuestion() {
+  bqAnswered = false; bqPicked = null;
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  var correct = bqCountCorrect(), wrong = bqPos - correct;
+  var pct = Math.round(bqPos / bqQueue.length * 100);
+  var opts = "";
+  for (var i = 0; i < q.opts.length; i++) {
+    opts += '<button class="bq-opt" type="button" onclick="bqPick(' + i + ')">' +
+      '<span class="bq-lt">' + BQ_LETTERS[i] + '</span><span>' + q.opts[i] + '</span></button>';
+  }
+  dlg.innerHTML = bqDlgHead('第 ' + (bqPos + 1) + ' / ' + bqQueue.length + ' 题') +
+    '<div class="bq-body">' +
+      '<div class="bq-topbar">' +
+        '<span class="bq-stat okc">✓ ' + correct + '</span>' +
+        '<span class="bq-stat badc">✗ ' + wrong + '</span>' +
+        '<span class="bq-bar"><i style="width:' + pct + '%"></i></span>' +
+      '</div>' +
+      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
+      '<div class="bq-stem">' + q.stem + '</div>' +
+      '<div class="bq-opts">' + opts + '</div>' +
+      '<button class="bq-peek" type="button" onclick="bqPeek()">不会做？直接看答案 →</button>' +
+    '</div>';
+}
+
+function bqPick(i) {
+  if (bqAnswered) return;
+  bqAnswered = true; bqPicked = i;
+  var qi = bqQueue[bqPos], ok = (BLANK_QUESTIONS[qi].ans === i);
+  bqResults[qi] = { p: i, ok: ok };
+  bqAnswerOverlay(ok ? "ok" : "bad");
+}
+function bqPeek() {
+  if (bqAnswered) return;
+  bqAnswered = true; bqPicked = null;
+  bqResults[bqQueue[bqPos]] = { p: null, ok: false };
+  bqAnswerOverlay("peek");
+}
+
+/* ---------- 大字答案浮层 ---------- */
+function bqAnswerOverlay(mode) {
+  var mask = document.getElementById("bqAnsMask"), card = document.getElementById("bqAnsCard");
+  if (!mask || !card) return;
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  bqIsLast = (bqPos === bqQueue.length - 1);
+  var head = "", extra = "";
+  if (mode === "ok") {
+    head = '<div class="bq-anshead ok">回答正确 ✓</div>';
+  } else if (mode === "bad") {
+    head = '<div class="bq-anshead bad">回答错误 ✗</div>';
+    extra = '<div class="bq-yourans">你的答案：<s>' + BQ_LETTERS[bqPicked] + '. ' + q.opts[bqPicked] + '</s></div>';
+  } else {
+    head = '<div class="bq-anshead peek">正确答案</div>';
+  }
+  var wait = (mode === "ok") ? BQ_WAIT_OK : BQ_WAIT_BAD;
+  card.className = "bq-anscard " + mode;
+  card.innerHTML = head + extra +
+    '<div class="bq-anslabel">正 确 答 案</div>' +
+    '<div class="bq-big"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
+    '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
+    '<button id="bqNextBtn" class="bq-nextbtn" type="button" disabled onclick="bqNext()">⏳ ' + wait + ' 秒后可继续</button>';
+  mask.classList.add("open");
+
+  bqReady = false;
+  var left = wait;
+  bqTimer = setInterval(function () {
+    left--;
+    var b = document.getElementById("bqNextBtn");
+    if (!b) { clearInterval(bqTimer); bqTimer = null; return; }
+    if (left > 0) {
+      b.textContent = "⏳ " + left + " 秒后可继续";
+    } else {
+      clearInterval(bqTimer); bqTimer = null; bqReady = true;
+      b.disabled = false; b.classList.add("ready");
+      b.textContent = bqIsLast ? "查看成绩 ▶" : "下一题 ▶";
+    }
+  }, 1000);
+}
+
+function bqNext() {
+  if (!bqReady) return;
+  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
+  var m = document.getElementById("bqAnsMask");
+  if (m) m.classList.remove("open");
+  bqPos++;
+  if (bqPos >= bqQueue.length) { bqSummary(); return; }
+  var prevCh = BLANK_QUESTIONS[bqQueue[bqPos - 1]].ch;
+  var curCh = BLANK_QUESTIONS[bqQueue[bqPos]].ch;
+  if (prevCh !== curCh) { bqShowIntro(); } else { bqShowQuestion(); }
+}
+
+/* ---------- 成绩 + 错题本 ---------- */
+function bqSummary() {
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var total = bqQueue.length;
+  bqLastWrong = [];
+  for (var i = 0; i < bqQueue.length; i++) {
+    var r = bqResults[bqQueue[i]];
+    if (!r || !r.ok) bqLastWrong.push(bqQueue[i]);
+  }
+  var correct = total - bqLastWrong.length;
+  var rate = total ? Math.round(correct / total * 100) : 0;
+
+  var cards = "";
+  for (var j = 0; j < bqLastWrong.length; j++) {
+    var qi = bqLastWrong[j], q = BLANK_QUESTIONS[qi], r2 = bqResults[qi];
+    var your = (r2 && r2.p !== null && r2.p !== undefined)
+      ? BQ_LETTERS[r2.p] + ". " + q.opts[r2.p] : "未作答";
+    cards += '<div class="bq-wcard">' +
+      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
+      '<div class="bq-stem">' + q.stem + '</div>' +
+      '<div class="bq-yourans">你的答案：<s>' + your + '</s></div>' +
+      '<div class="bq-big sm"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
+      '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
+    '</div>';
+  }
+  var redoBtn = bqLastWrong.length
+    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>' : "";
+  dlg.innerHTML = bqDlgHead("练习完成 🎉") +
+    '<div class="bq-body bq-center">' +
+      '<div class="bq-score"><span class="bq-num">' + correct + '</span><span class="bq-slash"> / ' + total + '</span></div>' +
+      '<p class="bq-muted">正确率 ' + rate + '% · 错题 ' + bqLastWrong.length + ' 题（正确答案大字显示）</p>' +
+      '<div class="bq-btnrow">' + redoBtn +
+        '<button class="bq-btn" type="button" onclick="bqStartAll()">全部重做</button>' +
+      '</div>' +
+    '</div>' +
+    (bqLastWrong.length ? cards : "");
+}
+
 </script>
   <script>
 /* ---------------- 英语词汇大冒险 vocab-quest.js ----------------

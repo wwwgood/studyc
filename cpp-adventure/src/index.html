@@ -470,6 +470,7 @@
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
         <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
+        <button class="eq-tab" data-tab="blank" onclick="eqSwitchTab('blank')">✅ 选择填空</button>
         <button class="eq-tab" type="button" onclick="p1000Open()">📚 1000题</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
@@ -551,6 +552,9 @@
       <div class="xq-papers" id="xqPapers"></div>
     </div>
 
+    <!-- 选择填空子模块（blank-quest.js 渲染） -->
+    <div class="eq-subview" id="eqSubBlank" style="display:none"></div>
+
     <!-- 错题本子模块 -->
     <div class="eq-subview" id="eqSubErrBook" style="display:none">
       <p class="eq-progress-txt" id="ebTotalTxt">共 0 道错题</p>
@@ -582,6 +586,10 @@
     <div class="eq-mask" id="oqDialogMask">
       <div class="eq-dialog" id="oqDialog" role="dialog" aria-modal="true" aria-label="口语训练"></div>
     </div>
+    <div class="eq-mask" id="bqDialogMask">
+      <div class="eq-dialog" id="bqDialog" role="dialog" aria-modal="true" aria-label="选择填空"></div>
+    </div>
+    <div class="eq-mask bq-ansmask" id="bqAnsMask"><div class="bq-anscard" id="bqAnsCard"></div></div>
 
     <div class="eq-combo" id="eqCombo"></div>
     <div class="eq-float" id="eqFloat"></div>
@@ -1270,12 +1278,14 @@
   <script src="scripts/data/english-oral.js"></script>
   <script src="scripts/data/english-exam.js"></script>
   <script src="scripts/data/english-topic-exam.js"></script>
+  <script src="scripts/data/english-blank.js"></script>
   <script src="scripts/data/question-bank.js"></script>
   <script src="scripts/data/english-paper-1000.js"></script>
   <script src="scripts/data/english-homework.js"></script>
   <script src="scripts/data/oj-bank.js"></script>
   <script src="scripts/modules/portal.js"></script>
   <script src="scripts/modules/english-quest.js"></script>
+  <script src="scripts/modules/blank-quest.js"></script>
   <script src="scripts/modules/vocab-quest.js"></script>
   <script src="scripts/modules/reading-quest.js"></script>
   <script src="scripts/modules/writing-quest.js"></script>
