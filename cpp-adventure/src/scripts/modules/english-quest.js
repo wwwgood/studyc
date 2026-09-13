@@ -210,7 +210,8 @@ function eqDialogLearn(){
   var st = eqState();
   var done = st.done[l.id] || 0;
   var qN = (l.q && l.q.length) ? l.q.length : 0;
-  var exHtml = l.ex.map(function(e, i){
+  var allEx = (l.ex || []).concat((typeof EQ_EXBOOST !== "undefined" && EQ_EXBOOST[l.id]) ? EQ_EXBOOST[l.id] : []);
+  var exHtml = allEx.map(function(e, i){
     return '<div class="eq-ex-row"><span class="eq-ex-no">' + (i + 1) + '</span>' +
       '<span class="eq-ex-en">' + e.en + '</span>' +
       '<button class="eq-say" type="button" onclick="eqSpeak(this)" data-en="' + e.en.replace(/"/g, "&quot;") + '" title="听发音">🔊</button>' +
