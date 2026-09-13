@@ -35,7 +35,7 @@ test("章节→考点映射：名词岛 9 章全部命中对应考点", () => {
   assert.strictEqual(map["名词所有格 's"], "名词所有格");
   /* 覆盖全部章节：除个别特殊章节外都应命中考点（保证学习页都有真题入口） */
   const miss = EQ_DATA.lessons.filter((l) => !map[l.t]);
-  assert.ok(miss.length <= 3, "未映射章节应 ≤3，实际 " + miss.length + "：" + miss.map((l) => l.t).join("、"));
+  assert.ok(miss.length <= 4, "未映射章节应 ≤4，实际 " + miss.length + "：" + miss.map((l) => l.t).join("、"));
 });
 
 test("跳过已做对真题：S.examPass 标记的题不再出现", () => {

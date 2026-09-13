@@ -139,6 +139,7 @@ var EQ_KP_MAP = [
   ["go to school", "名词固定搭配"],
   ["a / an 的数量含义", "a与an的区别"],
   ["as ... as", "as同级比较"],
+  ["代词总览与分类", null],
   ["反身代词", null],
   ["many 和 much", "可数与不可数名词"],
   ["both 和 all", "不定代词"],
@@ -242,6 +243,7 @@ function eqDialogLearn(){
       '<div style="margin-bottom:12px;">' + statusHtml + '</div>' +
       '<div class="eq-tip">💡 ' + l.tip + '</div>' +
       '<div class="eq-cap-bubble">' + l.body + '</div>' +
+      (l.book ? '<div class="eq-book"><div class="eq-book-title">📖 教材精讲（《小学英语语法100例》）</div>' + l.book + '</div>' : '') +
       '<div class="eq-motto">🧾 口诀：' + l.say + '</div>' +
       '<div class="eq-ex-box">' + exHtml + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">' + quizBtn + kpBtn + nextBtn + '</div>' +
@@ -313,8 +315,12 @@ function eqAnswer(btn){
     eqState().coins += gain;
     eqFloatCoin("+" + gain + " 🪙");
     if (EQ_SESSION.combo >= 2) eqShowCombo(EQ_SESSION.combo);
-    fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
-      '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain + " · 🔥 连击 ×" + EQ_SESSION.combo, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: eqNextQ });
+    } else {
+      fb.innerHTML = '<div class="eq-fb ok">✅ 太棒了！' + q.why + '</div>' +
+        '<button class="eq-again-btn" type="button" onclick="eqNextQ()">下一题 →</button>';
+    }
   } else {
     if (typeof fxAnswer === "function") fxAnswer(false);
     btn.classList.add("no");
@@ -322,8 +328,12 @@ function eqAnswer(btn){
     EQ_SESSION.combo = 0;
     EQ_SESSION.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("grammar", { q: q.q, o: q.o, a: q.a, why: q.why, source: EQ_SESSION.lesson.t });
-    fb.innerHTML = '<div class="eq-fb no">❌ 再想想：' + q.why + '</div>' +
-      '<button class="eq-again-btn" type="button" onclick="eqNextQ()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(q, i), bigHtml: aoBig("", q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: eqNextQ });
+    } else {
+      fb.innerHTML = '<div class="eq-fb no">❌ 再想想：' + q.why + '</div>' +
+        '<button class="eq-again-btn" type="button" onclick="eqNextQ()">继续 →</button>';
+    }
   }
   saveS();
 }
@@ -408,7 +418,6 @@ function eqSwitchTab(tab){
   document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
   document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
   document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
-  document.getElementById('eqSubBlank').style.display = tab === 'blank' ? '' : 'none';
   document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
@@ -417,7 +426,6 @@ function eqSwitchTab(tab){
   if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
   if (tab === 'exam' && typeof ppRender === "function") ppRender();
-  if (tab === 'blank' && typeof bqRender === "function") bqRender();
   if (tab === 'errbook' && typeof ebRender === "function") ebRender();
 }
 

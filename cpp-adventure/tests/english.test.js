@@ -29,12 +29,12 @@ test("英语章节数量与覆盖（含第 13 章综合模拟）", () => {
   });
 });
 
-test("英语关卡总数 103 例（100 原例 + 3 综合模拟）", () => {
-  assert.strictEqual(EQ.lessons.length, 103);
+test("英语关卡总数 104 例（100 原例 + 代词总览 1 + 3 综合模拟）", () => {
+  assert.strictEqual(EQ.lessons.length, 104);
 });
 
 test("每章例数分布符合设计", () => {
-  const want = { 1: 9, 2: 8, 3: 11, 4: 6, 5: 10, 6: 8, 7: 10, 8: 6, 9: 12, 10: 6, 11: 8, 12: 6, 13: 3 };
+  const want = { 1: 9, 2: 8, 3: 12, 4: 6, 5: 10, 6: 8, 7: 10, 8: 6, 9: 12, 10: 6, 11: 8, 12: 6, 13: 3 };
   for (const [ch, n] of Object.entries(want)) {
     const got = EQ.lessons.filter((l) => l.ch === Number(ch)).length;
     assert.strictEqual(got, n, `第 ${ch} 章应为 ${n} 例，实际 ${got}`);
