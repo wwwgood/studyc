@@ -2,6 +2,12 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { createMockDOM, loadScripts } = require("./helpers");
 
+/* 固定随机数：mtCheck 判题后会调用 mtNew 重生新题（产品设计如此），
+ * 若不定随机，测试夹具（如 17%5=2）会被随机新题覆盖，导致“第二笔校验”
+ * 偶发误判（约 5% 概率假失败）。固定为 0 → 重生题恒为 2+2=4，测试确定性。 */
+const __origRandom = Math.random;
+Math.random = () => 0;
+
 function setupMath(store) {
   const mock = createMockDOM();
   const el = mock.document.createElement("input");

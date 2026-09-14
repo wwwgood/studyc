@@ -25,6 +25,65 @@ function dbHasReal(db){
   });
 }
 
+/* ---------------- 每日自动备份文件（免手动、免记忆） ----------------
+ * 目标：即使浏览器清缓存把 localStorage 和 IndexedDB 快照一起清掉，
+ * 「下载」文件夹里也有一份按天保存的学习数据文件兜底。
+ * 规则：
+ *  - 每天第一次 saveS 触发时自动导出一份 studyc-backup-YYYY-MM-DD.json；
+ *  - 当天数据有变化则再导一次（同一份内容只导一次，绝不重复下载）；
+ *  - 全程零弹窗、零确认，导出失败静默忽略，绝不打断学习。
+ * 下载位置由浏览器下载设置决定（默认「下载」文件夹）。
+ */
+var LAB_STATE_KEY = "sc_local_backup";
+function labLoadState(){
+  try { return JSON.parse(localStorage.getItem(LAB_STATE_KEY) || "{}") || {}; } catch(e){ return {}; }
+}
+function labSaveState(st){
+  try { localStorage.setItem(LAB_STATE_KEY, JSON.stringify(st)); } catch(e){}
+}
+function labDayStr(){
+  var d = new Date();
+  var p = function(n){ return (n < 10 ? "0" : "") + n; };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+function labHash(str){
+  /* FNV-1a 轻量签名：只用于判断「当天数据和上次导出是否一样」，不涉安全 */
+  var h = 2166136261;
+  try { for (var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } } catch(e){ return ""; }
+  return (h >>> 0).toString(36);
+}
+function labExportDailyFile(reason, snapData, always){
+  try {
+    var raw = "";
+    var out = {};
+    try {
+      Object.keys(snapData || {}).forEach(function(k){
+        if (k === "sc_cloud" || k === "sc_gist") return; /* 敏感配置（云端口令/GitHub 令牌）不进下载文件 */
+        out[k] = snapData[k];
+      });
+    } catch(e){ out = snapData || {}; }
+    try { raw = JSON.stringify(out); } catch(e){ return; }
+    var today = labDayStr();
+    var sig = labHash(raw);
+    var st = labLoadState();
+    if (!always && st.day === today && st.sig === sig) return; /* 当天且数据没变：不重复导出 */
+    var fname = "studyc-backup-" + today + ".json";
+    var payload = JSON.stringify({ app: "studyc-daily-backup", version: 1, day: today, reason: reason || "save", savedAt: new Date().toISOString(), data: out }, null, 2);
+    var blob = new Blob([payload], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ try { URL.revokeObjectURL(url); } catch(e){} }, 3000);
+    st.day = today; st.sig = sig; st.file = fname; st.at = new Date().toISOString();
+    labSaveState(st);
+    try { console.log("[local-backup] 每日备份文件已自动保存：" + fname); } catch(e){}
+  } catch(e){ /* 自动备份绝不影响学习主流程 */ }
+}
+
 /* 迁移函数链：MIGRATIONS[n] 把版本 n 的存档升级到 n+1 */
 var MIGRATIONS = {
   1: function(data){
@@ -53,14 +112,25 @@ function migrate(data){
 
 function loadDB(){
   __DB_LOAD_ERROR__ = false;
-  try { var raw = JSON.parse(localStorage.getItem(KEY)); if (raw && raw.users){
-    try { return migrate(raw); }
+  var rawParsed = null, rawBroken = false;
+  try { rawParsed = JSON.parse(localStorage.getItem(KEY)); } catch(e){ rawBroken = true; }
+  if (rawBroken || (rawParsed && !rawParsed.users)){
+    /* 主存档存在但解析失败/结构损坏：数据大概率还在，只是读不出来。
+     * 按红线必须置异常标记保护现场、提示恢复，绝不静默当空库。 */
+    __DB_LOAD_ERROR__ = true;
+    try { console.error("[loadDB] 主存档解析失败，已保护原始数据不覆盖（数据未被删除，请从快照/备份恢复）"); } catch(_){}
+  } else if (rawParsed && rawParsed.users){
+    try { return migrate(rawParsed); }
     catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 新存档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
-  } } catch(e){}
-  try { var old = JSON.parse(localStorage.getItem(OLD_KEY)); if (old && old.passed){
-    try { return migrate(old); }
-    catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 旧档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
-  } } catch(e){}
+  }
+  if (!__DB_LOAD_ERROR__){
+    var oldParsed = null;
+    try { oldParsed = JSON.parse(localStorage.getItem(OLD_KEY)); } catch(e){}
+    if (oldParsed && oldParsed.passed){
+      try { return migrate(oldParsed); }
+      catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 旧档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
+    }
+  }
   return {users:{}, current:null, schemaVersion:SCHEMA_VERSION};
 }
 function loadCurrentUser(){
@@ -154,6 +224,9 @@ function bkupNow(reason, force){
     if (Object.keys(data).length === 0) return;
     var snap = { t: Date.now(), reason: reason || "save", data: data };
     bkupWrite(snap);
+    /* 每日自动备份文件：快照写入 IndexedDB 之后，顺手做当天一次性的文件导出
+     * （下载文件夹）。按「天 + 数据签名」双去重：同一天数据没变绝不重复下载。 */
+    if (!force) labExportDailyFile(reason || "save", data);
   } catch(e){}
 }
 function bkupList(){

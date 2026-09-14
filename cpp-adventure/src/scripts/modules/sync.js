@@ -51,7 +51,7 @@ function syncRender(){
       '</div>' +
       '<div class="sync-section bkup-section">' +
         '<h3>💾 本地自动备份（不用任何配置）</h3>' +
-        '<p class="sync-desc">学习数据会自动在本浏览器里保存历史快照（最多 12 份）。就算数据意外被清空，也能一键找回。换设备请用上面的「导出/导入文件」。</p>' +
+        '<p class="sync-desc">三重自动保险，全程无需手动：① 学习过程中自动保存历史快照（最多 12 份，意外清空一键找回）；② <b>每天首次学习时自动在「下载」文件夹存一份按天备份文件</b>（studyc-backup-日期.json，当天数据没变不重复下载，浏览器清缓存也不怕）；③ 配置云端后自动上传。换设备请用上面的「导出/导入文件」。</p>' +
         '<button class="sync-export-btn" type="button" style="margin-bottom:10px;" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
         '<div id="bkupBox">加载中…</div>' +
       '</div>' +
@@ -106,9 +106,9 @@ function bkupRenderList(){
 }
 
 function bkupDoRestore(t){
-  /* 恢复前先给当前状态留一份底，防止恢复错/更糟，可反悔 */
-  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
   if (!confirm("确定用这份快照覆盖当前数据吗？\n（会恢复到 " + new Date(t).toLocaleString() + " 时的进度）")) return;
+  /* 用户确认后才留底：给当前状态留一份 pre-restore 快照，恢复错/更糟时可反悔 */
+  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
   bkupRestore(t).then(function(ok){
     if (ok){ baToast("✅ 已恢复到该快照！页面即将刷新"); setTimeout(function(){ location.reload(); }, 1200); }
     else baToast("❌ 恢复失败，快照不存在或已损坏");

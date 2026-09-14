@@ -66806,7 +66806,7 @@ function syncRender(){
       '</div>' +
       '<div class="sync-section bkup-section">' +
         '<h3>💾 本地自动备份（不用任何配置）</h3>' +
-        '<p class="sync-desc">学习数据会自动在本浏览器里保存历史快照（最多 12 份）。就算数据意外被清空，也能一键找回。换设备请用上面的「导出/导入文件」。</p>' +
+        '<p class="sync-desc">三重自动保险，全程无需手动：① 学习过程中自动保存历史快照（最多 12 份，意外清空一键找回）；② <b>每天首次学习时自动在「下载」文件夹存一份按天备份文件</b>（studyc-backup-日期.json，当天数据没变不重复下载，浏览器清缓存也不怕）；③ 配置云端后自动上传。换设备请用上面的「导出/导入文件」。</p>' +
         '<button class="sync-export-btn" type="button" style="margin-bottom:10px;" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
         '<div id="bkupBox">加载中…</div>' +
       '</div>' +
@@ -66861,9 +66861,9 @@ function bkupRenderList(){
 }
 
 function bkupDoRestore(t){
-  /* 恢复前先给当前状态留一份底，防止恢复错/更糟，可反悔 */
-  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
   if (!confirm("确定用这份快照覆盖当前数据吗？\n（会恢复到 " + new Date(t).toLocaleString() + " 时的进度）")) return;
+  /* 用户确认后才留底：给当前状态留一份 pre-restore 快照，恢复错/更糟时可反悔 */
+  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
   bkupRestore(t).then(function(ok){
     if (ok){ baToast("✅ 已恢复到该快照！页面即将刷新"); setTimeout(function(){ location.reload(); }, 1200); }
     else baToast("❌ 恢复失败，快照不存在或已损坏");
@@ -66983,6 +66983,7 @@ function csSnapshot(){
       var k = localStorage.key(i);
       if (!k) continue;
       if (k === CS_CFG_KEY) continue;
+      if (k === "sc_gist") continue; /* GitHub 令牌不进 Cloudflare 云端 */
       data[k] = localStorage.getItem(k);
     }
   } catch(e){}
@@ -67042,9 +67043,11 @@ function csFetchCloud(){
     .catch(function(){ return null; });
 }
 
-/* 应用云端数据覆盖本机（恢复） */
+/* 应用云端数据覆盖本机（恢复）。
+ * 红线铁律6：覆盖本机前必须先留底（pre-restore 强制快照），恢复错了能反悔。 */
 function csApplyCloud(cloudData){
-  var data = cloudData.data || {};
+  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
+  var data = (cloudData && cloudData.data) || {};
   Object.keys(data).forEach(function(k){
     try { localStorage.setItem(k, data[k]); } catch(e){}
   });
@@ -67214,6 +67217,18 @@ function gsSnapshot(){
   return { app: "studyc-sync", updatedAt: new Date().toISOString(), data: data };
 }
 
+/* 云端是否有「真实学习数据」：解析 studyc-data.json 里的主存档并用 dbHasReal 判定。
+ * 上传防呆的依据：云端空数据没有备份价值，不许覆盖云端好备份。 */
+function gsPayloadHasReal(payload){
+  try {
+    if (!payload || !payload.data) return false;
+    var raw = payload.data["cppsAdventureV2"];
+    if (!raw) return false;
+    var db = JSON.parse(raw);
+    return typeof dbHasReal === "function" ? dbHasReal(db) : !!(db && db.users);
+  } catch(e){ return false; }
+}
+
 /* 首次连接：创建私有 Gist 并绑定 */
 function gsConnect(){
   var tokenEl = document.getElementById("gsToken");
@@ -67247,17 +67262,24 @@ function gsConnect(){
   });
 }
 
-/* 上传：整包写入 Gist */
+/* 上传：整包写入 Gist。
+ * 防呆：本机/快照没有真实学习数据时拒绝上传，防止空数据覆盖云端好备份（红线铁律5b 同款）。 */
 function gsPush(silent){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ if (!silent) gsToast("请先连接 GitHub"); return Promise.resolve(false); }
   GS_DIRTY = false;
-  var payload = {};
-  payload[GS_FILE] = { content: JSON.stringify(gsSnapshot()) };
+  var payload = gsSnapshot();
+  if (!gsPayloadHasReal(payload)){
+    try { console.warn("[gist-sync] 本机无真实学习数据，跳过上传（防止云端被空数据覆盖）"); } catch(_){}
+    if (!silent) gsToast("⚠️ 本机没有真实学习数据，已跳过上传（保护云端备份）");
+    return Promise.resolve(false);
+  }
+  var body = {};
+  body[GS_FILE] = { content: JSON.stringify(payload) };
   return fetch("https://api.github.com/gists/" + cfg.gistId, {
     method: "PATCH",
     headers: gsApiHeaders(cfg.token),
-    body: JSON.stringify({ files: payload })
+    body: JSON.stringify({ files: body })
   }).then(function(r){
     if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
     var cfg2 = gsCfg();
@@ -67273,10 +67295,12 @@ function gsPush(silent){
   });
 }
 
-/* 下载：云端数据覆盖本机（换设备/清缓存后用） */
+/* 下载：云端数据覆盖本机（换设备/清缓存后用）。
+ * 红线铁律6：覆盖本机前必须先留底（pre-gist-pull 强制快照），可反悔。 */
 function gsPull(){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ gsToast("请先连接 GitHub"); return; }
+  if (!confirm("确定用 GitHub 云端数据覆盖本机当前数据吗？\n（覆盖前会自动给当前数据留一份快照，可反悔。）")) return;
   gsToast("正在从 GitHub 拉取…");
   fetch("https://api.github.com/gists/" + cfg.gistId, {
     headers: gsApiHeaders(cfg.token)
@@ -67289,6 +67313,8 @@ function gsPull(){
     var payload;
     try { payload = JSON.parse(f.content); } catch(e){ gsToast("云端数据无法解析"); return; }
     if (!payload || !payload.data){ gsToast("云端数据格式不对"); return; }
+    /* 覆盖前留底：当前本机状态强制快照一份，恢复错了能反悔 */
+    try { if (typeof bkupNow === "function") bkupNow("pre-gist-pull", true); } catch(_){}
     var n = 0;
     for (var k in payload.data){
       if (k === GS_CFG_KEY || k === "sc_cloud") continue;
@@ -67360,7 +67386,8 @@ function gsRenderPanel(){
       '<div class="gs-steps">三步搞定：<b>① GitHub 创建令牌</b>（Settings → Developer settings → Personal access tokens (classic) → Generate new token，只勾 <b>gist</b> 权限）→ ' +
       '<b>② 粘贴到下面点连接</b> → <b>③ 开启自动上传</b>。之后每次学习自动备份，任何设备都能恢复。</div>' +
       '<input type="password" id="gsToken" class="gs-token" placeholder="粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
-      '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>';
+      '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>' +
+      '<p class="sync-desc" style="margin-top:6px;">连接后建议立即开启自动上传：学习后 8 秒自动备份到 GitHub，全程无需手动。</p>';
   }
 }
 
@@ -73216,6 +73243,65 @@ function dbHasReal(db){
   });
 }
 
+/* ---------------- 每日自动备份文件（免手动、免记忆） ----------------
+ * 目标：即使浏览器清缓存把 localStorage 和 IndexedDB 快照一起清掉，
+ * 「下载」文件夹里也有一份按天保存的学习数据文件兜底。
+ * 规则：
+ *  - 每天第一次 saveS 触发时自动导出一份 studyc-backup-YYYY-MM-DD.json；
+ *  - 当天数据有变化则再导一次（同一份内容只导一次，绝不重复下载）；
+ *  - 全程零弹窗、零确认，导出失败静默忽略，绝不打断学习。
+ * 下载位置由浏览器下载设置决定（默认「下载」文件夹）。
+ */
+var LAB_STATE_KEY = "sc_local_backup";
+function labLoadState(){
+  try { return JSON.parse(localStorage.getItem(LAB_STATE_KEY) || "{}") || {}; } catch(e){ return {}; }
+}
+function labSaveState(st){
+  try { localStorage.setItem(LAB_STATE_KEY, JSON.stringify(st)); } catch(e){}
+}
+function labDayStr(){
+  var d = new Date();
+  var p = function(n){ return (n < 10 ? "0" : "") + n; };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+function labHash(str){
+  /* FNV-1a 轻量签名：只用于判断「当天数据和上次导出是否一样」，不涉安全 */
+  var h = 2166136261;
+  try { for (var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } } catch(e){ return ""; }
+  return (h >>> 0).toString(36);
+}
+function labExportDailyFile(reason, snapData, always){
+  try {
+    var raw = "";
+    var out = {};
+    try {
+      Object.keys(snapData || {}).forEach(function(k){
+        if (k === "sc_cloud" || k === "sc_gist") return; /* 敏感配置（云端口令/GitHub 令牌）不进下载文件 */
+        out[k] = snapData[k];
+      });
+    } catch(e){ out = snapData || {}; }
+    try { raw = JSON.stringify(out); } catch(e){ return; }
+    var today = labDayStr();
+    var sig = labHash(raw);
+    var st = labLoadState();
+    if (!always && st.day === today && st.sig === sig) return; /* 当天且数据没变：不重复导出 */
+    var fname = "studyc-backup-" + today + ".json";
+    var payload = JSON.stringify({ app: "studyc-daily-backup", version: 1, day: today, reason: reason || "save", savedAt: new Date().toISOString(), data: out }, null, 2);
+    var blob = new Blob([payload], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ try { URL.revokeObjectURL(url); } catch(e){} }, 3000);
+    st.day = today; st.sig = sig; st.file = fname; st.at = new Date().toISOString();
+    labSaveState(st);
+    try { console.log("[local-backup] 每日备份文件已自动保存：" + fname); } catch(e){}
+  } catch(e){ /* 自动备份绝不影响学习主流程 */ }
+}
+
 /* 迁移函数链：MIGRATIONS[n] 把版本 n 的存档升级到 n+1 */
 var MIGRATIONS = {
   1: function(data){
@@ -73244,14 +73330,25 @@ function migrate(data){
 
 function loadDB(){
   __DB_LOAD_ERROR__ = false;
-  try { var raw = JSON.parse(localStorage.getItem(KEY)); if (raw && raw.users){
-    try { return migrate(raw); }
+  var rawParsed = null, rawBroken = false;
+  try { rawParsed = JSON.parse(localStorage.getItem(KEY)); } catch(e){ rawBroken = true; }
+  if (rawBroken || (rawParsed && !rawParsed.users)){
+    /* 主存档存在但解析失败/结构损坏：数据大概率还在，只是读不出来。
+     * 按红线必须置异常标记保护现场、提示恢复，绝不静默当空库。 */
+    __DB_LOAD_ERROR__ = true;
+    try { console.error("[loadDB] 主存档解析失败，已保护原始数据不覆盖（数据未被删除，请从快照/备份恢复）"); } catch(_){}
+  } else if (rawParsed && rawParsed.users){
+    try { return migrate(rawParsed); }
     catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 新存档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
-  } } catch(e){}
-  try { var old = JSON.parse(localStorage.getItem(OLD_KEY)); if (old && old.passed){
-    try { return migrate(old); }
-    catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 旧档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
-  } } catch(e){}
+  }
+  if (!__DB_LOAD_ERROR__){
+    var oldParsed = null;
+    try { oldParsed = JSON.parse(localStorage.getItem(OLD_KEY)); } catch(e){}
+    if (oldParsed && oldParsed.passed){
+      try { return migrate(oldParsed); }
+      catch(e){ __DB_LOAD_ERROR__ = true; try { console.error("[loadDB] 旧档迁移失败，已保护原始数据不覆盖", e); } catch(_){} }
+    }
+  }
   return {users:{}, current:null, schemaVersion:SCHEMA_VERSION};
 }
 function loadCurrentUser(){
@@ -73345,6 +73442,9 @@ function bkupNow(reason, force){
     if (Object.keys(data).length === 0) return;
     var snap = { t: Date.now(), reason: reason || "save", data: data };
     bkupWrite(snap);
+    /* 每日自动备份文件：快照写入 IndexedDB 之后，顺手做当天一次性的文件导出
+     * （下载文件夹）。按「天 + 数据签名」双去重：同一天数据没变绝不重复下载。 */
+    if (!force) labExportDailyFile(reason || "save", data);
   } catch(e){}
 }
 function bkupList(){
@@ -74000,6 +74100,15 @@ function importSave(e){
     try {
       var data = JSON.parse(reader.result);
       if (data && data.users){
+        /* 防呆：新存档是空库而本机已有真实数据时拒绝导入，防止空覆盖（红线铁律1） */
+        var incomingHasReal = typeof dbHasReal === "function" ? dbHasReal(data) : true;
+        if (!incomingHasReal && typeof dbHasReal === "function" && dbHasReal(SDB)){
+          alert("这个存档文件里没有学习数据，已取消导入（保护当前进度）。\n如果你确实要导入空存档，请先在 ☁️ 同步里导出一份当前数据留底。");
+          e.target.value = "";
+          return;
+        }
+        /* 红线铁律6：覆盖前先留底，导入错了可反悔 */
+        try { if (typeof bkupNow === "function") bkupNow("pre-import", true); } catch(_){}
         SDB = data;
         if (SDB.current && SDB.users[SDB.current]) S = SDB.users[SDB.current];
         else S = {passed:{}};

@@ -18,6 +18,8 @@ cd cpp-adventure
 node build/merge.js
 # → dist/index.html（单文件，核心功能离线可打开）
 Copy-Item dist/index.html docs/index.html
+# 同步到仓库根 docs/（GitHub Pages 实际部署目录，发布前必须同步，否则线上是旧版）
+Copy-Item dist/index.html ../docs/index.html
 
 # 运行全部单元测试（Windows/Linux 通用）
 npm test
@@ -49,7 +51,7 @@ studyc/
 │   │       ├── data/         # 10 个数据文件（关卡/题库/英语六库/实战特训真题库）
 │   │       └── modules/      # 27 个业务模块（portal/map/checkin/sync/awards/oj/...）
 │   ├── build/                # 14 个脚本：merge/split/validate-levels/validate-oj/gen-*/import-questions
-│   ├── tests/                # 10 个测试文件（82 个用例，node:test + vm mock DOM）
+│   ├── tests/                # 15 个测试文件（含数据安全防线静态校验）
 │   ├── dist/                 # 交付产物（单文件，git 忽略）
 │   ├── docs/                 # GitHub Pages 部署文件（= dist/index.html 同步副本）
 │   ├── package.json
@@ -115,7 +117,10 @@ studyc/
 ## 验证
 
 ```bash
-# 单元测试（125 用例，node:test + vm mock DOM；含数据安全 12 项、多题型引擎 18 项）
+# 一键全检（测试 + 数据安全 + 内容校验 + 构建 + 产物检查）
+cd cpp-adventure && npm run verify
+
+# 单元测试（tests/ 目录，node:test + vm mock DOM；含数据安全防线 12+7 项校验）
 cd cpp-adventure && npm test
 
 # 语法检查所有 JS 模块
@@ -127,3 +132,11 @@ node cpp-adventure/build/validate-levels.js
 # 实战特训数据校验（11 真题 + 33 考点测验 / 5 阶段 24 周任务 / 6 策略题）
 node cpp-adventure/build/validate-oj.js
 ```
+
+## 数据自动备份（三层，无需手动）
+
+1. **IndexedDB 快照**：学习过程中自动保存（最多 12 份），☁️ 同步 → 本地自动备份可随时恢复；
+2. **每日备份文件**：每天首次学习时自动在浏览器「下载」文件夹存一份 `studyc-backup-日期.json`（同一天数据没变不重复下载）——即使浏览器清缓存把快照清掉，硬盘上仍有文件兜底；
+3. **GitHub 云同步**：☁️ 同步 → 连接 GitHub（只需一个 gist 权限令牌）→ 开启自动上传，学习后 8 秒自动备份到私有 Gist；空数据自动拒绝上传，恢复前自动留底。
+
+数据安全红线见 [DATA-SAFETY.md](./DATA-SAFETY.md)：任何空数据不得覆盖真实存档/云端备份，覆盖类操作前强制留底（`tests/data-safety*.test.js` 静态校验这些防线）。

@@ -84,6 +84,15 @@ function importSave(e){
     try {
       var data = JSON.parse(reader.result);
       if (data && data.users){
+        /* 防呆：新存档是空库而本机已有真实数据时拒绝导入，防止空覆盖（红线铁律1） */
+        var incomingHasReal = typeof dbHasReal === "function" ? dbHasReal(data) : true;
+        if (!incomingHasReal && typeof dbHasReal === "function" && dbHasReal(SDB)){
+          alert("这个存档文件里没有学习数据，已取消导入（保护当前进度）。\n如果你确实要导入空存档，请先在 ☁️ 同步里导出一份当前数据留底。");
+          e.target.value = "";
+          return;
+        }
+        /* 红线铁律6：覆盖前先留底，导入错了可反悔 */
+        try { if (typeof bkupNow === "function") bkupNow("pre-import", true); } catch(_){}
         SDB = data;
         if (SDB.current && SDB.users[SDB.current]) S = SDB.users[SDB.current];
         else S = {passed:{}};

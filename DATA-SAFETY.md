@@ -39,14 +39,12 @@
 2. **版本升级（migrate）必须向后兼容**：老格式数据要能无损迁移到新格式；迁移失败 → 置 `__DB_LOAD_ERROR__` → 保护原始数据 → 提示用户去恢复，**绝不静默当空**。
 3. **新增 localStorage 键要进快照**：`bkupNow` 自动备份全部键（除 `sc_cloud`），新键无需额外处理；但新键若有敏感内容，要在 `bkupNow`/`csSnapshot` 里排除。
 4. **判断"有没有数据"一律用 `dbHasReal()`**（`state.js` 定义，全局可用），不要自己写 `users.length > 0` 之类的简化判断。
-5. **改完数据相关代码，必须跑：**
+5. **改完数据相关代码，必须跑（一键全检）：**
    ```
-   cd cpp-adventure && npm test
-   node build/check-data-safety.js   ← 空库写保护/迁移异常/快照防呆功能实测（模拟浏览器）
-   node build/validate-oj.js
-   node build/merge.js
+   cd cpp-adventure && npm run verify
    ```
-   其中 `npm test` 内含 `tests/data-safety.test.js` 数据安全静态校验，**任何一条失败 = 改动被否决**。
+   等价于依序执行：`npm test`（含 data-safety/data-safety-extra 静态校验）→ `node build/check-data-safety.js`（空库写保护/迁移异常/快照防呆实测）→ `node build/validate-levels.js` → `node build/validate-oj.js` → `node build/merge.js` → `node build/check-dist.js`。
+   发布前再同步产物：把 `dist/index.html` 拷到仓库根 `docs/index.html`（GitHub Pages 部署目录）。
 6. **动 `state.js` / `sync.js` / `cloud-sync.js` / `user.js` / `init.js` 任何一个文件时**，默认假设自己是"最后一个犯错的人"，先读本文件，再读 `src/scripts/core/state.js` 全文件，想清楚每条写回路径再动手。
 
 ## 四、数据存储地图（改代码前先认清）
@@ -67,6 +65,18 @@
 - `cloud-sync.js`：`csHasLocalData` 用 `dbHasReal`；`csPush` 空数据不上传
 - `user.js`：`doLogin` 在 `__DB_LOAD_ERROR__` 时禁止新建账号
 
+## 五、2026-09-14 补充铁律（同样不可回退，tests/data-safety-extra.test.js 静态校验）
+
+| # | 禁止事项 | 落地位置 |
+|---|---------|---------|
+| A | **Gist 上传必须有真实数据防呆**：`gsPush` 上传前用 `gsPayloadHasReal`（内含 `dbHasReal`）判定，空数据拒绝上传，防止覆盖云端好备份 | `gist-sync.js` |
+| B | **Gist 拉取覆盖本机前必须确认 + 留底**：`gsPull` 先 `confirm`，确认后 `bkupNow("pre-gist-pull", true)` | `gist-sync.js` |
+| C | **云端恢复覆盖前必须留底**：`csApplyCloud` 先 `bkupNow("pre-restore", true)` | `cloud-sync.js` |
+| D | **旧存档导入器必须留底 + 防呆**：`importSave` 导入前校验空库（`dbHasReal(data)`），覆盖前 `bkupNow("pre-import", true)` | `user.js` |
+| E | **快照恢复先确认后留底**：`bkupDoRestore` 先 `confirm` 再留底，用户取消不消耗快照额度 | `sync.js` |
+| F | **主存档解析失败与迁移失败同等待遇**：`loadDB` 解析失败也置 `__DB_LOAD_ERROR__`，不静默当空库 | `state.js` |
+| G | **每日自动备份文件引擎不可删除**：`labExportDailyFile` 挂在 `bkupNow` 快照成功后的非强制路径（按天+数据签名去重），保证浏览器清缓存后硬盘仍有备份文件 | `state.js` |
+
 ## 六、恢复数据操作指引（写给用户/模型）
 
 数据意外清空时，按顺序尝试（无需技术背景）：
@@ -78,3 +88,9 @@
 ---
 
 *本文件与 `cpp-adventure/src/scripts/core/state.js` 配套生效。修改任何一方，另一方必须同步审视。*
+
+---
+
+## 变更记录
+
+- **2026-09-14**：修补五处防线缺口（Gist 上传无防呆 / Gist·云端·旧档导入恢复前不留底 / loadDB 解析失败静默）；新增每日自动备份文件引擎（浏览器下载文件夹，按天+数据签名去重）；新增补充铁律 A-G 及配套静态测试 `tests/data-safety-extra.test.js`。

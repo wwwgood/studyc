@@ -34,6 +34,7 @@ function csSnapshot(){
       var k = localStorage.key(i);
       if (!k) continue;
       if (k === CS_CFG_KEY) continue;
+      if (k === "sc_gist") continue; /* GitHub 令牌不进 Cloudflare 云端 */
       data[k] = localStorage.getItem(k);
     }
   } catch(e){}
@@ -93,9 +94,11 @@ function csFetchCloud(){
     .catch(function(){ return null; });
 }
 
-/* 应用云端数据覆盖本机（恢复） */
+/* 应用云端数据覆盖本机（恢复）。
+ * 红线铁律6：覆盖本机前必须先留底（pre-restore 强制快照），恢复错了能反悔。 */
 function csApplyCloud(cloudData){
-  var data = cloudData.data || {};
+  try { if (typeof bkupNow === "function") bkupNow("pre-restore", true); } catch(_){}
+  var data = (cloudData && cloudData.data) || {};
   Object.keys(data).forEach(function(k){
     try { localStorage.setItem(k, data[k]); } catch(e){}
   });

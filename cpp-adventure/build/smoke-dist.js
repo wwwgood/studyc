@@ -1,7 +1,9 @@
 /* 交付件冒烟：直接跑 dist/index.html（单文件版），验证专题章节控件 + 导入归并 */
 const fs = require("fs");
 const path = require("path");
-const { JSDOM } = require(path.join("C:/Users/zb/.workbuddy/binaries/node/workspace/node_modules/jsdom"));
+/* jsdom 路径：默认用本机固定安装，可用环境变量 JSDOM_PATH 覆盖（换机器不断验证链） */
+const JSDOM_PATH = process.env.JSDOM_PATH || "C:/Users/zb/.workbuddy/binaries/node/workspace/node_modules/jsdom";
+const { JSDOM } = require(path.join(JSDOM_PATH));
 
 const dist = path.join(__dirname, "..", "dist", "index.html");
 const html = fs.readFileSync(dist, "utf8");

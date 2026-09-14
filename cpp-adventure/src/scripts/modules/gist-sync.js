@@ -47,6 +47,18 @@ function gsSnapshot(){
   return { app: "studyc-sync", updatedAt: new Date().toISOString(), data: data };
 }
 
+/* 云端是否有「真实学习数据」：解析 studyc-data.json 里的主存档并用 dbHasReal 判定。
+ * 上传防呆的依据：云端空数据没有备份价值，不许覆盖云端好备份。 */
+function gsPayloadHasReal(payload){
+  try {
+    if (!payload || !payload.data) return false;
+    var raw = payload.data["cppsAdventureV2"];
+    if (!raw) return false;
+    var db = JSON.parse(raw);
+    return typeof dbHasReal === "function" ? dbHasReal(db) : !!(db && db.users);
+  } catch(e){ return false; }
+}
+
 /* 首次连接：创建私有 Gist 并绑定 */
 function gsConnect(){
   var tokenEl = document.getElementById("gsToken");
@@ -80,17 +92,24 @@ function gsConnect(){
   });
 }
 
-/* 上传：整包写入 Gist */
+/* 上传：整包写入 Gist。
+ * 防呆：本机/快照没有真实学习数据时拒绝上传，防止空数据覆盖云端好备份（红线铁律5b 同款）。 */
 function gsPush(silent){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ if (!silent) gsToast("请先连接 GitHub"); return Promise.resolve(false); }
   GS_DIRTY = false;
-  var payload = {};
-  payload[GS_FILE] = { content: JSON.stringify(gsSnapshot()) };
+  var payload = gsSnapshot();
+  if (!gsPayloadHasReal(payload)){
+    try { console.warn("[gist-sync] 本机无真实学习数据，跳过上传（防止云端被空数据覆盖）"); } catch(_){}
+    if (!silent) gsToast("⚠️ 本机没有真实学习数据，已跳过上传（保护云端备份）");
+    return Promise.resolve(false);
+  }
+  var body = {};
+  body[GS_FILE] = { content: JSON.stringify(payload) };
   return fetch("https://api.github.com/gists/" + cfg.gistId, {
     method: "PATCH",
     headers: gsApiHeaders(cfg.token),
-    body: JSON.stringify({ files: payload })
+    body: JSON.stringify({ files: body })
   }).then(function(r){
     if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
     var cfg2 = gsCfg();
@@ -106,10 +125,12 @@ function gsPush(silent){
   });
 }
 
-/* 下载：云端数据覆盖本机（换设备/清缓存后用） */
+/* 下载：云端数据覆盖本机（换设备/清缓存后用）。
+ * 红线铁律6：覆盖本机前必须先留底（pre-gist-pull 强制快照），可反悔。 */
 function gsPull(){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ gsToast("请先连接 GitHub"); return; }
+  if (!confirm("确定用 GitHub 云端数据覆盖本机当前数据吗？\n（覆盖前会自动给当前数据留一份快照，可反悔。）")) return;
   gsToast("正在从 GitHub 拉取…");
   fetch("https://api.github.com/gists/" + cfg.gistId, {
     headers: gsApiHeaders(cfg.token)
@@ -122,6 +143,8 @@ function gsPull(){
     var payload;
     try { payload = JSON.parse(f.content); } catch(e){ gsToast("云端数据无法解析"); return; }
     if (!payload || !payload.data){ gsToast("云端数据格式不对"); return; }
+    /* 覆盖前留底：当前本机状态强制快照一份，恢复错了能反悔 */
+    try { if (typeof bkupNow === "function") bkupNow("pre-gist-pull", true); } catch(_){}
     var n = 0;
     for (var k in payload.data){
       if (k === GS_CFG_KEY || k === "sc_cloud") continue;
@@ -193,7 +216,8 @@ function gsRenderPanel(){
       '<div class="gs-steps">三步搞定：<b>① GitHub 创建令牌</b>（Settings → Developer settings → Personal access tokens (classic) → Generate new token，只勾 <b>gist</b> 权限）→ ' +
       '<b>② 粘贴到下面点连接</b> → <b>③ 开启自动上传</b>。之后每次学习自动备份，任何设备都能恢复。</div>' +
       '<input type="password" id="gsToken" class="gs-token" placeholder="粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
-      '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>';
+      '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>' +
+      '<p class="sync-desc" style="margin-top:6px;">连接后建议立即开启自动上传：学习后 8 秒自动备份到 GitHub，全程无需手动。</p>';
   }
 }
 
