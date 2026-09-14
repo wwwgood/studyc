@@ -30,7 +30,7 @@ npm test
 | 视图 | 内容 |
 |------|------|
 | 🏠 总览 | 三科进度汇总、今日打卡状态 |
-| 💻 信息学 | 26 关闯关地图、徽章墙、训练基地 7 面板、赛事航路、家长指挥所、**实战特训**（11 道机考真题 + 半年航线 + 作战手册） |
+| 💻 信息学 | 26 关闯关地图、徽章墙、训练基地 7 面板、赛事航路、家长指挥所、**实战特训**（11 道机考真题 + 半年航线 + 作战手册）、**学校练习**（《信息学奥赛一本通》同步：做题→解答→解析） |
 | 🔤 英语 | 语法闯关（103 例）/ 词汇（20 词库岛）/ 阅读（100 篇）/ 作文（99 篇范文）/ 真题演练（9 套）/ 错题本 / **多题型题库**（选择·选词填空·填空改错·汉译英·阅读理解·作文） |
 | 📅 每日打卡 | 家长锁（密码）、月历、语文/英语/自定义任务、书籍库、计划任务、企业微信推送、Supabase 云同步 |
 | 📌 重要消息 | 考试活动安排、独立视图 + 顶栏红点提醒 |
@@ -45,13 +45,13 @@ studyc/
 │   ├── src/                  # 开发期源码（多文件）
 │   │   ├── index.html        # 单页门户骨架（5 视图 + 弹窗层）
 │   │   ├── vendor/           # 本地化的 pdf.js / mammoth / tesseract.js（构建时内联）
-│   │   ├── styles/           # main/portal/checkin/english/awards/oj 6 个 CSS
+│   │   ├── styles/           # main/portal/checkin/english/awards/oj/school 7 个 CSS
 │   │   └── scripts/
 │   │       ├── core/         # config.js（全局配置）/ state.js（存档 v3+迁移）/ init.js
-│   │       ├── data/         # 10 个数据文件（关卡/题库/英语六库/实战特训真题库）
-│   │       └── modules/      # 27 个业务模块（portal/map/checkin/sync/awards/oj/...）
-│   ├── build/                # 14 个脚本：merge/split/validate-levels/validate-oj/gen-*/import-questions
-│   ├── tests/                # 15 个测试文件（含数据安全防线静态校验）
+│   │       ├── data/         # 17 个数据文件（关卡/题库/英语库/实战特训/学校练习题库）
+│   │       └── modules/      # 38 个业务模块（portal/map/checkin/sync/awards/oj/school/...）
+│   ├── build/                # 构建与校验脚本（merge/split/validate-*/check-*/gen-*/import-questions；历史一次性脚本在 attic/）
+│   ├── tests/                # 17 个测试文件（含数据安全防线静态校验）
 │   ├── dist/                 # 交付产物（单文件，git 忽略）
 │   ├── docs/                 # GitHub Pages 部署文件（= dist/index.html 同步副本）
 │   ├── package.json
@@ -83,6 +83,15 @@ studyc/
 - 难度分级：★ 基础 60-70 分 / ★★ 中等 70-85 / ★★★ 拔高 85-95 / ★★★★ 压轴 95-100
 - 训练方法：先独立写 → 再对照参考代码 → 变形训练 → 限时 15-20 分钟/题
 - 数据与逻辑全部新增（`data/oj-bank.js` + `modules/oj.js` + `styles/oj.css`），不影响原有闯关、徽章、训练基地等模块
+
+## 学校练习（信息学 · 与学校课本《信息学奥赛一本通》同步）
+
+信息学板块新增「学校练习」区（子导航 🏫 学校练习），与学校课本《信息学奥赛一本通》（董永建）同步：
+
+- 同一份题目的多份解答**重复内容已合并**为一份：每题一个「解答」+ 一份「解析」；写法不同的地方（如 0302 打表/循环、0303 endl/\n）保留为「另一种写法」，不丢任何一种解法
+- 每题三步：**做题**（原题 + 用例 + 考点）→ **解答**（可一键复制代码）→ **解析**（合并三份讲解的重点，含口诀/易错/推导）
+- 附「开课必读 · 基础魔法」与「考前速查卡」（口诀、易错清单、19 题知识点地图）
+- 支持「标记已学会」进度（存本机，`cppsSchoolV1`）；数据在 `data/school-bank.js` + `modules/school.js` + `styles/school.css`
 
 ## 英语多题型（导入真题 · 训练 · 错题本统一升级）
 
@@ -131,6 +140,9 @@ node cpp-adventure/build/validate-levels.js
 
 # 实战特训数据校验（11 真题 + 33 考点测验 / 5 阶段 24 周任务 / 6 策略题）
 node cpp-adventure/build/validate-oj.js
+
+# 学校练习数据校验（第一课 19 题 + 开课必读 + 考前速查卡）
+node cpp-adventure/build/validate-school.js
 ```
 
 ## 数据自动备份（三层，无需手动）

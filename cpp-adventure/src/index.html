@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="styles/english.css">
 <link rel="stylesheet" href="styles/awards.css">
 <link rel="stylesheet" href="styles/oj.css">
+<link rel="stylesheet" href="styles/school.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
 <body>
@@ -75,6 +76,7 @@
         <a href="#map">冒险地图</a>
         <a href="#badges">徽章墙</a>
         <a href="#train">训练基地</a>
+        <a href="#school">🏫 学校练习</a>
         <a href="#oj">⚔️ 实战特训</a>
         <a href="#road">赛事航路</a>
         <a href="#parent">家长指挥所</a>
@@ -454,6 +456,25 @@
         <h4>我的自定义题</h4>
         <div class="oj-custom-list" id="ojCustomList"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ 学校练习（学校课本《信息学奥赛一本通》同步） ============ -->
+  <section id="school" aria-labelledby="schoolTitle">
+    <div class="sch-head">
+      <span class="sch-kicker">🏫 SCHOOL PRACTICE · 学校练习</span>
+      <h2 id="schoolTitle">学校练习</h2>
+      <div class="sch-stats">
+        <span class="sch-stat">📚 课时 <b id="schStatLessons">1</b></span>
+        <span class="sch-stat">📝 题目 <b id="schStatTotal">19</b></span>
+        <span class="sch-stat">⭐ 已学会 <b id="schStatMastered">0 / 19</b></span>
+      </div>
+    </div>
+    <p class="sch-desc-line">与学校课本《信息学奥赛一本通》（董永建）同步的练习：同一份题目的多份解答已合并成一份——先自己做「做题」，再对照「解答」，最后看「解析」把知识点吃透，随时反复看。</p>
+    <div class="sch-lesson-tabs" id="schLessonTabs" role="tablist" aria-label="课时选择"></div>
+    <div class="sch-layout">
+      <div class="sch-side" id="schList" aria-label="题目列表"></div>
+      <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
     </div>
   </section>
   </div>
@@ -1275,6 +1296,7 @@
   <script src="scripts/data/english-paper-1000.js"></script>
   <script src="scripts/data/english-homework.js"></script>
   <script src="scripts/data/oj-bank.js"></script>
+  <script src="scripts/data/school-bank.js"></script>
   <script src="scripts/modules/portal.js"></script>
   <script src="scripts/modules/english-quest.js"></script>
   <script src="scripts/modules/vocab-quest.js"></script>
@@ -1312,6 +1334,7 @@
   <script src="scripts/modules/road.js"></script>
   <script src="scripts/modules/log.js"></script>
   <script src="scripts/modules/oj.js"></script>
+  <script src="scripts/modules/school.js"></script>
   <script src="scripts/core/init.js"></script>
 
 <div id="focusMask" class="focus-mask" aria-modal="true" role="dialog" aria-label="专注练习模式">

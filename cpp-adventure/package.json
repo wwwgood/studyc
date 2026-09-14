@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "node --test \"tests/*.test.js\"",
-    "verify": "node --test \"tests/*.test.js\" && node build/check-data-safety.js && node build/validate-levels.js && node build/validate-oj.js && node build/merge.js && node build/check-dist.js",
+    "verify": "node --test \"tests/*.test.js\" && node build/check-data-safety.js && node build/validate-levels.js && node build/validate-oj.js && node build/validate-school.js && node build/merge.js && node build/check-dist.js",
     "validate:levels": "node build/validate-levels.js",
     "build": "node build/merge.js",
     "lint": "npx eslint src/scripts/ --ext .js"
