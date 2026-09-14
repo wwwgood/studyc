@@ -94,6 +94,16 @@
 .sch-tbl td{padding:8px 12px; border:1px solid var(--line); color:var(--ink); line-height:1.7;}
 .sch-snippet{background:#0B1B3B; color:#E6EDFF; font-family:Consolas,"Courier New",monospace; font-size:13px; line-height:1.6; border-radius:12px; padding:12px 14px; overflow-x:auto; white-space:pre; margin:10px 0;}
 
+/* 解析页：逐行讲解（一行代码 + 一句解析并排） */
+.sch-walk{margin:10px 0 14px; border:1.5px solid var(--line); border-radius:12px; overflow:hidden; background:#fff;}
+.sch-walk-cap{font-size:12.5px; font-weight:800; letter-spacing:1px; color:#AFC6E8; background:#0B1B3B; padding:8px 14px;}
+.sch-walk-row{display:grid; grid-template-columns:30px minmax(0,auto) 1fr; align-items:start; gap:10px; padding:7px 12px; border-top:1px dashed var(--line);}
+.sch-walk-row:first-of-type{border-top:none;}
+.sch-walk-ln{font-size:11px; font-weight:800; color:#94A3B8; text-align:right; padding-top:4px; font-family:Consolas,monospace;}
+.sch-walk-code{font-family:Consolas,"Courier New",monospace; font-size:12.5px; color:#1E3A5F; background:#F1F5FF; border:1px solid #DBEAFE; border-radius:8px; padding:3px 8px; white-space:pre; overflow-x:auto; max-width:100%; line-height:1.6;}
+.sch-walk-exp{font-size:13.5px; color:var(--ink); line-height:1.7; padding-top:3px; overflow-wrap:anywhere;}
+.sch-walk-exp .sch-icode{white-space:normal;}
+
 /* 底部动作按钮 */
 .sch-actions{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--line);}
 .sch-btn{font-size:14px; font-weight:700; padding:9px 20px; border-radius:999px; cursor:pointer; transition:all .2s;}
@@ -118,4 +128,6 @@
   .sch-stats{margin-left:0;}
   .sch-card{padding:14px;}
   .sch-card-head h3{font-size:17px;}
+  .sch-walk-row{grid-template-columns:24px 1fr; row-gap:4px;}
+  .sch-walk-exp{grid-column:2;}
 }

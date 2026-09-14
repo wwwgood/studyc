@@ -58,6 +58,17 @@ function schBlocks(blocks){
       return '<tr>' + row.map(function(c){ return (i === 0 ? "<th>" : "<td>") + schFmt(c) + (i === 0 ? "</th>" : "</td>"); }).join("") + '</tr>';
     }).join("") + '</table>';
     else if (t === "code") html += '<pre class="sch-snippet">' + schEsc(d.join("\n")) + '</pre>';
+    else if (t === "walk"){
+      /* 逐行讲解：d = [[代码行, 解析], ...]，一行代码配一句解析 */
+      html += '<div class="sch-walk"><div class="sch-walk-cap">🔍 逐行讲解 · 一行代码一句话</div>' +
+        d.map(function(row, i){
+          return '<div class="sch-walk-row">' +
+            '<span class="sch-walk-ln">' + (i + 1) + '</span>' +
+            '<code class="sch-walk-code">' + schFmt(row[0]) + '</code>' +
+            '<span class="sch-walk-exp">' + schFmt(row[1]) + '</span>' +
+          '</div>';
+        }).join("") + '</div>';
+    }
   });
   return html;
 }
