@@ -5,9 +5,12 @@
  * 使用前提：在 GitHub 创建一个只勾选 gist 权限的访问令牌（PAT）。
  * 配置存 localStorage "sc_gist"：{ token, gistId, auto }。
  * 数据文件：Gist 内 studyc-data.json（内容=全部 localStorage）。
- * 同步策略：手动上/下拉 + 自动上传（saveS 后节流 8 秒，云端最后写入胜出）。
+ * 同步策略：双向同步（拉云端→四分支：本机空恢复/本机有上传/两端都有按时间戳
+ *   合并——学习进度并集、错题日志去重、金币取大，写回本机并上传）。
+ *   自动：页面加载 + saveS 后节流 8 秒（开启自动时）执行 gsSync，旧的绝不冲掉新的；
+ *   手动：上传/恢复按钮仍可强制单方向（带确认与留底）。
  *
- * 与 Cloudflare 云同步（cloud-sync.js）互相独立，可任选其一。
+ * 与 Cloudflare 云同步（cloud-sync.js）互相独立，可任选其一，逻辑一致。
  */
 var GS_CFG_KEY = "sc_gist";
 var GS_FILE = "studyc-data.json";
@@ -59,6 +62,88 @@ function gsPayloadHasReal(payload){
   } catch(e){ return false; }
 }
 
+/* 上传指定快照到 Gist（合并结果专用，不重新打包本机） */
+function gsUploadData(data, silent){
+  var cfg = gsCfg();
+  if (!cfg || !cfg.gistId) return Promise.resolve(false);
+  var body = {};
+  body[GS_FILE] = { content: JSON.stringify({ app: "studyc-sync", updatedAt: new Date().toISOString(), data: data }) };
+  return fetch("https://api.github.com/gists/" + cfg.gistId, {
+    method: "PATCH",
+    headers: gsApiHeaders(cfg.token),
+    body: JSON.stringify({ files: body })
+  }).then(function(r){
+    if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
+    var c = gsCfg(); c.lastPush = new Date().toISOString(); gsSaveCfg(c);
+    var el = document.getElementById("gsStatus");
+    if (el) el.innerHTML = gsStatusHtml();
+    return true;
+  }).catch(function(e){
+    console.warn("[gist-sync] 上传失败:", e.message);
+    return false;
+  });
+}
+
+/* 云端数据覆盖本机（留底可反悔） */
+function gsApplyCloud(payload){
+  try { if (typeof bkupNow === "function") bkupNow("pre-gist-restore", true); } catch(_){}
+  for (var k in payload.data){
+    if (k === GS_CFG_KEY || k === "sc_cloud") continue;
+    localStorage.setItem(k, payload.data[k]);
+  }
+}
+
+/* 双向同步核心：拉云端 → 四分支 → 写本机 + 上传。
+ * 复用 cloud-sync.js 的合并函数（csMergeSnapshot/csApplyLocal/csPayloadHasReal），
+ * 保证：本机/云端谁最新都不丢；两边进度合并保留。 */
+function gsSync(silent){
+  var cfg = gsCfg();
+  if (!cfg || !cfg.gistId) return Promise.resolve({ action: "noconfig" });
+  return fetch("https://api.github.com/gists/" + cfg.gistId, { headers: gsApiHeaders(cfg.token) })
+  .then(function(r){
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(g){
+    var f = g.files && g.files[GS_FILE];
+    var cloudPayload = null;
+    if (f && f.content){
+      try { cloudPayload = JSON.parse(f.content); } catch(e){ cloudPayload = null; }
+    }
+    var localPayload = gsSnapshot();
+    var localHas = gsPayloadHasReal(localPayload);
+    var cloudHas = gsPayloadHasReal(cloudPayload);
+    if (!localHas && cloudHas){
+      gsApplyCloud(cloudPayload);
+      if (!silent) gsToast("☁️ 已从 GitHub 云端恢复最新学习进度");
+      setTimeout(function(){ location.reload(); }, 1200);
+      return { action: "restore" };
+    }
+    if (localHas && !cloudHas){
+      return gsPush(silent).then(function(ok){ return { action: ok ? "push" : "fail" }; });
+    }
+    if (localHas && cloudHas){
+      var merged = csMergeSnapshot(localPayload.data, cloudPayload.data);
+      csApplyLocal(merged);
+      return gsUploadData(merged, silent).then(function(ok){
+        if (!silent) gsToast(ok ? "☁️ 已合并云端与本机进度（两边最新记录都保留）" : "☁️ 已合并到本机，云端上传稍后自动重试");
+        return { action: ok ? "merge" : "merge-local" };
+      });
+    }
+    return { action: "none" };
+  }).catch(function(e){
+    if (!silent) gsToast("❌ 同步失败：" + e.message);
+    else console.warn("[gist-sync] 自动同步失败:", e.message);
+    return { action: "error" };
+  });
+}
+
+/* 页面加载后自动双向同步（开启自动或已连接即检查，静默执行，旧不冲新） */
+function gsAutoInit(){
+  var cfg = gsCfg();
+  if (!cfg || !cfg.gistId) return;
+  gsSync(true);
+}
+
 /* 首次连接：创建私有 Gist 并绑定 */
 function gsConnect(){
   var tokenEl = document.getElementById("gsToken");
@@ -85,8 +170,8 @@ function gsConnect(){
     cfg.token = token;
     cfg.gistId = g.id;
     gsSaveCfg(cfg);
-    gsToast("✅ 已连接，开始首次上传…");
-    gsPush();
+    gsToast("✅ 已连接，开始首次双向同步…");
+    gsSync();
   }).catch(function(e){
     gsToast("❌ 连接失败：" + e.message + "（请检查令牌是否勾选了 gist 权限）");
   });
@@ -236,7 +321,7 @@ function gsMarkDirty(){
   if (GS_TIMER) return;
   GS_TIMER = setTimeout(function(){
     GS_TIMER = null;
-    if (GS_DIRTY) gsPush(true);
+    if (GS_DIRTY) gsSync(true);
   }, 8000);
 }
 
@@ -246,8 +331,8 @@ function gsToggleAuto(){
   cfg.auto = !cfg.auto;
   gsSaveCfg(cfg);
   gsRenderPanel();
-  if (cfg.auto){ gsToast("已开启自动上传：学习后 8 秒自动备份到 GitHub"); gsPush(true); }
-  else gsToast("已关闭自动上传");
+  if (cfg.auto){ gsToast("已开启自动同步：学习后自动与云端合并（两边进度都保留）"); gsSync(true); }
+  else gsToast("已关闭自动同步（打开页面时仍会自动检查一次）");
 }
 
 /* ---------- 面板渲染（嵌入同步对话框） ---------- */
@@ -269,10 +354,10 @@ function gsRenderPanel(){
       '<div class="gs-btns">' +
         '<button class="sync-export-btn" type="button" onclick="gsPush()">⬆️ 上传到云端</button>' +
         '<button class="sync-export-btn" type="button" onclick="gsPull()">⬇️ 从云端恢复</button>' +
-        '<button class="sync-export-btn" type="button" onclick="gsToggleAuto()">' + (cfg.auto ? "⏸ 关闭自动上传" : "⏱ 开启自动上传") + '</button>' +
+        '<button class="sync-export-btn" type="button" onclick="gsToggleAuto()">' + (cfg.auto ? "⏸ 关闭自动同步" : "⏱ 开启自动同步") + '</button>' +
         '<button class="sync-export-btn gs-danger" type="button" onclick="gsDisconnect()">🔓 断开</button>' +
       '</div>' +
-      '<p class="sync-desc">换设备：新设备打开网站 → 同一个令牌连接后点「从云端恢复」。</p>';
+      '<p class="sync-desc">多设备自动同步：打开页面自动与云端合并，以最新为准，两边进度都保留。</p>';
   } else {
     box.innerHTML =
       '<div class="gs-steps">三步搞定（全程约 1 分钟，仅需这一次）：<b>① 创建令牌</b>——点下面的直达链接，登录 GitHub 后直接点 <b>Generate token</b>（已自动勾选 gist 权限）→ ' +
@@ -292,4 +377,11 @@ function gsToast(msg){
 /* 面板存在时刷新 */
 function gsRefreshIfVisible(){
   if (document.getElementById("gsPanel")) gsRenderPanel();
+}
+
+/* 页面加载后自动双向同步一次（与 cloud 通道同一节奏，静默执行） */
+if (typeof window !== "undefined" && window.addEventListener){
+  window.addEventListener("load", function(){
+    setTimeout(function(){ gsAutoInit(); }, 1500);
+  });
 }
