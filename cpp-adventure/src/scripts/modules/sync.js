@@ -29,44 +29,29 @@ function syncRender(){
       '<button class="sync-close" type="button" onclick="syncClose()">×</button>' +
     '</div>' +
     '<div class="sync-dlg-body">' +
+      '<div class="sync-data-info" style="margin-bottom:12px;">当前指挥官：<b>' + (SDB.current || '未设置') + '</b> · 数据约 <b>' + dataSize + ' KB</b>（含全部账号的进度/错题/打卡/真题）</div>' +
+      '<div class="sync-section" id="gsPanel"><h3>🔗 云同步 · GitHub（推荐：连一次，全自动）</h3>加载中…</div>' +
       '<div class="sync-section">' +
-        '<h3>📊 当前数据</h3>' +
-        '<div class="sync-data-info">' +
-          '<div>当前指挥官：<b>' + (SDB.current || '未设置') + '</b></div>' +
-          '<div>数据大小：约 <b>' + dataSize + ' KB</b></div>' +
-          '<div>包含：学习进度、金币、错题本、打卡记录、导入的真题</div>' +
+        '<h3>💾 自动备份（不用管，出事能救回）</h3>' +
+        '<p class="sync-desc">本浏览器自动留 12 份快照；每天自动下载一份备份文件到「下载」文件夹。</p>' +
+        '<button class="sync-export-btn" type="button" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
+        '<div id="bkupBox" style="margin-top:10px;">加载中…</div>' +
+      '</div>' +
+      '<details class="sync-details">' +
+        '<summary>📁 备用：文件导出 / 导入（没配云端时手动搬数据）</summary>' +
+        '<div class="sync-section" style="border:none;margin:0;box-shadow:none;">' +
+          '<p class="sync-desc">导出得到一个 .json 文件 → 发到其他设备（微信/网盘）→ 在那台设备点「选择数据文件」导入。<b>更推荐上面的 GitHub 云同步：连一次就全自动。</b></p>' +
+          '<button class="sync-export-btn" type="button" onclick="syncExport()">📥 导出数据文件</button>' +
+          '<input type="file" id="syncFileInput" accept=".json" style="display:none">' +
+          '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件导入</button>' +
+          '<div id="syncImportResult"></div>' +
         '</div>' +
-      '</div>' +
-      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度 · 推荐通道）</h3>加载中…</div>' +
-      '<div class="sync-section">' +
-        '<h3>📤 导出数据到文件</h3>' +
-        '<p class="sync-desc">把当前设备上的所有学习数据保存为一个文件，传到另一台设备上导入即可同步。</p>' +
-        '<button class="sync-export-btn" type="button" onclick="syncExport()">📥 导出数据文件</button>' +
-      '</div>' +
-      '<div class="sync-section">' +
-        '<h3>📥 从文件导入数据</h3>' +
-        '<p class="sync-desc">选择之前导出的数据文件，恢复到当前设备。<b style="color:#DC2626;">注意：导入会覆盖当前设备上的数据！</b></p>' +
-        '<input type="file" id="syncFileInput" accept=".json" style="display:none">' +
-        '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件</button>' +
-        '<div id="syncImportResult"></div>' +
-      '</div>' +
-      '<div class="sync-section bkup-section">' +
-        '<h3>💾 本地自动备份（不用任何配置）</h3>' +
-        '<p class="sync-desc">三重自动保险，全程无需手动：① 学习过程中自动保存历史快照（最多 12 份，意外清空一键找回）；② <b>每天首次学习时自动在「下载」文件夹存一份按天备份文件</b>（studyc-backup-日期.json，当天数据没变不重复下载，浏览器清缓存也不怕）；③ 配置云端后自动上传。换设备请用上面的「导出/导入文件」。</p>' +
-        '<button class="sync-export-btn" type="button" style="margin-bottom:10px;" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
-        '<div id="bkupBox">加载中…</div>' +
-      '</div>' +
-      (typeof csRender === "function" ? csRender() : '') +
-      '<div class="sync-section">' +
-        '<h3>💡 使用说明</h3>' +
-        '<div class="sync-tips">' +
-          '<div>1. 在 PC 上点「导出数据文件」，下载一个 .json 文件</div>' +
-          '<div>2. 把文件发到平板上（微信/邮件/U盘均可）</div>' +
-          '<div>3. 在平板上打开同一网页，点「选择数据文件」导入</div>' +
-          '<div>4. 两台设备的学习进度就同步了！</div>' +
-          '<div style="margin-top:8px;color:#6B7280;">提示：已经配好下方任一云端的话，换设备恢复一键搞定。</div>' +
-        '</div>' +
-      '</div>' +
+      '</details>' +
+      '<details class="sync-details">' +
+        '<summary>☁️ 备用：Cloudflare 云端（另一条云通道，可选）</summary>' +
+        (typeof csRender === "function" ? csRender() : '') +
+      '</details>' +
+      '<p class="sync-desc" style="text-align:center;">一句话：日常什么都不用做；换设备 = 新设备连一次 GitHub → 点「从云端恢复」。</p>' +
       '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   if (typeof gsRenderPanel === "function") gsRenderPanel();

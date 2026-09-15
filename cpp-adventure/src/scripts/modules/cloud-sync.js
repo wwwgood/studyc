@@ -203,7 +203,7 @@ function csToast(msg){
   if (!box){
     box = document.createElement("div");
     box.id = "csToast";
-    box.style.cssText = "position:fixed;left:50%;bottom:60px;transform:translateX(-50%);z-index:99999;background:rgba(17,24,39,.95);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:86vw;text-align:center;pointer-events:none;";
+    box.style.cssText = "position:fixed;left:50%;bottom:60px;transform:translateX(-50%);z-index:160000;background:rgba(17,24,39,.95);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:86vw;text-align:center;pointer-events:none;";
     document.body.appendChild(box);
   }
   box.textContent = msg;

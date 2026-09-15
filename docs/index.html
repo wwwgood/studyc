@@ -158,9 +158,9 @@ section{margin-top:56px;}
 @keyframes glim{0%,100%{box-shadow:0 0 0 4px rgba(255,138,61,.28);}50%{box-shadow:0 0 0 7px rgba(255,138,61,.14);}}
 
 /* dialog */
-.backdrop{position:fixed; inset:0; background:rgba(8,18,44,.55); z-index:90; display:none;}
+.backdrop{position:fixed; inset:0; background:rgba(8,18,44,.55); z-index:140000; display:none;}
 .backdrop.open{display:block;}
-.level-dialog{position:fixed; inset:0; z-index:100; display:none; overflow-y:auto; padding:20px; align-items:flex-start; justify-content:center;}
+.level-dialog{position:fixed; inset:0; z-index:150000; display:none; overflow-y:auto; padding:20px; align-items:flex-start; justify-content:center;}
 .level-dialog.open{display:flex;}
 .dialog-card{width:100%; max-width:820px; margin:auto; background:#fff; border-radius:24px; box-shadow:0 24px 60px rgba(4,12,32,.45); overflow:hidden; display:flex; flex-direction:column;}
 .dialog-head{background:linear-gradient(135deg,var(--bg1), var(--blue-dark)); color:#fff; padding:22px 26px; position:relative;}
@@ -420,7 +420,7 @@ table.tbl th{background:var(--card-soft);}
 .focus-btn:hover{background:var(--blue); color:#fff;}
 .card-head{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
 .card-head h3{flex:1; min-width:0;}
-.focus-mask{position:fixed; inset:0; background:rgba(8,20,46,.94); z-index:140; display:none; align-items:flex-start; justify-content:center; overflow:auto; padding:20px 14px 70px;}
+.focus-mask{position:fixed; inset:0; background:rgba(8,20,46,.94); z-index:150000; display:none; align-items:flex-start; justify-content:center; overflow:auto; padding:20px 14px 70px;}
 .focus-mask.open{display:block;}
 .focus-bar{position:sticky; top:0; z-index:6; display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:1060px; margin:0 auto 18px; background:rgba(11,27,59,.97); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:10px 12px 10px 20px; color:#fff; box-shadow:0 10px 26px rgba(0,0,0,.45);}
 .focus-bar h3{font-size:17px; margin:0; color:#FFC94D;}
@@ -462,7 +462,7 @@ body.mask-open{overflow:hidden;}
 footer{margin-top:60px; text-align:center; color:rgba(255,255,255,.6); font-size:13px; padding:20px;}
 
 /* login */
-.login-mask{position:fixed; inset:0; z-index:200; background:rgba(11,27,59,.85); display:none; align-items:center; justify-content:center; padding:20px;}
+.login-mask{position:fixed; inset:0; z-index:150000; background:rgba(11,27,59,.85); display:none; align-items:center; justify-content:center; padding:20px;}
 .login-mask.open{display:flex;}
 .login-box{position:relative; background:#fff; border-radius:24px; padding:32px 28px; max-width:380px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4);}
 .login-close{position:absolute; top:12px; right:14px; width:32px; height:32px; border-radius:50%; background:#F1F5F9; color:#475569; font-size:20px; font-weight:800; border:none; cursor:pointer; line-height:1;}
@@ -3524,7 +3524,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .eq-lv.done .eq-lv-stars{color:#F59E0B;}
 
 /* 学习弹窗 */
-.eq-mask{position:fixed; inset:0; z-index:150; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
+.eq-mask{position:fixed; inset:0; z-index:150000; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
 .eq-mask.open{display:flex;}
 /* 大字答案浮层：要盖住所有引擎弹窗 */
 .ao-mask{z-index:400;}
@@ -4047,7 +4047,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 }
 
 /* ==================== 题库管理后台 ==================== */
-.ba-mask{position:fixed; inset:0; z-index:170; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
+.ba-mask{position:fixed; inset:0; z-index:150000; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
 .ba-mask.open{display:flex;}
 .ba-dialog{background:#FFFDF7; border-radius:24px; max-width:760px; width:100%; max-height:calc(100vh - 40px); overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.4); animation:eqPop .3s ease; border-bottom:6px solid #6366F1;}
 .ba-dlg-head{display:flex; align-items:center; gap:10px; padding:16px 18px 6px; position:sticky; top:0; background:#FFFDF7; border-radius:24px 24px 0 0; z-index:10;}
@@ -4319,7 +4319,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 
 .ba-empty{text-align:center; padding:40px 20px; color:#6B7280; font-size:15px;}
 
-.ba-toast{position:fixed; bottom:30px; left:50%; transform:translate(-50%,20px); z-index:200; background:#1F2937; color:#fff; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none;}
+.ba-toast{position:fixed; bottom:30px; left:50%; transform:translate(-50%,20px); z-index:160000; background:#1F2937; color:#fff; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none;}
 .ba-toast.show{opacity:1; transform:translate(-50%,0);}
 
 @media (max-width:560px){
@@ -4447,7 +4447,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .pp-empty{display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; padding:26px; color:#6B7280; font-size:13px; text-align:center; line-height:1.8; background:#fff; border-radius:12px; border:2px dashed #E5E7EB;}
 
 /* 弹窗 */
-.pp-mask{position:fixed; inset:0; z-index:170; background:rgba(8,20,46,.92); display:none; align-items:center; justify-content:center; overflow:hidden;}
+.pp-mask{position:fixed; inset:0; z-index:150000; background:rgba(8,20,46,.92); display:none; align-items:center; justify-content:center; overflow:hidden;}
 .pp-mask.open{display:flex;}
 .pp-dialog{width:min(1100px, 96vw); height:min(94vh, 900px); background:#F8FAFC; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4);}
 .pp-dlg-head{display:flex; align-items:center; gap:10px; padding:12px 16px; position:relative; z-index:20; background:#1E293B; flex:none;}
@@ -4543,7 +4543,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bk-card-del:hover{opacity:1;}
 .bk-empty{display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; padding:26px; color:#6B7280; font-size:13px; text-align:center; line-height:1.8; background:#fff; border-radius:12px; border:2px dashed #E5E7EB;}
 .bk-empty-cats{margin-top:10px; font-size:12px; color:#6B7280;}
-.bk-mask{position:fixed; inset:0; z-index:170; background:rgba(8,20,46,.92); display:none; align-items:center; justify-content:center; overflow:hidden;}
+.bk-mask{position:fixed; inset:0; z-index:150000; background:rgba(8,20,46,.92); display:none; align-items:center; justify-content:center; overflow:hidden;}
 .bk-mask.open{display:flex;}
 .bk-dialog{width:min(1100px, 96vw); height:min(94vh, 900px); background:#F8FAFC; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4);}
 .bk-dlg-head{display:flex; align-items:center; gap:10px; padding:12px 16px; position:relative; z-index:20; background:#1E293B; flex:none;}
@@ -4722,6 +4722,15 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bq-score .bq-slash{font-size:24px; color:#94A3B8; font-weight:700;}
 .bq-wcard{background:#fff; border:1.5px solid #FDE68A; border-radius:16px; padding:14px; margin-top:12px; text-align:left;}
 .bq-wcard .bq-stem{font-size:16px; margin:6px 0 10px;}
+
+/* 数据同步弹窗：折叠式备用通道 */
+.sync-details{border:1px solid var(--line); border-radius:12px; background:var(--card); margin-bottom:10px; overflow:hidden;}
+.sync-details summary{cursor:pointer; font-weight:700; color:var(--ink-soft); padding:10px 14px; font-size:14px; list-style:none;}
+.sync-details summary::-webkit-details-marker{display:none;}
+.sync-details summary::before{content:"\25B8 "; color:var(--ink-soft);}
+.sync-details[open] summary::before{content:"\25BE ";}
+.sync-details[open] summary{border-bottom:1px dashed var(--line); color:var(--blue-dark);}
+.sync-details > .sync-section{border:none; margin:0; box-shadow:none;}
 
 </style>
 <style>
@@ -67876,44 +67885,29 @@ function syncRender(){
       '<button class="sync-close" type="button" onclick="syncClose()">×</button>' +
     '</div>' +
     '<div class="sync-dlg-body">' +
+      '<div class="sync-data-info" style="margin-bottom:12px;">当前指挥官：<b>' + (SDB.current || '未设置') + '</b> · 数据约 <b>' + dataSize + ' KB</b>（含全部账号的进度/错题/打卡/真题）</div>' +
+      '<div class="sync-section" id="gsPanel"><h3>🔗 云同步 · GitHub（推荐：连一次，全自动）</h3>加载中…</div>' +
       '<div class="sync-section">' +
-        '<h3>📊 当前数据</h3>' +
-        '<div class="sync-data-info">' +
-          '<div>当前指挥官：<b>' + (SDB.current || '未设置') + '</b></div>' +
-          '<div>数据大小：约 <b>' + dataSize + ' KB</b></div>' +
-          '<div>包含：学习进度、金币、错题本、打卡记录、导入的真题</div>' +
+        '<h3>💾 自动备份（不用管，出事能救回）</h3>' +
+        '<p class="sync-desc">本浏览器自动留 12 份快照；每天自动下载一份备份文件到「下载」文件夹。</p>' +
+        '<button class="sync-export-btn" type="button" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
+        '<div id="bkupBox" style="margin-top:10px;">加载中…</div>' +
+      '</div>' +
+      '<details class="sync-details">' +
+        '<summary>📁 备用：文件导出 / 导入（没配云端时手动搬数据）</summary>' +
+        '<div class="sync-section" style="border:none;margin:0;box-shadow:none;">' +
+          '<p class="sync-desc">导出得到一个 .json 文件 → 发到其他设备（微信/网盘）→ 在那台设备点「选择数据文件」导入。<b>更推荐上面的 GitHub 云同步：连一次就全自动。</b></p>' +
+          '<button class="sync-export-btn" type="button" onclick="syncExport()">📥 导出数据文件</button>' +
+          '<input type="file" id="syncFileInput" accept=".json" style="display:none">' +
+          '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件导入</button>' +
+          '<div id="syncImportResult"></div>' +
         '</div>' +
-      '</div>' +
-      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度 · 推荐通道）</h3>加载中…</div>' +
-      '<div class="sync-section">' +
-        '<h3>📤 导出数据到文件</h3>' +
-        '<p class="sync-desc">把当前设备上的所有学习数据保存为一个文件，传到另一台设备上导入即可同步。</p>' +
-        '<button class="sync-export-btn" type="button" onclick="syncExport()">📥 导出数据文件</button>' +
-      '</div>' +
-      '<div class="sync-section">' +
-        '<h3>📥 从文件导入数据</h3>' +
-        '<p class="sync-desc">选择之前导出的数据文件，恢复到当前设备。<b style="color:#DC2626;">注意：导入会覆盖当前设备上的数据！</b></p>' +
-        '<input type="file" id="syncFileInput" accept=".json" style="display:none">' +
-        '<button class="sync-import-btn" type="button" onclick="document.getElementById(\'syncFileInput\').click()">📂 选择数据文件</button>' +
-        '<div id="syncImportResult"></div>' +
-      '</div>' +
-      '<div class="sync-section bkup-section">' +
-        '<h3>💾 本地自动备份（不用任何配置）</h3>' +
-        '<p class="sync-desc">三重自动保险，全程无需手动：① 学习过程中自动保存历史快照（最多 12 份，意外清空一键找回）；② <b>每天首次学习时自动在「下载」文件夹存一份按天备份文件</b>（studyc-backup-日期.json，当天数据没变不重复下载，浏览器清缓存也不怕）；③ 配置云端后自动上传。换设备请用上面的「导出/导入文件」。</p>' +
-        '<button class="sync-export-btn" type="button" style="margin-bottom:10px;" onclick="bkupNow(\'manual\'); syncRender(); setTimeout(function(){ if(typeof syncRender===\"function\") syncRender(); }, 300);">💾 立即备份一次</button>' +
-        '<div id="bkupBox">加载中…</div>' +
-      '</div>' +
-      (typeof csRender === "function" ? csRender() : '') +
-      '<div class="sync-section">' +
-        '<h3>💡 使用说明</h3>' +
-        '<div class="sync-tips">' +
-          '<div>1. 在 PC 上点「导出数据文件」，下载一个 .json 文件</div>' +
-          '<div>2. 把文件发到平板上（微信/邮件/U盘均可）</div>' +
-          '<div>3. 在平板上打开同一网页，点「选择数据文件」导入</div>' +
-          '<div>4. 两台设备的学习进度就同步了！</div>' +
-          '<div style="margin-top:8px;color:#6B7280;">提示：已经配好下方任一云端的话，换设备恢复一键搞定。</div>' +
-        '</div>' +
-      '</div>' +
+      '</details>' +
+      '<details class="sync-details">' +
+        '<summary>☁️ 备用：Cloudflare 云端（另一条云通道，可选）</summary>' +
+        (typeof csRender === "function" ? csRender() : '') +
+      '</details>' +
+      '<p class="sync-desc" style="text-align:center;">一句话：日常什么都不用做；换设备 = 新设备连一次 GitHub → 点「从云端恢复」。</p>' +
       '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   if (typeof gsRenderPanel === "function") gsRenderPanel();
@@ -68244,7 +68238,7 @@ function csToast(msg){
   if (!box){
     box = document.createElement("div");
     box.id = "csToast";
-    box.style.cssText = "position:fixed;left:50%;bottom:60px;transform:translateX(-50%);z-index:99999;background:rgba(17,24,39,.95);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:86vw;text-align:center;pointer-events:none;";
+    box.style.cssText = "position:fixed;left:50%;bottom:60px;transform:translateX(-50%);z-index:160000;background:rgba(17,24,39,.95);color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:86vw;text-align:center;pointer-events:none;";
     document.body.appendChild(box);
   }
   box.textContent = msg;
