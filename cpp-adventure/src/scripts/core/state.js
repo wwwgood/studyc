@@ -301,6 +301,8 @@ function saveS(){
   } catch(e){}
   window.__SAVE_BLOCKED__ = false;
   if (SDB.current){ SDB.users[SDB.current] = S; }
+  /* 全局更新时间戳：跨设备同步时用于判断「谁最新」，旧进度绝不冲掉新进度 */
+  SDB.updatedAt = Date.now();
   try {
     localStorage.setItem(KEY, JSON.stringify(SDB));
     window.__SAVE_FAIL__ = false;
