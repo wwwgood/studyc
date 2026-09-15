@@ -92,8 +92,37 @@ function gsConnect(){
   });
 }
 
+/* 进度规模：给一份数据算一个"学到多少"的分数（闯关数×10 + 日志/错题条数 + 其他学习数据体量）。
+ * 用途：多台设备都自动上传时，防止进度旧的设备把云端较新的数据覆盖掉。 */
+function gsDataScore(data){
+  var score = 0;
+  try {
+    var mainRaw = data["cppsAdventureV2"];
+    if (mainRaw){
+      var db = JSON.parse(mainRaw);
+      if (db && db.users){
+        Object.keys(db.users).forEach(function(nm){
+          var u = db.users[nm] || {};
+          score += Object.keys(u.passed || {}).length * 10;
+          score += (u.logs || []).length;
+          score += (u.errors || []).length;
+        });
+      }
+    }
+  } catch(e){}
+  try {
+    Object.keys(data || {}).forEach(function(k){
+      if (k === "cppsAdventureV2" || k === GS_CFG_KEY || k === "sc_cloud") return;
+      score += Math.floor(String(data[k] || "").length / 200);
+    });
+  } catch(e){}
+  return score;
+}
+
 /* 上传：整包写入 Gist。
- * 防呆：本机/快照没有真实学习数据时拒绝上传，防止空数据覆盖云端好备份（红线铁律5b 同款）。 */
+ * 防呆一：本机没有真实学习数据 → 拒绝上传（防止空数据覆盖云端好备份）。
+ * 防呆二（多设备保护）：上传前先看一眼云端——云端进度规模比本机大（别的设备学得更靠前）
+ *   就拒绝本次上传，防止旧数据覆盖新数据；手动上传会给确认框说明。 */
 function gsPush(silent){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ if (!silent) gsToast("请先连接 GitHub"); return Promise.resolve(false); }
@@ -104,33 +133,63 @@ function gsPush(silent){
     if (!silent) gsToast("⚠️ 本机没有真实学习数据，已跳过上传（保护云端备份）");
     return Promise.resolve(false);
   }
-  var body = {};
-  body[GS_FILE] = { content: JSON.stringify(payload) };
-  return fetch("https://api.github.com/gists/" + cfg.gistId, {
-    method: "PATCH",
-    headers: gsApiHeaders(cfg.token),
-    body: JSON.stringify({ files: body })
-  }).then(function(r){
-    if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
-    var cfg2 = gsCfg();
-    cfg2.lastPush = new Date().toISOString();
-    gsSaveCfg(cfg2);
-    if (!silent) gsToast("☁️ 已上传到 GitHub 云端");
-    var el = document.getElementById("gsStatus");
-    if (el) el.innerHTML = gsStatusHtml();
-    return true;
+  var localScore = gsDataScore(payload.data);
+  return fetch("https://api.github.com/gists/" + cfg.gistId, { headers: gsApiHeaders(cfg.token) })
+  .then(function(r){
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function(g){
+    /* 多设备保护：对比云端与本机的进度规模 */
+    var cloudScore = -1;
+    try {
+      var cf = g.files && g.files[GS_FILE];
+      if (cf && cf.content){
+        var cp = JSON.parse(cf.content);
+        if (cp && cp.data) cloudScore = gsDataScore(cp.data);
+      }
+    } catch(e){ cloudScore = -1; }
+    if (cloudScore > localScore){
+      if (!silent){
+        var go = confirm("⚠️ 云端进度比本机新（规模 " + cloudScore + " > 本机 " + localScore + "）。\n" +
+          "现在上传会用本机的旧进度覆盖云端的新进度。\n\n" +
+          "建议先点「从云端恢复」取回最新进度。\n仍要坚持用本机数据覆盖云端吗？");
+        if (!go){ gsToast("已取消上传，云端新进度未受影响"); return false; }
+      } else {
+        gsToast("⚠️ 云端进度比本机新，已暂停自动上传；请点「从云端恢复」取回最新");
+        GS_DIRTY = true;
+        return false;
+      }
+    }
+    var body = {};
+    body[GS_FILE] = { content: JSON.stringify(payload) };
+    return fetch("https://api.github.com/gists/" + cfg.gistId, {
+      method: "PATCH",
+      headers: gsApiHeaders(cfg.token),
+      body: JSON.stringify({ files: body })
+    }).then(function(r2){
+      if (!r2.ok) return r2.json().then(function(j){ throw new Error(j.message || ("HTTP " + r2.status)); });
+      var cfg2 = gsCfg();
+      cfg2.lastPush = new Date().toISOString();
+      gsSaveCfg(cfg2);
+      if (!silent) gsToast("☁️ 已上传到 GitHub 云端");
+      var el = document.getElementById("gsStatus");
+      if (el) el.innerHTML = gsStatusHtml();
+      return true;
+    });
   }).catch(function(e){
+    GS_DIRTY = true;
     if (!silent) gsToast("❌ 上传失败：" + e.message);
+    else gsToast("☁️ 自动上传暂未完成，稍后学习时会自动重试（本机数据不会丢）");
     return false;
   });
 }
 
 /* 下载：云端数据覆盖本机（换设备/清缓存后用）。
- * 红线铁律6：覆盖本机前必须先留底（pre-gist-pull 强制快照），可反悔。 */
+ * 红线铁律6：覆盖本机前必须先留底（pre-gist-pull 强制快照），可反悔。
+ * 多设备保护：确认框显示云端与本机的进度规模对比，防止误把新进度换回旧的。 */
 function gsPull(){
   var cfg = gsCfg();
   if (!cfg || !cfg.gistId){ gsToast("请先连接 GitHub"); return; }
-  if (!confirm("确定用 GitHub 云端数据覆盖本机当前数据吗？\n（覆盖前会自动给当前数据留一份快照，可反悔。）")) return;
   gsToast("正在从 GitHub 拉取…");
   fetch("https://api.github.com/gists/" + cfg.gistId, {
     headers: gsApiHeaders(cfg.token)
@@ -143,7 +202,10 @@ function gsPull(){
     var payload;
     try { payload = JSON.parse(f.content); } catch(e){ gsToast("云端数据无法解析"); return; }
     if (!payload || !payload.data){ gsToast("云端数据格式不对"); return; }
-    /* 覆盖前留底：当前本机状态强制快照一份，恢复错了能反悔 */
+    var cloudScore = gsDataScore(payload.data);
+    var localScore = gsDataScore(gsSnapshot().data);
+    var warn = (cloudScore < localScore) ? "\n\n⚠️ 注意：云端规模 " + cloudScore + " 比本机 " + localScore + " 小——云端看起来更旧，恢复会丢掉本机较新的进度！" : "";
+    if (!confirm("确定用 GitHub 云端数据覆盖本机当前数据吗？\n（云端进度规模 " + cloudScore + " ｜ 本机进度规模 " + localScore + "）" + warn + "\n覆盖前会自动留底当前数据，可反悔。")){ gsToast("已取消恢复"); return; }
     try { if (typeof bkupNow === "function") bkupNow("pre-gist-pull", true); } catch(_){}
     var n = 0;
     for (var k in payload.data){
