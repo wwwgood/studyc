@@ -472,10 +472,19 @@
     </div>
     <p class="sch-desc-line">与学校课本《信息学奥赛一本通》（董永建）同步的练习：同一份题目的多份解答已合并成一份——先自己做「做题」，再对照「解答」，最后看「解析」把知识点吃透，随时反复看。</p>
     <div class="sch-lesson-tabs" id="schLessonTabs" role="tablist" aria-label="课时选择"></div>
-    <div class="sch-layout">
-      <div class="sch-side" id="schList" aria-label="题目列表"></div>
-      <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+    <div class="sch-views" role="tablist" aria-label="学校练习视图">
+      <button class="sch-view active" type="button" onclick="schSwitchView(0)">📝 练习题目</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(1)">🏆 练习徽章</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(2)">📥 投稿箱</button>
     </div>
+    <div class="sch-viewpanel active" id="schPanel0">
+      <div class="sch-layout">
+        <div class="sch-side" id="schList" aria-label="题目列表"></div>
+        <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+      </div>
+    </div>
+    <div class="sch-viewpanel" id="schPanel1"><div id="schBadges" aria-label="练习徽章墙"></div></div>
+    <div class="sch-viewpanel" id="schPanel2"><div id="schInbox" aria-label="投稿箱"></div></div>
   </section>
   </div>
 

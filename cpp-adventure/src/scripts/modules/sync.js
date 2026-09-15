@@ -37,6 +37,7 @@ function syncRender(){
           '<div>包含：学习进度、金币、错题本、打卡记录、导入的真题</div>' +
         '</div>' +
       '</div>' +
+      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度 · 推荐通道）</h3>加载中…</div>' +
       '<div class="sync-section">' +
         '<h3>📤 导出数据到文件</h3>' +
         '<p class="sync-desc">把当前设备上的所有学习数据保存为一个文件，传到另一台设备上导入即可同步。</p>' +
@@ -66,7 +67,6 @@ function syncRender(){
           '<div style="margin-top:8px;color:#6B7280;">提示：已经配好下方任一云端的话，换设备恢复一键搞定。</div>' +
         '</div>' +
       '</div>' +
-      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度）</h3>加载中…</div>' +
       '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   if (typeof gsRenderPanel === "function") gsRenderPanel();

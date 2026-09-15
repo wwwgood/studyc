@@ -5104,7 +5104,59 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
   .sch-card-head h3{font-size:17px;}
   .sch-walk-row{grid-template-columns:24px 1fr; row-gap:4px;}
   .sch-walk-exp{grid-column:2;}
+  .sch-views{gap:6px;}
+  .sch-view{font-size:13.5px; padding:7px 13px;}
+  .sch-badge-big{font-size:34px;}
 }
+
+/* ================= 视图页签（题目 / 徽章墙 / 投稿箱） ================= */
+.sch-views{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-view{font-size:15px; font-weight:700; padding:9px 18px; border-radius:999px; background:var(--card); border:2px solid var(--line); color:var(--ink-soft); cursor:pointer; transition:all .2s;}
+.sch-view:hover{border-color:var(--blue); color:var(--blue-dark);}
+.sch-view.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,130,246,.3);}
+.sch-viewpanel{display:none;}
+.sch-viewpanel.active{display:block;}
+
+/* ================= 练习徽章墙 ================= */
+.sch-badge-hero{display:flex; align-items:center; gap:16px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px 20px; box-shadow:var(--shadow); margin-bottom:14px; flex-wrap:wrap;}
+.sch-badge-hero.lit{border-color:rgba(255,201,77,.8); background:linear-gradient(135deg, #FFF9E8, #fff);}
+.sch-badge-big{font-size:44px; line-height:1;}
+.sch-badge-big-info{flex:1 1 260px; min-width:0;}
+.sch-badge-big-info h3{font-size:18px; color:var(--ink); margin-bottom:8px;}
+.sch-badge-bar{height:14px; background:var(--card-soft); border-radius:999px; overflow:hidden; border:1px solid var(--line); margin-bottom:6px;}
+.sch-badge-bar span{display:block; height:100%; background:linear-gradient(90deg, var(--gold), var(--action)); border-radius:999px; transition:width .4s;}
+.sch-badge-sub{font-size:13px; color:var(--ink-soft);}
+.sch-bgroups{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-bgroup{font-size:13px; font-weight:700; padding:5px 13px; border-radius:999px; background:var(--card); border:1.5px solid var(--line); color:var(--ink-soft);}
+.sch-bgroup.done{background:#EAFBF3; border-color:rgba(52,211,153,.6); color:#065F46;}
+.sch-bgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;}
+.sch-badge{display:flex; flex-direction:column; align-items:center; gap:4px; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 10px; cursor:pointer; transition:all .15s; text-align:center;}
+.sch-badge:hover{border-color:var(--gold); transform:translateY(-2px);}
+.sch-badge.lit{border-color:rgba(255,201,77,.85); background:linear-gradient(160deg, #FFF9E8, #FFFDF6); box-shadow:0 4px 14px rgba(255,201,77,.25);}
+.sch-badge-ico{font-size:26px; line-height:1.2;}
+.sch-badge:not(.lit) .sch-badge-ico{filter:grayscale(1); opacity:.4;}
+.sch-badge-no{font-family:Consolas,"Courier New",monospace; font-size:12px; font-weight:800; color:var(--blue-dark); background:var(--card-soft); border-radius:8px; padding:1px 8px;}
+.sch-badge-t{font-size:13px; font-weight:700; color:var(--ink); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-badge-s{font-size:11.5px; color:var(--ink-soft);}
+.sch-badge.lit .sch-badge-s{color:#B45309; font-weight:700;}
+.sch-quiz-tip{font-size:13px; color:var(--ink-soft); align-self:center;}
+
+/* ================= 投稿箱 ================= */
+.sch-inbox-box{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 20px; box-shadow:var(--shadow); margin-bottom:14px;}
+.sch-inbox-tip{font-size:13.5px; color:var(--ink); line-height:1.8; background:var(--card-soft); border-radius:10px; padding:10px 14px; margin-bottom:12px;}
+.sch-inbox-src{margin-bottom:10px;}
+.sch-inbox-src input{width:100%; box-sizing:border-box; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#F8FAFF; color:var(--ink);}
+.sch-inbox-ta{width:100%; box-sizing:border-box; min-height:150px; font-size:14px; font-family:Consolas,"Courier New",monospace; line-height:1.6; color:var(--ink); background:#F8FAFF; border:1px solid var(--line); border-radius:10px; padding:10px 12px; resize:vertical;}
+.sch-inbox-ta:focus, .sch-inbox-src input:focus{outline:2px solid var(--blue);}
+.sch-inbox-list-sec .sch-sec-title{margin-top:4px;}
+.sch-inbox-list{display:flex; flex-direction:column; gap:8px;}
+.sch-inbox-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 14px;}
+.sch-inbox-no{flex:0 0 auto; width:28px; height:28px; border-radius:8px; background:var(--violet); color:#fff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center;}
+.sch-inbox-prev{flex:1 1 auto; min-width:0; font-size:13.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-inbox-time{flex:0 0 auto; font-size:12px; color:var(--ink-soft); font-family:Consolas,monospace;}
+.sch-btn.danger{background:#FDECEC; color:#C0392B; border:1px solid #F5C6C6;}
+.sch-btn.danger:hover{background:#F5C6C6;}
+.sch-btn-s2{font-size:12px; padding:5px 12px; border-radius:999px;}
 
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
@@ -5564,10 +5616,19 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     </div>
     <p class="sch-desc-line">与学校课本《信息学奥赛一本通》（董永建）同步的练习：同一份题目的多份解答已合并成一份——先自己做「做题」，再对照「解答」，最后看「解析」把知识点吃透，随时反复看。</p>
     <div class="sch-lesson-tabs" id="schLessonTabs" role="tablist" aria-label="课时选择"></div>
-    <div class="sch-layout">
-      <div class="sch-side" id="schList" aria-label="题目列表"></div>
-      <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+    <div class="sch-views" role="tablist" aria-label="学校练习视图">
+      <button class="sch-view active" type="button" onclick="schSwitchView(0)">📝 练习题目</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(1)">🏆 练习徽章</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(2)">📥 投稿箱</button>
     </div>
+    <div class="sch-viewpanel active" id="schPanel0">
+      <div class="sch-layout">
+        <div class="sch-side" id="schList" aria-label="题目列表"></div>
+        <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+      </div>
+    </div>
+    <div class="sch-viewpanel" id="schPanel1"><div id="schBadges" aria-label="练习徽章墙"></div></div>
+    <div class="sch-viewpanel" id="schPanel2"><div id="schInbox" aria-label="投稿箱"></div></div>
   </section>
   </div>
 
@@ -67823,6 +67884,7 @@ function syncRender(){
           '<div>包含：学习进度、金币、错题本、打卡记录、导入的真题</div>' +
         '</div>' +
       '</div>' +
+      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度 · 推荐通道）</h3>加载中…</div>' +
       '<div class="sync-section">' +
         '<h3>📤 导出数据到文件</h3>' +
         '<p class="sync-desc">把当前设备上的所有学习数据保存为一个文件，传到另一台设备上导入即可同步。</p>' +
@@ -67852,7 +67914,6 @@ function syncRender(){
           '<div style="margin-top:8px;color:#6B7280;">提示：已经配好下方任一云端的话，换设备恢复一键搞定。</div>' +
         '</div>' +
       '</div>' +
-      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度）</h3>加载中…</div>' +
       '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   if (typeof gsRenderPanel === "function") gsRenderPanel();
@@ -68414,9 +68475,10 @@ function gsRenderPanel(){
       '<p class="sync-desc">换设备：新设备打开网站 → 同一个令牌连接后点「从云端恢复」。</p>';
   } else {
     box.innerHTML =
-      '<div class="gs-steps">三步搞定：<b>① GitHub 创建令牌</b>（Settings → Developer settings → Personal access tokens (classic) → Generate new token，只勾 <b>gist</b> 权限）→ ' +
-      '<b>② 粘贴到下面点连接</b> → <b>③ 开启自动上传</b>。之后每次学习自动备份，任何设备都能恢复。</div>' +
-      '<input type="password" id="gsToken" class="gs-token" placeholder="粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
+      '<div class="gs-steps">三步搞定（全程约 1 分钟，仅需这一次）：<b>① 创建令牌</b>——点下面的直达链接，登录 GitHub 后直接点 <b>Generate token</b>（已自动勾选 gist 权限）→ ' +
+      '<b>② 复制令牌粘贴到下面</b>，点「连接 GitHub 云端」→ <b>③ 开启自动上传</b>。之后每次学习 8 秒内自动备份；换设备点「从云端恢复」一键取回。</div>' +
+      '<a class="sync-export-btn" style="display:inline-block;text-decoration:none;margin:2px 0 10px;" href="https://github.com/settings/tokens/new?scopes=gist&description=studyc-sync" target="_blank" rel="noopener">⚡ 第①步：一键打开 GitHub 令牌创建页</a>' +
+      '<input type="password" id="gsToken" class="gs-token" placeholder="② 粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
       '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>' +
       '<p class="sync-desc" style="margin-top:6px;">连接后建议立即开启自动上传：学习后 8 秒自动备份到 GitHub，全程无需手动。</p>';
   }
@@ -76832,6 +76894,8 @@ var SCH_LESSON_INDEX = 0;
 var SCH_ACTIVE_ID = null;   /* "primer" / "sheet" / 题目 id */
 var SCH_TAB = "do";         /* do=做题 / code=解答 / ex=解析 */
 var SCH_KEY = "cppsSchoolV1";
+var SCH_INBOX_KEY = "cppsSchoolInbox";
+var SCH_VIEW = 0;
 
 function schState(){
   try {
@@ -77064,6 +77128,7 @@ function schToggleMaster(id){
   else st.mastered[id] = true;
   schSave(st);
   schRenderList(); schRenderStats(); schRenderDetail();
+  schRenderBadges();
   schToast(st.mastered[id] ? "🎉 已标记「学会」！" : "已取消标记");
 }
 function schPrevNext(dir){
@@ -77108,6 +77173,152 @@ function schToast(msg){
   if (typeof ojToast === "function"){ ojToast(msg); }
 }
 
+/* ---------- 视图切换（题目 / 徽章墙 / 投稿箱） ---------- */
+function schSwitchView(i){
+  SCH_VIEW = i;
+  var tabs = document.querySelectorAll(".sch-view");
+  for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle("active", k === i);
+  for (var k2 = 0; k2 < 3; k2++){
+    var panel = document.getElementById("schPanel" + k2);
+    if (panel) panel.classList.toggle("active", k2 === i);
+  }
+  if (i === 1) schRenderBadges();
+  if (i === 2) schRenderInbox();
+}
+
+/* ---------- 练习徽章墙（照徽章墙的做法考核） ---------- */
+function schRenderBadges(){
+  var box = document.getElementById("schBadges");
+  if (!box) return;
+  var les = schLesson();
+  var st = schState();
+  var total = les.problems.length;
+  var done = 0;
+  les.problems.forEach(function(p){ if (st.mastered[p.id]) done++; });
+  var pct = total ? Math.round(done / total * 100) : 0;
+  var allLit = (done === total && total > 0);
+  var html = '<div class="sch-badge-hero' + (allLit ? " lit" : "") + '">' +
+    '<div class="sch-badge-big">' + (allLit ? "🏆" : "🎯") + '</div>' +
+    '<div class="sch-badge-big-info">' +
+      '<h3>' + schEsc(les.title) + (allLit ? ' · 已全部点亮！' : '') + '</h3>' +
+      '<div class="sch-badge-bar"><span style="width:' + pct + '%"></span></div>' +
+      '<span class="sch-badge-sub">已点亮 <b>' + done + '</b> / ' + total + ' 枚题目徽章 · 做完一题点「标记已学会」就会点亮一枚</span>' +
+    '</div></div>';
+  html += '<div class="sch-bgroups">';
+  les.groups.forEach(function(g){
+    var items = les.problems.filter(function(p){ return p.grp === g.id; });
+    var dn = items.filter(function(p){ return st.mastered[p.id]; }).length;
+    var all = dn === items.length && items.length > 0;
+    html += '<span class="sch-bgroup' + (all ? " done" : "") + '">' + (all ? "🏅 " : "○ ") + schEsc(g.name.replace(/^第[一二三四五]组 · /, "")) + ' ' + dn + '/' + items.length + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="sch-bgrid">';
+  les.problems.forEach(function(p){
+    var m = !!st.mastered[p.id];
+    html += '<button class="sch-badge' + (m ? " lit" : "") + '" type="button" onclick="schBadgeOpen(\'' + p.id + '\')" title="' + schEsc(p.name + " " + p.title) + '">' +
+      '<span class="sch-badge-ico">' + (m ? "🏅" : "🔒") + '</span>' +
+      '<span class="sch-badge-no">' + schEsc(p.no) + '</span>' +
+      '<span class="sch-badge-t">' + schEsc(p.title) + '</span>' +
+      '<span class="sch-badge-s">' + (m ? "已点亮" : "待点亮") + '</span>' +
+    '</button>';
+  });
+  html += '</div>';
+  html += '<div class="sch-actions"><button class="sch-btn primary" type="button" onclick="schRandomQuiz()">🎲 抽一题考我</button>' +
+    '<span class="sch-quiz-tip">从还没点亮的题里随机抽一道，当场做一遍</span></div>';
+  box.innerHTML = html;
+}
+function schBadgeOpen(id){ schSwitchView(0); schOpen(id); }
+function schRandomQuiz(){
+  var st = schState();
+  var ps = schProblems().filter(function(p){ return !st.mastered[p.id]; });
+  if (!ps.length) ps = schProblems();
+  if (!ps.length) return;
+  var p = ps[Math.floor(Math.random() * ps.length)];
+  schSwitchView(0);
+  schOpen(p.id);
+  schToast("考你这道：" + p.name + " " + p.title);
+}
+
+/* ---------- 投稿箱（格式不限，粘进来由 AI 处理成正式课时） ---------- */
+function schInboxLoad(){
+  try {
+    var v = JSON.parse(localStorage.getItem(SCH_INBOX_KEY));
+    if (Array.isArray(v)) return v;
+  } catch(e){}
+  return [];
+}
+function schInboxSave(list){
+  try { localStorage.setItem(SCH_INBOX_KEY, JSON.stringify(list)); } catch(e){}
+}
+function schInboxAdd(){
+  var ta = document.getElementById("schInboxText");
+  var src = document.getElementById("schInboxSrc");
+  var text = ta ? ta.value.trim() : "";
+  if (!text){ schToast("先把网址内容粘进来再存"); return; }
+  var list = schInboxLoad();
+  list.push({ t: Date.now(), src: src ? src.value.trim() : "", text: text });
+  schInboxSave(list);
+  ta.value = ""; if (src) src.value = "";
+  schRenderInbox();
+  schToast("✅ 已存入投稿箱（会自动随备份上云），共 " + list.length + " 条");
+}
+function schInboxDel(i){
+  if (!confirm("删除这条投稿？")) return;
+  var list = schInboxLoad();
+  list.splice(i, 1);
+  schInboxSave(list);
+  schRenderInbox();
+}
+function schInboxCopyAll(){
+  var list = schInboxLoad();
+  if (!list.length){ schToast("投稿箱还是空的"); return; }
+  var parts = list.map(function(it, i){
+    var d = new Date(it.t);
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    var t = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    return "【投稿 " + (i+1) + "】" + t + (it.src ? "（来源：" + it.src + "）" : "") + "\n" + it.text;
+  });
+  var text = "以下是学校练习投稿箱的全部内容，请帮我整理成正式课时：\n\n" + parts.join("\n\n———\n\n");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ schToast("已复制全部投稿，发给 AI 即可"); }, function(){ schCopyFallback(text); });
+    } else { schCopyFallback(text); }
+  } catch(e){ schCopyFallback(text); }
+}
+function schRenderInbox(){
+  var box = document.getElementById("schInbox");
+  if (!box) return;
+  var list = schInboxLoad();
+  var html = '<div class="sch-inbox-box">' +
+    '<div class="sch-inbox-tip">📥 <b>格式不限</b>：在平板/电脑上把网址内容全选复制，整段粘到这里存档（自动随备份上云）。攒好后到电脑上点「复制全部投稿」发给 AI，我来整理成下一课。</div>' +
+    '<div class="sch-inbox-src"><input type="text" id="schInboxSrc" placeholder="来源网址（选填）" autocomplete="off"></div>' +
+    '<textarea class="sch-inbox-ta" id="schInboxText" rows="7" placeholder="把网址内容整段粘贴到这里…&#10;&#10;推荐格式（照着填处理更快，格式不一致也没关系）：&#10;【题目】启蒙0601 【例6.1】标题&#10;描述：……&#10;输入：…… 输出：……&#10;【解答】（代码直接粘）&#10;【解析】要点、口诀、易错……"></textarea>' +
+    '<div class="sch-actions" style="margin-top:10px;">' +
+      '<button class="sch-btn primary" type="button" onclick="schInboxAdd()">📥 存入投稿箱</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schInboxCopyAll()">📋 复制全部投稿（发给 AI）</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schRenderInbox()">刷新</button>' +
+    '</div></div>';
+  html += '<div class="sch-inbox-list-sec"><div class="sch-sec-title">📮 已存投稿（' + list.length + ' 条）</div>';
+  if (!list.length){
+    html += '<div class="sch-empty">还没有投稿。在平板上学完、看到好内容，随手粘进来就行。</div>';
+  } else {
+    html += '<div class="sch-inbox-list">';
+    list.forEach(function(it, i){
+      var d = new Date(it.t);
+      var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+      var t = pad(d.getMonth()+1) + "月" + pad(d.getDate()) + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      var prev = it.text.replace(/\s+/g, " ").slice(0, 60);
+      html += '<div class="sch-inbox-item"><span class="sch-inbox-no">' + (i+1) + '</span>' +
+        '<span class="sch-inbox-prev">' + schEsc(prev) + (it.text.length > 60 ? "…" : "") + '</span>' +
+        '<span class="sch-inbox-time">' + t + '</span>' +
+        '<button class="sch-btn danger sch-btn-s2" type="button" onclick="schInboxDel(' + i + ')">删除</button></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+
 /* ---------- 初始化 ---------- */
 function schInit(){
   schRenderTabs();
@@ -77122,6 +77333,8 @@ function schInit(){
   schRenderList();
   schRenderStats();
   schRenderDetail();
+  schRenderBadges();
+  schRenderInbox();
 }
 if (document.readyState === "loading"){
   window.addEventListener("DOMContentLoaded", schInit);

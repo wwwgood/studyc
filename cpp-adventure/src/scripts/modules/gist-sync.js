@@ -213,9 +213,10 @@ function gsRenderPanel(){
       '<p class="sync-desc">换设备：新设备打开网站 → 同一个令牌连接后点「从云端恢复」。</p>';
   } else {
     box.innerHTML =
-      '<div class="gs-steps">三步搞定：<b>① GitHub 创建令牌</b>（Settings → Developer settings → Personal access tokens (classic) → Generate new token，只勾 <b>gist</b> 权限）→ ' +
-      '<b>② 粘贴到下面点连接</b> → <b>③ 开启自动上传</b>。之后每次学习自动备份，任何设备都能恢复。</div>' +
-      '<input type="password" id="gsToken" class="gs-token" placeholder="粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
+      '<div class="gs-steps">三步搞定（全程约 1 分钟，仅需这一次）：<b>① 创建令牌</b>——点下面的直达链接，登录 GitHub 后直接点 <b>Generate token</b>（已自动勾选 gist 权限）→ ' +
+      '<b>② 复制令牌粘贴到下面</b>，点「连接 GitHub 云端」→ <b>③ 开启自动上传</b>。之后每次学习 8 秒内自动备份；换设备点「从云端恢复」一键取回。</div>' +
+      '<a class="sync-export-btn" style="display:inline-block;text-decoration:none;margin:2px 0 10px;" href="https://github.com/settings/tokens/new?scopes=gist&description=studyc-sync" target="_blank" rel="noopener">⚡ 第①步：一键打开 GitHub 令牌创建页</a>' +
+      '<input type="password" id="gsToken" class="gs-token" placeholder="② 粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
       '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>' +
       '<p class="sync-desc" style="margin-top:6px;">连接后建议立即开启自动上传：学习后 8 秒自动备份到 GitHub，全程无需手动。</p>';
   }

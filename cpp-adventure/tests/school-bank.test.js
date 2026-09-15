@@ -64,3 +64,16 @@ test("代码题引号配对与关键行", () => {
     assert.ok(c.includes("#include <iostream>"), `${p.id} 缺头文件`);
   });
 });
+
+test("投稿箱与学会标记的本机键", () => {
+  const { createMockDOM } = require("./helpers");
+  const mock = createMockDOM();
+  const sb = loadScripts(["data/school-bank.js", "modules/school.js"], mock);
+  assert.strictEqual(sb.SCH_KEY, "cppsSchoolV1", "学会标记键名");
+  assert.strictEqual(sb.SCH_INBOX_KEY, "cppsSchoolInbox", "投稿箱键名");
+  assert.strictEqual(sb.schInboxLoad().length, 0, "投稿箱初始为空");
+  sb.schInboxSave([{ t: 1, src: "u", text: "hello" }]);
+  assert.strictEqual(sb.schInboxLoad().length, 1, "投稿箱存取");
+  assert.strictEqual(sb.schInboxLoad()[0].text, "hello", "投稿内容可读回");
+  assert.strictEqual(Object.keys(sb.schState().mastered).length, 0, "学会标记初始为空");
+});

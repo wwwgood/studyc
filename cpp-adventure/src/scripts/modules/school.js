@@ -9,6 +9,8 @@ var SCH_LESSON_INDEX = 0;
 var SCH_ACTIVE_ID = null;   /* "primer" / "sheet" / 题目 id */
 var SCH_TAB = "do";         /* do=做题 / code=解答 / ex=解析 */
 var SCH_KEY = "cppsSchoolV1";
+var SCH_INBOX_KEY = "cppsSchoolInbox";
+var SCH_VIEW = 0;
 
 function schState(){
   try {
@@ -241,6 +243,7 @@ function schToggleMaster(id){
   else st.mastered[id] = true;
   schSave(st);
   schRenderList(); schRenderStats(); schRenderDetail();
+  schRenderBadges();
   schToast(st.mastered[id] ? "🎉 已标记「学会」！" : "已取消标记");
 }
 function schPrevNext(dir){
@@ -285,6 +288,152 @@ function schToast(msg){
   if (typeof ojToast === "function"){ ojToast(msg); }
 }
 
+/* ---------- 视图切换（题目 / 徽章墙 / 投稿箱） ---------- */
+function schSwitchView(i){
+  SCH_VIEW = i;
+  var tabs = document.querySelectorAll(".sch-view");
+  for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle("active", k === i);
+  for (var k2 = 0; k2 < 3; k2++){
+    var panel = document.getElementById("schPanel" + k2);
+    if (panel) panel.classList.toggle("active", k2 === i);
+  }
+  if (i === 1) schRenderBadges();
+  if (i === 2) schRenderInbox();
+}
+
+/* ---------- 练习徽章墙（照徽章墙的做法考核） ---------- */
+function schRenderBadges(){
+  var box = document.getElementById("schBadges");
+  if (!box) return;
+  var les = schLesson();
+  var st = schState();
+  var total = les.problems.length;
+  var done = 0;
+  les.problems.forEach(function(p){ if (st.mastered[p.id]) done++; });
+  var pct = total ? Math.round(done / total * 100) : 0;
+  var allLit = (done === total && total > 0);
+  var html = '<div class="sch-badge-hero' + (allLit ? " lit" : "") + '">' +
+    '<div class="sch-badge-big">' + (allLit ? "🏆" : "🎯") + '</div>' +
+    '<div class="sch-badge-big-info">' +
+      '<h3>' + schEsc(les.title) + (allLit ? ' · 已全部点亮！' : '') + '</h3>' +
+      '<div class="sch-badge-bar"><span style="width:' + pct + '%"></span></div>' +
+      '<span class="sch-badge-sub">已点亮 <b>' + done + '</b> / ' + total + ' 枚题目徽章 · 做完一题点「标记已学会」就会点亮一枚</span>' +
+    '</div></div>';
+  html += '<div class="sch-bgroups">';
+  les.groups.forEach(function(g){
+    var items = les.problems.filter(function(p){ return p.grp === g.id; });
+    var dn = items.filter(function(p){ return st.mastered[p.id]; }).length;
+    var all = dn === items.length && items.length > 0;
+    html += '<span class="sch-bgroup' + (all ? " done" : "") + '">' + (all ? "🏅 " : "○ ") + schEsc(g.name.replace(/^第[一二三四五]组 · /, "")) + ' ' + dn + '/' + items.length + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="sch-bgrid">';
+  les.problems.forEach(function(p){
+    var m = !!st.mastered[p.id];
+    html += '<button class="sch-badge' + (m ? " lit" : "") + '" type="button" onclick="schBadgeOpen(\'' + p.id + '\')" title="' + schEsc(p.name + " " + p.title) + '">' +
+      '<span class="sch-badge-ico">' + (m ? "🏅" : "🔒") + '</span>' +
+      '<span class="sch-badge-no">' + schEsc(p.no) + '</span>' +
+      '<span class="sch-badge-t">' + schEsc(p.title) + '</span>' +
+      '<span class="sch-badge-s">' + (m ? "已点亮" : "待点亮") + '</span>' +
+    '</button>';
+  });
+  html += '</div>';
+  html += '<div class="sch-actions"><button class="sch-btn primary" type="button" onclick="schRandomQuiz()">🎲 抽一题考我</button>' +
+    '<span class="sch-quiz-tip">从还没点亮的题里随机抽一道，当场做一遍</span></div>';
+  box.innerHTML = html;
+}
+function schBadgeOpen(id){ schSwitchView(0); schOpen(id); }
+function schRandomQuiz(){
+  var st = schState();
+  var ps = schProblems().filter(function(p){ return !st.mastered[p.id]; });
+  if (!ps.length) ps = schProblems();
+  if (!ps.length) return;
+  var p = ps[Math.floor(Math.random() * ps.length)];
+  schSwitchView(0);
+  schOpen(p.id);
+  schToast("考你这道：" + p.name + " " + p.title);
+}
+
+/* ---------- 投稿箱（格式不限，粘进来由 AI 处理成正式课时） ---------- */
+function schInboxLoad(){
+  try {
+    var v = JSON.parse(localStorage.getItem(SCH_INBOX_KEY));
+    if (Array.isArray(v)) return v;
+  } catch(e){}
+  return [];
+}
+function schInboxSave(list){
+  try { localStorage.setItem(SCH_INBOX_KEY, JSON.stringify(list)); } catch(e){}
+}
+function schInboxAdd(){
+  var ta = document.getElementById("schInboxText");
+  var src = document.getElementById("schInboxSrc");
+  var text = ta ? ta.value.trim() : "";
+  if (!text){ schToast("先把网址内容粘进来再存"); return; }
+  var list = schInboxLoad();
+  list.push({ t: Date.now(), src: src ? src.value.trim() : "", text: text });
+  schInboxSave(list);
+  ta.value = ""; if (src) src.value = "";
+  schRenderInbox();
+  schToast("✅ 已存入投稿箱（会自动随备份上云），共 " + list.length + " 条");
+}
+function schInboxDel(i){
+  if (!confirm("删除这条投稿？")) return;
+  var list = schInboxLoad();
+  list.splice(i, 1);
+  schInboxSave(list);
+  schRenderInbox();
+}
+function schInboxCopyAll(){
+  var list = schInboxLoad();
+  if (!list.length){ schToast("投稿箱还是空的"); return; }
+  var parts = list.map(function(it, i){
+    var d = new Date(it.t);
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    var t = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    return "【投稿 " + (i+1) + "】" + t + (it.src ? "（来源：" + it.src + "）" : "") + "\n" + it.text;
+  });
+  var text = "以下是学校练习投稿箱的全部内容，请帮我整理成正式课时：\n\n" + parts.join("\n\n———\n\n");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ schToast("已复制全部投稿，发给 AI 即可"); }, function(){ schCopyFallback(text); });
+    } else { schCopyFallback(text); }
+  } catch(e){ schCopyFallback(text); }
+}
+function schRenderInbox(){
+  var box = document.getElementById("schInbox");
+  if (!box) return;
+  var list = schInboxLoad();
+  var html = '<div class="sch-inbox-box">' +
+    '<div class="sch-inbox-tip">📥 <b>格式不限</b>：在平板/电脑上把网址内容全选复制，整段粘到这里存档（自动随备份上云）。攒好后到电脑上点「复制全部投稿」发给 AI，我来整理成下一课。</div>' +
+    '<div class="sch-inbox-src"><input type="text" id="schInboxSrc" placeholder="来源网址（选填）" autocomplete="off"></div>' +
+    '<textarea class="sch-inbox-ta" id="schInboxText" rows="7" placeholder="把网址内容整段粘贴到这里…&#10;&#10;推荐格式（照着填处理更快，格式不一致也没关系）：&#10;【题目】启蒙0601 【例6.1】标题&#10;描述：……&#10;输入：…… 输出：……&#10;【解答】（代码直接粘）&#10;【解析】要点、口诀、易错……"></textarea>' +
+    '<div class="sch-actions" style="margin-top:10px;">' +
+      '<button class="sch-btn primary" type="button" onclick="schInboxAdd()">📥 存入投稿箱</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schInboxCopyAll()">📋 复制全部投稿（发给 AI）</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schRenderInbox()">刷新</button>' +
+    '</div></div>';
+  html += '<div class="sch-inbox-list-sec"><div class="sch-sec-title">📮 已存投稿（' + list.length + ' 条）</div>';
+  if (!list.length){
+    html += '<div class="sch-empty">还没有投稿。在平板上学完、看到好内容，随手粘进来就行。</div>';
+  } else {
+    html += '<div class="sch-inbox-list">';
+    list.forEach(function(it, i){
+      var d = new Date(it.t);
+      var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+      var t = pad(d.getMonth()+1) + "月" + pad(d.getDate()) + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      var prev = it.text.replace(/\s+/g, " ").slice(0, 60);
+      html += '<div class="sch-inbox-item"><span class="sch-inbox-no">' + (i+1) + '</span>' +
+        '<span class="sch-inbox-prev">' + schEsc(prev) + (it.text.length > 60 ? "…" : "") + '</span>' +
+        '<span class="sch-inbox-time">' + t + '</span>' +
+        '<button class="sch-btn danger sch-btn-s2" type="button" onclick="schInboxDel(' + i + ')">删除</button></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+
 /* ---------- 初始化 ---------- */
 function schInit(){
   schRenderTabs();
@@ -299,6 +448,8 @@ function schInit(){
   schRenderList();
   schRenderStats();
   schRenderDetail();
+  schRenderBadges();
+  schRenderInbox();
 }
 if (document.readyState === "loading"){
   window.addEventListener("DOMContentLoaded", schInit);

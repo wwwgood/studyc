@@ -130,4 +130,56 @@
   .sch-card-head h3{font-size:17px;}
   .sch-walk-row{grid-template-columns:24px 1fr; row-gap:4px;}
   .sch-walk-exp{grid-column:2;}
+  .sch-views{gap:6px;}
+  .sch-view{font-size:13.5px; padding:7px 13px;}
+  .sch-badge-big{font-size:34px;}
 }
+
+/* ================= 视图页签（题目 / 徽章墙 / 投稿箱） ================= */
+.sch-views{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-view{font-size:15px; font-weight:700; padding:9px 18px; border-radius:999px; background:var(--card); border:2px solid var(--line); color:var(--ink-soft); cursor:pointer; transition:all .2s;}
+.sch-view:hover{border-color:var(--blue); color:var(--blue-dark);}
+.sch-view.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,130,246,.3);}
+.sch-viewpanel{display:none;}
+.sch-viewpanel.active{display:block;}
+
+/* ================= 练习徽章墙 ================= */
+.sch-badge-hero{display:flex; align-items:center; gap:16px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px 20px; box-shadow:var(--shadow); margin-bottom:14px; flex-wrap:wrap;}
+.sch-badge-hero.lit{border-color:rgba(255,201,77,.8); background:linear-gradient(135deg, #FFF9E8, #fff);}
+.sch-badge-big{font-size:44px; line-height:1;}
+.sch-badge-big-info{flex:1 1 260px; min-width:0;}
+.sch-badge-big-info h3{font-size:18px; color:var(--ink); margin-bottom:8px;}
+.sch-badge-bar{height:14px; background:var(--card-soft); border-radius:999px; overflow:hidden; border:1px solid var(--line); margin-bottom:6px;}
+.sch-badge-bar span{display:block; height:100%; background:linear-gradient(90deg, var(--gold), var(--action)); border-radius:999px; transition:width .4s;}
+.sch-badge-sub{font-size:13px; color:var(--ink-soft);}
+.sch-bgroups{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-bgroup{font-size:13px; font-weight:700; padding:5px 13px; border-radius:999px; background:var(--card); border:1.5px solid var(--line); color:var(--ink-soft);}
+.sch-bgroup.done{background:#EAFBF3; border-color:rgba(52,211,153,.6); color:#065F46;}
+.sch-bgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;}
+.sch-badge{display:flex; flex-direction:column; align-items:center; gap:4px; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 10px; cursor:pointer; transition:all .15s; text-align:center;}
+.sch-badge:hover{border-color:var(--gold); transform:translateY(-2px);}
+.sch-badge.lit{border-color:rgba(255,201,77,.85); background:linear-gradient(160deg, #FFF9E8, #FFFDF6); box-shadow:0 4px 14px rgba(255,201,77,.25);}
+.sch-badge-ico{font-size:26px; line-height:1.2;}
+.sch-badge:not(.lit) .sch-badge-ico{filter:grayscale(1); opacity:.4;}
+.sch-badge-no{font-family:Consolas,"Courier New",monospace; font-size:12px; font-weight:800; color:var(--blue-dark); background:var(--card-soft); border-radius:8px; padding:1px 8px;}
+.sch-badge-t{font-size:13px; font-weight:700; color:var(--ink); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-badge-s{font-size:11.5px; color:var(--ink-soft);}
+.sch-badge.lit .sch-badge-s{color:#B45309; font-weight:700;}
+.sch-quiz-tip{font-size:13px; color:var(--ink-soft); align-self:center;}
+
+/* ================= 投稿箱 ================= */
+.sch-inbox-box{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 20px; box-shadow:var(--shadow); margin-bottom:14px;}
+.sch-inbox-tip{font-size:13.5px; color:var(--ink); line-height:1.8; background:var(--card-soft); border-radius:10px; padding:10px 14px; margin-bottom:12px;}
+.sch-inbox-src{margin-bottom:10px;}
+.sch-inbox-src input{width:100%; box-sizing:border-box; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#F8FAFF; color:var(--ink);}
+.sch-inbox-ta{width:100%; box-sizing:border-box; min-height:150px; font-size:14px; font-family:Consolas,"Courier New",monospace; line-height:1.6; color:var(--ink); background:#F8FAFF; border:1px solid var(--line); border-radius:10px; padding:10px 12px; resize:vertical;}
+.sch-inbox-ta:focus, .sch-inbox-src input:focus{outline:2px solid var(--blue);}
+.sch-inbox-list-sec .sch-sec-title{margin-top:4px;}
+.sch-inbox-list{display:flex; flex-direction:column; gap:8px;}
+.sch-inbox-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 14px;}
+.sch-inbox-no{flex:0 0 auto; width:28px; height:28px; border-radius:8px; background:var(--violet); color:#fff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center;}
+.sch-inbox-prev{flex:1 1 auto; min-width:0; font-size:13.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-inbox-time{flex:0 0 auto; font-size:12px; color:var(--ink-soft); font-family:Consolas,monospace;}
+.sch-btn.danger{background:#FDECEC; color:#C0392B; border:1px solid #F5C6C6;}
+.sch-btn.danger:hover{background:#F5C6C6;}
+.sch-btn-s2{font-size:12px; padding:5px 12px; border-radius:999px;}

@@ -5068,6 +5068,16 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .sch-tbl td{padding:8px 12px; border:1px solid var(--line); color:var(--ink); line-height:1.7;}
 .sch-snippet{background:#0B1B3B; color:#E6EDFF; font-family:Consolas,"Courier New",monospace; font-size:13px; line-height:1.6; border-radius:12px; padding:12px 14px; overflow-x:auto; white-space:pre; margin:10px 0;}
 
+/* 解析页：逐行讲解（一行代码 + 一句解析并排） */
+.sch-walk{margin:10px 0 14px; border:1.5px solid var(--line); border-radius:12px; overflow:hidden; background:#fff;}
+.sch-walk-cap{font-size:12.5px; font-weight:800; letter-spacing:1px; color:#AFC6E8; background:#0B1B3B; padding:8px 14px;}
+.sch-walk-row{display:grid; grid-template-columns:30px minmax(0,auto) 1fr; align-items:start; gap:10px; padding:7px 12px; border-top:1px dashed var(--line);}
+.sch-walk-row:first-of-type{border-top:none;}
+.sch-walk-ln{font-size:11px; font-weight:800; color:#94A3B8; text-align:right; padding-top:4px; font-family:Consolas,monospace;}
+.sch-walk-code{font-family:Consolas,"Courier New",monospace; font-size:12.5px; color:#1E3A5F; background:#F1F5FF; border:1px solid #DBEAFE; border-radius:8px; padding:3px 8px; white-space:pre; overflow-x:auto; max-width:100%; line-height:1.6;}
+.sch-walk-exp{font-size:13.5px; color:var(--ink); line-height:1.7; padding-top:3px; overflow-wrap:anywhere;}
+.sch-walk-exp .sch-icode{white-space:normal;}
+
 /* 底部动作按钮 */
 .sch-actions{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--line);}
 .sch-btn{font-size:14px; font-weight:700; padding:9px 20px; border-radius:999px; cursor:pointer; transition:all .2s;}
@@ -5092,7 +5102,61 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
   .sch-stats{margin-left:0;}
   .sch-card{padding:14px;}
   .sch-card-head h3{font-size:17px;}
+  .sch-walk-row{grid-template-columns:24px 1fr; row-gap:4px;}
+  .sch-walk-exp{grid-column:2;}
+  .sch-views{gap:6px;}
+  .sch-view{font-size:13.5px; padding:7px 13px;}
+  .sch-badge-big{font-size:34px;}
 }
+
+/* ================= 视图页签（题目 / 徽章墙 / 投稿箱） ================= */
+.sch-views{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-view{font-size:15px; font-weight:700; padding:9px 18px; border-radius:999px; background:var(--card); border:2px solid var(--line); color:var(--ink-soft); cursor:pointer; transition:all .2s;}
+.sch-view:hover{border-color:var(--blue); color:var(--blue-dark);}
+.sch-view.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 4px 14px rgba(59,130,246,.3);}
+.sch-viewpanel{display:none;}
+.sch-viewpanel.active{display:block;}
+
+/* ================= 练习徽章墙 ================= */
+.sch-badge-hero{display:flex; align-items:center; gap:16px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px 20px; box-shadow:var(--shadow); margin-bottom:14px; flex-wrap:wrap;}
+.sch-badge-hero.lit{border-color:rgba(255,201,77,.8); background:linear-gradient(135deg, #FFF9E8, #fff);}
+.sch-badge-big{font-size:44px; line-height:1;}
+.sch-badge-big-info{flex:1 1 260px; min-width:0;}
+.sch-badge-big-info h3{font-size:18px; color:var(--ink); margin-bottom:8px;}
+.sch-badge-bar{height:14px; background:var(--card-soft); border-radius:999px; overflow:hidden; border:1px solid var(--line); margin-bottom:6px;}
+.sch-badge-bar span{display:block; height:100%; background:linear-gradient(90deg, var(--gold), var(--action)); border-radius:999px; transition:width .4s;}
+.sch-badge-sub{font-size:13px; color:var(--ink-soft);}
+.sch-bgroups{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.sch-bgroup{font-size:13px; font-weight:700; padding:5px 13px; border-radius:999px; background:var(--card); border:1.5px solid var(--line); color:var(--ink-soft);}
+.sch-bgroup.done{background:#EAFBF3; border-color:rgba(52,211,153,.6); color:#065F46;}
+.sch-bgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;}
+.sch-badge{display:flex; flex-direction:column; align-items:center; gap:4px; background:var(--card); border:1.5px solid var(--line); border-radius:16px; padding:14px 10px; cursor:pointer; transition:all .15s; text-align:center;}
+.sch-badge:hover{border-color:var(--gold); transform:translateY(-2px);}
+.sch-badge.lit{border-color:rgba(255,201,77,.85); background:linear-gradient(160deg, #FFF9E8, #FFFDF6); box-shadow:0 4px 14px rgba(255,201,77,.25);}
+.sch-badge-ico{font-size:26px; line-height:1.2;}
+.sch-badge:not(.lit) .sch-badge-ico{filter:grayscale(1); opacity:.4;}
+.sch-badge-no{font-family:Consolas,"Courier New",monospace; font-size:12px; font-weight:800; color:var(--blue-dark); background:var(--card-soft); border-radius:8px; padding:1px 8px;}
+.sch-badge-t{font-size:13px; font-weight:700; color:var(--ink); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-badge-s{font-size:11.5px; color:var(--ink-soft);}
+.sch-badge.lit .sch-badge-s{color:#B45309; font-weight:700;}
+.sch-quiz-tip{font-size:13px; color:var(--ink-soft); align-self:center;}
+
+/* ================= 投稿箱 ================= */
+.sch-inbox-box{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px 20px; box-shadow:var(--shadow); margin-bottom:14px;}
+.sch-inbox-tip{font-size:13.5px; color:var(--ink); line-height:1.8; background:var(--card-soft); border-radius:10px; padding:10px 14px; margin-bottom:12px;}
+.sch-inbox-src{margin-bottom:10px;}
+.sch-inbox-src input{width:100%; box-sizing:border-box; font-size:14px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:#F8FAFF; color:var(--ink);}
+.sch-inbox-ta{width:100%; box-sizing:border-box; min-height:150px; font-size:14px; font-family:Consolas,"Courier New",monospace; line-height:1.6; color:var(--ink); background:#F8FAFF; border:1px solid var(--line); border-radius:10px; padding:10px 12px; resize:vertical;}
+.sch-inbox-ta:focus, .sch-inbox-src input:focus{outline:2px solid var(--blue);}
+.sch-inbox-list-sec .sch-sec-title{margin-top:4px;}
+.sch-inbox-list{display:flex; flex-direction:column; gap:8px;}
+.sch-inbox-item{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 14px;}
+.sch-inbox-no{flex:0 0 auto; width:28px; height:28px; border-radius:8px; background:var(--violet); color:#fff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center;}
+.sch-inbox-prev{flex:1 1 auto; min-width:0; font-size:13.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.sch-inbox-time{flex:0 0 auto; font-size:12px; color:var(--ink-soft); font-family:Consolas,monospace;}
+.sch-btn.danger{background:#FDECEC; color:#C0392B; border:1px solid #F5C6C6;}
+.sch-btn.danger:hover{background:#F5C6C6;}
+.sch-btn-s2{font-size:12px; padding:5px 12px; border-radius:999px;}
 
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
@@ -5552,10 +5616,19 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     </div>
     <p class="sch-desc-line">与学校课本《信息学奥赛一本通》（董永建）同步的练习：同一份题目的多份解答已合并成一份——先自己做「做题」，再对照「解答」，最后看「解析」把知识点吃透，随时反复看。</p>
     <div class="sch-lesson-tabs" id="schLessonTabs" role="tablist" aria-label="课时选择"></div>
-    <div class="sch-layout">
-      <div class="sch-side" id="schList" aria-label="题目列表"></div>
-      <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+    <div class="sch-views" role="tablist" aria-label="学校练习视图">
+      <button class="sch-view active" type="button" onclick="schSwitchView(0)">📝 练习题目</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(1)">🏆 练习徽章</button>
+      <button class="sch-view" type="button" onclick="schSwitchView(2)">📥 投稿箱</button>
     </div>
+    <div class="sch-viewpanel active" id="schPanel0">
+      <div class="sch-layout">
+        <div class="sch-side" id="schList" aria-label="题目列表"></div>
+        <div class="sch-main" id="schDetail" aria-label="题目详情"><div class="sch-empty">点左边任何一项开始：做题 → 解答 → 解析 →</div></div>
+      </div>
+    </div>
+    <div class="sch-viewpanel" id="schPanel1"><div id="schBadges" aria-label="练习徽章墙"></div></div>
+    <div class="sch-viewpanel" id="schPanel2"><div id="schInbox" aria-label="投稿箱"></div></div>
   </section>
   </div>
 
@@ -60149,7 +60222,8 @@ function ojBandFor(stars){
  * 结构：
  *   SCHOOL_LESSONS = [ { id, title, source, groups, primer, sheet, problems } ]
  *   每题字段：id/no/name/title/grp/diff/points/desc/input/output/sampleIn/sampleOut/code/codeAlt/codeAltNote/analysis
- *   解析 analysis 为块数组：["p"|"h"|"ul"|"steps"|"tip"|"warn"|"table"|"code", 内容]
+ *   解析 analysis 为块数组：["p"|"h"|"ul"|"steps"|"tip"|"warn"|"table"|"code"|"walk", 内容]
+ *   walk = 逐行讲解：["walk", [[代码行, 解析], ...]]，一行代码配一句解析（放在解析最前面）
  *   行内强调（由 school.js 渲染）：**加粗**、[hl]高亮[/hl]、[wv]波浪线[/wv]、[rd]醒目[/rd]、`行内代码`
  */
 var SCHOOL_LESSONS = [
@@ -60295,6 +60369,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱（cout 住在里面）"],
+        ["using namespace std;", "住进标准小区，以后直接写 cout"],
+        ["int main() {", "程序大门，电脑从这里开始跑"],
+        ["    cout << \"hello world\" << endl;", "嘴巴说一句 [hl]hello world[/hl]（引号里[hl]原样照抄[/hl]），endl 按回车换行，`;` 是句号"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "每个程序员的第一句话！程序只干一件事：让电脑的嘴巴说出一行字。"],
       ["ul", [
         "`cout` 是电脑的嘴巴，`<<` 把右边的内容送出去",
@@ -60321,6 +60403,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"你好，世界。\" << endl;", "中文直接放引号里原样输出；`，` 和 `。` 是[rd]中文标点[/rd]，但分号必须是英文的"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "和上一题一样的套路，只是引号里换成了中文——[hl]中文可以直接写进引号[/hl]。"],
       ["warn", "标点是[rd]中文的[/rd]：`，` 和 `。`，不能写成英文的逗号和句点。代码自己的标点（分号）必须是英文的！"],
       ["tip", "内容可以是中文，代码标点必须英文——两条线别搞混。"]
@@ -60342,6 +60432,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"Happy Spring Festival!\" << endl;", "祝福语照抄：三个单词[hl]首字母大写[/hl]，单词间[hl]一个空格[/hl]，结尾英文感叹号 `!`"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "没有新知识，练手感！把春节祝福用英文写出来。"],
       ["warn", "[rd]大小写[/rd]仔细看：Happy、Spring、Festival 三个单词首字母都大写；结尾是[hl]英文感叹号[/hl] `!`（不是中文的？）。"],
       ["p", "写的时候一个单词一个单词对：Happy[空格]Spring[空格]Festival！"]
@@ -60363,6 +60461,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"春眠不觉晓，处处蚊子咬。\" << endl;", "诗句照抄，[hl]中文标点照写[/hl]（`，` 和 `。`），结尾英文分号 `;`"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "照抄诗句，中文标点照写。试一试[hl]不看答案自己写[/hl]——骨架应该已经是肌肉记忆了。"],
       ["p", "如果写错了，大概率是：忘分号、标点用了英文、或漏了 `;`。对照检查就行。"]
     ]
@@ -60383,6 +60489,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"1234*5678=\" << 1234 * 5678 << endl;", "[hl]分两段送出[/hl]：引号里的 `\"1234*5678=\"` [hl]照抄[/hl]（* 只是普通文字）；引号外的 `1234 * 5678` [hl]电脑真的去算[/hl] = 7006652；endl 换行"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["h", "这一行有两段，一段照抄一段计算"],
       ["ul", [
         "`\"1234*5678=\"` 在[hl]引号里[/hl] → 原样打印（这里的 * 只是普通文字）",
@@ -60433,6 +60547,23 @@ var SCHOOL_LESSONS = [
     ],
     codeAltNote: "学了 for 循环后可以这样写（更聪明）",
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"ABCDEFGHIJKLMNOPQR\" << endl;", "第 1 行：从 A 顺排 18 个字母（A~R）"],
+        ["    cout << \"BABCDEFGHIJKLMNOPQ\" << endl;", "第 2 行：开头多了 B（从 B [hl]倒着数[/hl]回 A），后面补满 18 格"],
+        ["    cout << \"CBABCDEFGHIJKLMNOP\" << endl;", "第 3 行：开头 C、B 倒数，再补满"],
+        ["    cout << \"DCBABCDEFGHIJKLMNO\" << endl;", "第 4 行：开头 D~A 倒数，再补满"],
+        ["    cout << \"EDCBABCDEFGHIJKLMN\" << endl;", "第 5 行：开头 E~A 倒数，再补满"],
+        ["    cout << \"FEDCBABCDEFGHIJKLM\" << endl;", "第 6 行：开头 F~A 倒数，再补满"],
+        ["    cout << \"GFEDCBABCDEFGHIJKL\" << endl;", "第 7 行：开头 G~A 倒数，再补满"],
+        ["    cout << \"HGFEDCBABCDEFGHIJK\" << endl;", "第 8 行：开头 H~A 倒数，再补满"],
+        ["    cout << \"IHGFEDCBABCDEFGHIJ\" << endl;", "第 9 行：开头 I~A 倒数，再补满"],
+        ["    cout << \"JIHGFEDCBABCDEFGHI\" << endl;", "第 10 行：开头 J~A 倒数，再补满（规律：第 n 行开头是「从第 n 个字母倒着数回 A」）"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["h", "找规律（这就是算法思维！）"],
       ["p", "第 1 行 A 往后排；第 2 行从 B 开始，先倒退到 A 再顺排…… [hl]每一行都是 18 个字符[/hl]，第 n 行开头多\"倒着数回去\"的字母。"],
       ["h", "解法一 · 打表法（现在就能用）"],
@@ -60476,6 +60607,18 @@ var SCHOOL_LESSONS = [
     ],
     codeAltNote: "用 \\n 换行（更短，效果一样）",
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"春晓\" << endl;", "第 1 行：题目「春晓」，endl 换行"],
+        ["    cout << \"春眠不觉晓，\" << endl;", "第 2 行：第一句诗，[hl]每句后面都有 endl[/hl]（题目要求每句换行）"],
+        ["    cout << \"处处蚊子咬。\" << endl;", "第 3 行：第二句诗"],
+        ["    cout << \"夜来嗡嗡声，\" << endl;", "第 4 行：第三句诗"],
+        ["    cout << \"脓包知多少。\" << endl;", "第 5 行：第四句诗"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "题目要求[hl]每句换一行[/hl]，所以每个 `cout` 结尾加 `endl`（endl 相当于按回车）。"],
       ["p", "也有更短的写法：`\\n` 读作\"反斜杠 n\"（n = newline 新行），一个 `cout` 里把 `\\n` 放在每句后面，效果一样。"],
       ["tip", "endl 更好记，\\n 更短——选一个喜欢的！"],
@@ -60498,6 +60641,14 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    cout << \"1+2+3+4=\" << 1 + 2 + 3 + 4 << endl;", "[hl]引号里[/hl]的 `\"1+2+3+4=\"` 照抄；[hl]引号外[/hl]的 `1 + 2 + 3 + 4` 电脑从左往右算：1+2=3 → 3+3=6 → 6+4=10"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "和 0301 同一个魔法：`\"1+2+3+4=\"` 照抄，`1+2+3+4` 让电脑算 = 10。"],
       ["p", "电脑从左往右算：1+2=3 → 3+3=6 → 6+4=10。同一行里，引号内外两种模式可以自由切换！"]
     ]
@@ -60527,6 +60678,21 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int a = 20;", "造盒子 a，放入 20（[hl]可乐杯[/hl]）"],
+        ["    int b = 22;", "造盒子 b，放入 22（[hl]牛奶杯[/hl]）"],
+        ["    int t;", "备用[hl]空杯子[/hl] t（t = temp 临时）"],
+        ["    t = a;", "[rd]① A 倒空[/rd]：a 的 20 备份进 t"],
+        ["    a = b;", "[rd]② B 倒 A[/rd]：b 的 22 进 a"],
+        ["    b = t;", "[rd]③ 空倒 B[/rd]：t 里的 20 进 b，交换完成！"],
+        ["    cout << \"a=\" << a << endl;", "输出 a=22"],
+        ["    cout << \"b=\" << b << endl;", "输出 b=20"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["h", "三杯水交换法（⭐重点，必背）"],
       ["p", "想象一杯是可乐（a），一杯是牛奶（b）。直接倒会混在一起，怎么办？找一个[hl]空杯子 t[/hl]："],
       ["steps", [
@@ -60558,6 +60724,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int chang = 880;", "盒子 chang 装 880（[hl]长[/hl]，变量名用拼音，一看就懂）"],
+        ["    int kuan = 500;", "盒子 kuan 装 500（[hl]宽[/hl]）"],
+        ["    int mianji = chang * kuan;", "面积 = 长 × 宽，电脑算出 440000 装进 mianji"],
+        ["    cout << mianji << endl;", "输出盒子里的 440000"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "先把数据装进盒子，再算：长 cháng × 宽 kuān = 面积 miànjī，最后直接输出面积。"],
       ["ul", [
         "变量名可以用有意义的拼音（chang/kuan/mianji），别人一看就懂——这是好习惯",
@@ -60588,6 +60765,20 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int a = 10;", "a 瓶红墨水 10 毫升"],
+        ["    int b = 20;", "b 瓶蓝墨水 20 毫升"],
+        ["    cout << \"a=\" << a << \" b=\" << b << endl;", "[hl]先报交换前[/hl] a=10 b=20（注意 `\" b=\"` 引号开头有[rd]一个空格[/rd]，不然输出挤成 a=10b=20）"],
+        ["    int t = a;", "念咒语 ①：把 a 备份进空杯 t"],
+        ["    a = b;", "②：b 的 20 进 a"],
+        ["    b = t;", "③：t 还给 b，交换完成"],
+        ["    cout << \"a=\" << a << \" b=\" << b << endl;", "[hl]再报交换后[/hl] a=20 b=10"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "和 0401 一样的交换三步曲，多了两个输出：先报\"交换前\"，念咒语交换，再报\"交换后\"。[hl]顺序不能乱[/hl]。"],
       ["warn", "空格细节：`\" b=\"` 引号[hl]开头有一个空格[/hl]，这样 a 和 b 才会分开；不然输出会挤在一起变成 `a=10b=20`。"],
       ["tip", "一行可以写多条语句（t = a; a = b; b = t; 各有分号），像念咒语一样一口气完成。"],
@@ -60613,6 +60804,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int meiTian = 1;", "盒子 meiTian：每天刻 1 条"],
+        ["    int tianShu = 5;", "盒子 tianShu：一共刻 5 天"],
+        ["    int zongShu = meiTian * tianShu;", "总刻痕 = 每天 × 天数 = 1 × 5 = 5"],
+        ["    cout << zongShu << endl;", "输出 5"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "先想数学关系：每天 1 条、刻 5 天 → [hl]5 条[/hl]。总刻痕 = 每天条数 × 天数。"],
       ["p", "也可以直接 `cout << 5;`。但写成\"天数 × 每天条数\"的式子，以后要是刻 100 天，程序不用重算——这其实是[hl]乘法思维[/hl]。"],
       ["tip", "编程的一半功夫在\"想明白\"，不在\"打字\"——先把数学关系想清楚再写代码。"]
@@ -60637,6 +60839,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int a = 100;", "第一个数是 100，装进盒子 a"],
+        ["    cout << a << endl;", "输出 a：100"],
+        ["    cout << a + 1 << endl;", "引号外电脑[hl]先算[/hl] 100+1=101，再输出 101"],
+        ["    cout << a + 2 << endl;", "先算 100+2=102，再输出（[hl]不写死[/hl] 101、102，第一个数改成 200 也全对）"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "连续自然数就是每个比前一个多 1：100、101、102。"],
       ["ul", [
         "用 `a+1`、`a+2` 表示，[hl]不要写死[/hl] 101、102",
@@ -60665,6 +60878,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int zong1 = 15 * 20;", "[hl]情况一[/hl]：15 头牛吃 20 天，共吃掉 300 份草"],
+        ["    int zong2 = 20 * 10;", "[hl]情况二[/hl]：20 头牛吃 10 天，共吃掉 200 份草"],
+        ["    int xin = (zong1 - zong2) / (20 - 10);", "两次相减 = 100 份，正好是[hl]多出的 10 天[/hl]新长的草 → 100 ÷ 10 = 每天新长 10 份（[rd]括号不能丢[/rd]，丢了除法会先算）"],
+        ["    cout << xin << endl;", "输出 10"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["h", "差量法（数学推导，这是奥数经典题）"],
       ["steps", [
         "15 头牛吃 20 天 → 共吃掉 15×20 = 300 份（= 原有草 + 20 天新长的草）",
@@ -60698,6 +60922,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int n;", "[hl]第 1 步[/hl]：准备空盒子 n（装身高）"],
+        ["    cin >> n;", "[hl]第 2 步[/hl]：程序停下等输入，键盘敲的数字流进 n"],
+        ["    // 第3步：拼装输出。固定文字放引号里，变量 n 放引号外", "注释 = 写给人看的便签，电脑直接跳过"],
+        ["    cout << \"My height is \" << n << \"cm.\" << endl;", "[hl]第 3 步[/hl]：固定文字 `\"My height is \"` 照抄（结尾带空格）→ 变量 n → `\"cm.\"` 照抄（开头不带空格），连起来就是 My height is 175cm."],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["h", "cin 输入三步曲（所有输入题都是这个套路）"],
       ["steps", [
         "准备盒子：`int n;`（先造一个空盒子）",
@@ -60726,6 +60961,16 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int a, b, c;", "[hl]一行造三个盒子[/hl]（用逗号隔开）"],
+        ["    cin >> a >> b >> c;", "[hl]流水线[/hl]按顺序收：123→a、456→b、789→c（空格是分隔线，电脑自动跳过）"],
+        ["    cout << b << endl;", "只要第二个 → 输出 b = 456（a、c 用不到也[hl]必须一起收[/hl]，不然 b 收到的是错的数）"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "一次造三个盒子，`cin >> a >> b >> c;` 像流水线一样按顺序收。"],
       ["p", "只要第二个就输出 b。虽然 a、c 用不到，[hl]也要一起收[/hl]——不然 b 收到的是错的数。"],
       ["tip", "传送带：三个包裹（123、456、789）依次放进三个箱子（a、b、c）；空格就是分隔线，电脑会自动跳过。"],
@@ -60750,6 +60995,16 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int n;", "[hl]准备盒子[/hl]：造一个空盒子 n"],
+        ["    cin >> n;", "[hl]听[/hl]：收一个数，流进 n"],
+        ["    cout << n << endl;", "[hl]说[/hl]：原样吐出去——这就是\"复读机\"！"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "最经典的\"输入 → 输出\"三步曲：准备盒子 → 收进来 → 原样吐出去。"],
       ["tip", "所有输入题都是这个套路，[hl]务必背熟[/hl]！它是所有交互程序的祖师爷。"]
     ]
@@ -60774,6 +61029,18 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int a, b, t;", "两个墨水瓶 a、b + 一个空杯 t"],
+        ["    cin >> a >> b;", "依次读入 10 和 20（输入版：数字不写死）"],
+        ["    cout << \"a=\" << a << \" b=\" << b << endl;", "[hl]交换前[/hl]：a=10 b=20"],
+        ["    t = a; a = b; b = t;", "[hl]一口气念咒语[/hl]：A 倒空 → B 倒 A → 空倒 B"],
+        ["    cout << \"a=\" << a << \" b=\" << b << endl;", "[hl]交换后[/hl]：a=20 b=10"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "0401（交换）+ 0501（输入）的组合拳：数字不再写死，用 `cin` 读进来。"],
       ["p", "程序更[hl]通用[/hl]了——输入 5 和 99 也能正确交换，这就是变量的威力。"],
       ["tip", "盒子名直接叫 a、b，输出标签就不用换名了，省事。"],
@@ -60799,6 +61066,17 @@ var SCHOOL_LESSONS = [
       "}"
     ],
     analysis: [
+      ["walk", [
+        ["#include <iostream>", "请来输入输出工具箱"],
+        ["using namespace std;", "住进标准小区，直接写 cout"],
+        ["int main() {", "程序大门，从这里开始"],
+        ["    int x;", "盒子 x = 小朋友人数"],
+        ["    cin >> x;", "读入人数（输入 2）"],
+        ["    int zongJia = x * 10;", "总价 = 人数 × 10 = 20"],
+        ["    cout << x << \" \" << zongJia << endl;", "输出：人数 → [hl]一个空格 `\" \"`[/hl] → 总价（[rd]空格不写就变 220[/rd]，连在一起了！）"],
+        ["    return 0;", "交作业：0 = 一切正常"],
+        ["}", "大门关闭，程序结束"]
+      ]],
       ["p", "总价 = 人数 × 10：`int zongJia = x * 10;`"],
       ["warn", "中间那个空格必须自己输出：`\" \"`（引号里一个空格）。[rd]忘写就变 220[/rd]（连在一起了）！"],
       ["tip", "要空格就写 \" \"——电脑会老老实实打印一个空格。"]
@@ -67606,6 +67884,7 @@ function syncRender(){
           '<div>包含：学习进度、金币、错题本、打卡记录、导入的真题</div>' +
         '</div>' +
       '</div>' +
+      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度 · 推荐通道）</h3>加载中…</div>' +
       '<div class="sync-section">' +
         '<h3>📤 导出数据到文件</h3>' +
         '<p class="sync-desc">把当前设备上的所有学习数据保存为一个文件，传到另一台设备上导入即可同步。</p>' +
@@ -67635,7 +67914,6 @@ function syncRender(){
           '<div style="margin-top:8px;color:#6B7280;">提示：已经配好下方任一云端的话，换设备恢复一键搞定。</div>' +
         '</div>' +
       '</div>' +
-      '<div class="sync-section" id="gsPanel"><h3>🔗 GitHub 云同步（跨设备记进度）</h3>加载中…</div>' +
       '<div id="csStatusLine" style="display:none"></div>' +
     '</div>';
   if (typeof gsRenderPanel === "function") gsRenderPanel();
@@ -68197,9 +68475,10 @@ function gsRenderPanel(){
       '<p class="sync-desc">换设备：新设备打开网站 → 同一个令牌连接后点「从云端恢复」。</p>';
   } else {
     box.innerHTML =
-      '<div class="gs-steps">三步搞定：<b>① GitHub 创建令牌</b>（Settings → Developer settings → Personal access tokens (classic) → Generate new token，只勾 <b>gist</b> 权限）→ ' +
-      '<b>② 粘贴到下面点连接</b> → <b>③ 开启自动上传</b>。之后每次学习自动备份，任何设备都能恢复。</div>' +
-      '<input type="password" id="gsToken" class="gs-token" placeholder="粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
+      '<div class="gs-steps">三步搞定（全程约 1 分钟，仅需这一次）：<b>① 创建令牌</b>——点下面的直达链接，登录 GitHub 后直接点 <b>Generate token</b>（已自动勾选 gist 权限）→ ' +
+      '<b>② 复制令牌粘贴到下面</b>，点「连接 GitHub 云端」→ <b>③ 开启自动上传</b>。之后每次学习 8 秒内自动备份；换设备点「从云端恢复」一键取回。</div>' +
+      '<a class="sync-export-btn" style="display:inline-block;text-decoration:none;margin:2px 0 10px;" href="https://github.com/settings/tokens/new?scopes=gist&description=studyc-sync" target="_blank" rel="noopener">⚡ 第①步：一键打开 GitHub 令牌创建页</a>' +
+      '<input type="password" id="gsToken" class="gs-token" placeholder="② 粘贴 GitHub 访问令牌（ghp_ 开头）" autocomplete="off">' +
       '<button class="sync-export-btn" type="button" onclick="gsConnect()">🔗 连接 GitHub 云端</button>' +
       '<p class="sync-desc" style="margin-top:6px;">连接后建议立即开启自动上传：学习后 8 秒自动备份到 GitHub，全程无需手动。</p>';
   }
@@ -76615,6 +76894,8 @@ var SCH_LESSON_INDEX = 0;
 var SCH_ACTIVE_ID = null;   /* "primer" / "sheet" / 题目 id */
 var SCH_TAB = "do";         /* do=做题 / code=解答 / ex=解析 */
 var SCH_KEY = "cppsSchoolV1";
+var SCH_INBOX_KEY = "cppsSchoolInbox";
+var SCH_VIEW = 0;
 
 function schState(){
   try {
@@ -76664,6 +76945,17 @@ function schBlocks(blocks){
       return '<tr>' + row.map(function(c){ return (i === 0 ? "<th>" : "<td>") + schFmt(c) + (i === 0 ? "</th>" : "</td>"); }).join("") + '</tr>';
     }).join("") + '</table>';
     else if (t === "code") html += '<pre class="sch-snippet">' + schEsc(d.join("\n")) + '</pre>';
+    else if (t === "walk"){
+      /* 逐行讲解：d = [[代码行, 解析], ...]，一行代码配一句解析 */
+      html += '<div class="sch-walk"><div class="sch-walk-cap">🔍 逐行讲解 · 一行代码一句话</div>' +
+        d.map(function(row, i){
+          return '<div class="sch-walk-row">' +
+            '<span class="sch-walk-ln">' + (i + 1) + '</span>' +
+            '<code class="sch-walk-code">' + schFmt(row[0]) + '</code>' +
+            '<span class="sch-walk-exp">' + schFmt(row[1]) + '</span>' +
+          '</div>';
+        }).join("") + '</div>';
+    }
   });
   return html;
 }
@@ -76836,6 +77128,7 @@ function schToggleMaster(id){
   else st.mastered[id] = true;
   schSave(st);
   schRenderList(); schRenderStats(); schRenderDetail();
+  schRenderBadges();
   schToast(st.mastered[id] ? "🎉 已标记「学会」！" : "已取消标记");
 }
 function schPrevNext(dir){
@@ -76880,6 +77173,152 @@ function schToast(msg){
   if (typeof ojToast === "function"){ ojToast(msg); }
 }
 
+/* ---------- 视图切换（题目 / 徽章墙 / 投稿箱） ---------- */
+function schSwitchView(i){
+  SCH_VIEW = i;
+  var tabs = document.querySelectorAll(".sch-view");
+  for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle("active", k === i);
+  for (var k2 = 0; k2 < 3; k2++){
+    var panel = document.getElementById("schPanel" + k2);
+    if (panel) panel.classList.toggle("active", k2 === i);
+  }
+  if (i === 1) schRenderBadges();
+  if (i === 2) schRenderInbox();
+}
+
+/* ---------- 练习徽章墙（照徽章墙的做法考核） ---------- */
+function schRenderBadges(){
+  var box = document.getElementById("schBadges");
+  if (!box) return;
+  var les = schLesson();
+  var st = schState();
+  var total = les.problems.length;
+  var done = 0;
+  les.problems.forEach(function(p){ if (st.mastered[p.id]) done++; });
+  var pct = total ? Math.round(done / total * 100) : 0;
+  var allLit = (done === total && total > 0);
+  var html = '<div class="sch-badge-hero' + (allLit ? " lit" : "") + '">' +
+    '<div class="sch-badge-big">' + (allLit ? "🏆" : "🎯") + '</div>' +
+    '<div class="sch-badge-big-info">' +
+      '<h3>' + schEsc(les.title) + (allLit ? ' · 已全部点亮！' : '') + '</h3>' +
+      '<div class="sch-badge-bar"><span style="width:' + pct + '%"></span></div>' +
+      '<span class="sch-badge-sub">已点亮 <b>' + done + '</b> / ' + total + ' 枚题目徽章 · 做完一题点「标记已学会」就会点亮一枚</span>' +
+    '</div></div>';
+  html += '<div class="sch-bgroups">';
+  les.groups.forEach(function(g){
+    var items = les.problems.filter(function(p){ return p.grp === g.id; });
+    var dn = items.filter(function(p){ return st.mastered[p.id]; }).length;
+    var all = dn === items.length && items.length > 0;
+    html += '<span class="sch-bgroup' + (all ? " done" : "") + '">' + (all ? "🏅 " : "○ ") + schEsc(g.name.replace(/^第[一二三四五]组 · /, "")) + ' ' + dn + '/' + items.length + '</span>';
+  });
+  html += '</div>';
+  html += '<div class="sch-bgrid">';
+  les.problems.forEach(function(p){
+    var m = !!st.mastered[p.id];
+    html += '<button class="sch-badge' + (m ? " lit" : "") + '" type="button" onclick="schBadgeOpen(\'' + p.id + '\')" title="' + schEsc(p.name + " " + p.title) + '">' +
+      '<span class="sch-badge-ico">' + (m ? "🏅" : "🔒") + '</span>' +
+      '<span class="sch-badge-no">' + schEsc(p.no) + '</span>' +
+      '<span class="sch-badge-t">' + schEsc(p.title) + '</span>' +
+      '<span class="sch-badge-s">' + (m ? "已点亮" : "待点亮") + '</span>' +
+    '</button>';
+  });
+  html += '</div>';
+  html += '<div class="sch-actions"><button class="sch-btn primary" type="button" onclick="schRandomQuiz()">🎲 抽一题考我</button>' +
+    '<span class="sch-quiz-tip">从还没点亮的题里随机抽一道，当场做一遍</span></div>';
+  box.innerHTML = html;
+}
+function schBadgeOpen(id){ schSwitchView(0); schOpen(id); }
+function schRandomQuiz(){
+  var st = schState();
+  var ps = schProblems().filter(function(p){ return !st.mastered[p.id]; });
+  if (!ps.length) ps = schProblems();
+  if (!ps.length) return;
+  var p = ps[Math.floor(Math.random() * ps.length)];
+  schSwitchView(0);
+  schOpen(p.id);
+  schToast("考你这道：" + p.name + " " + p.title);
+}
+
+/* ---------- 投稿箱（格式不限，粘进来由 AI 处理成正式课时） ---------- */
+function schInboxLoad(){
+  try {
+    var v = JSON.parse(localStorage.getItem(SCH_INBOX_KEY));
+    if (Array.isArray(v)) return v;
+  } catch(e){}
+  return [];
+}
+function schInboxSave(list){
+  try { localStorage.setItem(SCH_INBOX_KEY, JSON.stringify(list)); } catch(e){}
+}
+function schInboxAdd(){
+  var ta = document.getElementById("schInboxText");
+  var src = document.getElementById("schInboxSrc");
+  var text = ta ? ta.value.trim() : "";
+  if (!text){ schToast("先把网址内容粘进来再存"); return; }
+  var list = schInboxLoad();
+  list.push({ t: Date.now(), src: src ? src.value.trim() : "", text: text });
+  schInboxSave(list);
+  ta.value = ""; if (src) src.value = "";
+  schRenderInbox();
+  schToast("✅ 已存入投稿箱（会自动随备份上云），共 " + list.length + " 条");
+}
+function schInboxDel(i){
+  if (!confirm("删除这条投稿？")) return;
+  var list = schInboxLoad();
+  list.splice(i, 1);
+  schInboxSave(list);
+  schRenderInbox();
+}
+function schInboxCopyAll(){
+  var list = schInboxLoad();
+  if (!list.length){ schToast("投稿箱还是空的"); return; }
+  var parts = list.map(function(it, i){
+    var d = new Date(it.t);
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    var t = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    return "【投稿 " + (i+1) + "】" + t + (it.src ? "（来源：" + it.src + "）" : "") + "\n" + it.text;
+  });
+  var text = "以下是学校练习投稿箱的全部内容，请帮我整理成正式课时：\n\n" + parts.join("\n\n———\n\n");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ schToast("已复制全部投稿，发给 AI 即可"); }, function(){ schCopyFallback(text); });
+    } else { schCopyFallback(text); }
+  } catch(e){ schCopyFallback(text); }
+}
+function schRenderInbox(){
+  var box = document.getElementById("schInbox");
+  if (!box) return;
+  var list = schInboxLoad();
+  var html = '<div class="sch-inbox-box">' +
+    '<div class="sch-inbox-tip">📥 <b>格式不限</b>：在平板/电脑上把网址内容全选复制，整段粘到这里存档（自动随备份上云）。攒好后到电脑上点「复制全部投稿」发给 AI，我来整理成下一课。</div>' +
+    '<div class="sch-inbox-src"><input type="text" id="schInboxSrc" placeholder="来源网址（选填）" autocomplete="off"></div>' +
+    '<textarea class="sch-inbox-ta" id="schInboxText" rows="7" placeholder="把网址内容整段粘贴到这里…&#10;&#10;推荐格式（照着填处理更快，格式不一致也没关系）：&#10;【题目】启蒙0601 【例6.1】标题&#10;描述：……&#10;输入：…… 输出：……&#10;【解答】（代码直接粘）&#10;【解析】要点、口诀、易错……"></textarea>' +
+    '<div class="sch-actions" style="margin-top:10px;">' +
+      '<button class="sch-btn primary" type="button" onclick="schInboxAdd()">📥 存入投稿箱</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schInboxCopyAll()">📋 复制全部投稿（发给 AI）</button>' +
+      '<button class="sch-btn ghost" type="button" onclick="schRenderInbox()">刷新</button>' +
+    '</div></div>';
+  html += '<div class="sch-inbox-list-sec"><div class="sch-sec-title">📮 已存投稿（' + list.length + ' 条）</div>';
+  if (!list.length){
+    html += '<div class="sch-empty">还没有投稿。在平板上学完、看到好内容，随手粘进来就行。</div>';
+  } else {
+    html += '<div class="sch-inbox-list">';
+    list.forEach(function(it, i){
+      var d = new Date(it.t);
+      var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+      var t = pad(d.getMonth()+1) + "月" + pad(d.getDate()) + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      var prev = it.text.replace(/\s+/g, " ").slice(0, 60);
+      html += '<div class="sch-inbox-item"><span class="sch-inbox-no">' + (i+1) + '</span>' +
+        '<span class="sch-inbox-prev">' + schEsc(prev) + (it.text.length > 60 ? "…" : "") + '</span>' +
+        '<span class="sch-inbox-time">' + t + '</span>' +
+        '<button class="sch-btn danger sch-btn-s2" type="button" onclick="schInboxDel(' + i + ')">删除</button></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  box.innerHTML = html;
+}
+
 /* ---------- 初始化 ---------- */
 function schInit(){
   schRenderTabs();
@@ -76894,6 +77333,8 @@ function schInit(){
   schRenderList();
   schRenderStats();
   schRenderDetail();
+  schRenderBadges();
+  schRenderInbox();
 }
 if (document.readyState === "loading"){
   window.addEventListener("DOMContentLoaded", schInit);
