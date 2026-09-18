@@ -201,6 +201,14 @@ function eqClose(){
   mask.classList.remove("open");
   document.body.style.overflow = "";
   EQ_SESSION = null;
+  /* 会话结束的同时收掉答案浮层/悬浮下一题，防止残留的浮层在弹窗关闭后露出来 */
+  try {
+    if (aoTimer){ clearInterval(aoTimer); aoTimer = null; }
+    var ao = document.getElementById("aoMask");
+    if (ao) ao.classList.remove("open");
+    if (typeof aoKillPill === "function") aoKillPill();
+    aoOnNext = null; aoReady = false;
+  } catch(e){}
   eqRender();
   if (typeof portalRenderTopbar === "function") portalRenderTopbar();
 }

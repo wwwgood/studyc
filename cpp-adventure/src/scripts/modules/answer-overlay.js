@@ -39,7 +39,19 @@ function aoResume(){
   if (!aoReady) return;
   aoKillPill();
   var f = aoOnNext; aoOnNext = null; aoReady = false;
-  if (typeof f === "function") f();
+  aoRunNext(f);
+}
+/* 统一执行引擎的「下一题」回调：会话已失效（如底层弹窗被关）时安静收尾，绝不卡死界面 */
+function aoRunNext(f){
+  if (typeof f !== "function") return;
+  try { f(); }
+  catch(e){
+    try { console.error("[answer-overlay] 下一题回调异常：", e); } catch(_){}
+    aoKillPill();
+    var m = document.getElementById("aoMask");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
 }
 
 function aoMask(){
@@ -176,5 +188,5 @@ function aoNext(){
   var m = document.getElementById("aoMask");
   if (m) m.classList.remove("open");
   var f = aoOnNext; aoOnNext = null;
-  if (typeof f === "function") f();
+  aoRunNext(f);
 }

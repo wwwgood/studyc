@@ -3527,12 +3527,13 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .eq-mask{position:fixed; inset:0; z-index:150000; background:rgba(8,20,46,.86); display:none; align-items:center; justify-content:center; overflow-y:auto; padding:16px 14px;}
 .eq-mask.open{display:flex;}
 /* 大字答案浮层：要盖住所有引擎弹窗 */
-.ao-mask{z-index:400;}
+/* 答案浮层必须盖住所有引擎弹窗（eq/ba/pp/bk 等 mask 均为 150000），否则会被压在题目弹窗后面 */
+.ao-mask{z-index:150100;}
 .ao-card{background:#FFFDF7; border-radius:24px; max-width:640px; width:100%; max-height:calc(100vh - 40px); overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.45); padding:26px 26px 22px; text-align:center; animation:eqPop .28s ease; border-bottom:6px solid #FFD86B; position:relative;}
 /* 返回原题 + 悬浮下一题 */
 .ao-backbtn{position:absolute; top:14px; right:16px; background:#F8FAFC; border:1px solid #E2E8F0; color:#64748B; font-size:13px; font-weight:600; padding:6px 13px; border-radius:999px; cursor:pointer; z-index:2;}
 .ao-backbtn:hover{background:#EEF2F7; color:#334155;}
-#aoPill{position:fixed; right:24px; bottom:28px; z-index:390;}
+#aoPill{position:fixed; right:24px; bottom:28px; z-index:150050;}
 .ao-pillbtn{background:#10B981; color:#fff; border:none; font-size:16px; font-weight:800; padding:14px 28px; border-radius:999px; cursor:pointer; box-shadow:0 10px 26px rgba(16,185,129,.45);}
 .ao-pillbtn:hover{background:#059669;}
 .ao-card.ok{border-bottom-color:#34D399;}
@@ -61415,6 +61416,14 @@ function eqClose(){
   mask.classList.remove("open");
   document.body.style.overflow = "";
   EQ_SESSION = null;
+  /* 会话结束的同时收掉答案浮层/悬浮下一题，防止残留的浮层在弹窗关闭后露出来 */
+  try {
+    if (aoTimer){ clearInterval(aoTimer); aoTimer = null; }
+    var ao = document.getElementById("aoMask");
+    if (ao) ao.classList.remove("open");
+    if (typeof aoKillPill === "function") aoKillPill();
+    aoOnNext = null; aoReady = false;
+  } catch(e){}
   eqRender();
   if (typeof portalRenderTopbar === "function") portalRenderTopbar();
 }
@@ -63890,7 +63899,19 @@ function aoResume(){
   if (!aoReady) return;
   aoKillPill();
   var f = aoOnNext; aoOnNext = null; aoReady = false;
-  if (typeof f === "function") f();
+  aoRunNext(f);
+}
+/* 统一执行引擎的「下一题」回调：会话已失效（如底层弹窗被关）时安静收尾，绝不卡死界面 */
+function aoRunNext(f){
+  if (typeof f !== "function") return;
+  try { f(); }
+  catch(e){
+    try { console.error("[answer-overlay] 下一题回调异常：", e); } catch(_){}
+    aoKillPill();
+    var m = document.getElementById("aoMask");
+    if (m) m.classList.remove("open");
+    document.body.style.overflow = "";
+  }
 }
 
 function aoMask(){
@@ -64027,7 +64048,7 @@ function aoNext(){
   var m = document.getElementById("aoMask");
   if (m) m.classList.remove("open");
   var f = aoOnNext; aoOnNext = null;
-  if (typeof f === "function") f();
+  aoRunNext(f);
 }
 
 </script>
@@ -74650,65 +74671,6 @@ function dbHasReal(db){
   });
 }
 
-/* ---------------- 每日自动备份文件（免手动、免记忆） ----------------
- * 目标：即使浏览器清缓存把 localStorage 和 IndexedDB 快照一起清掉，
- * 「下载」文件夹里也有一份按天保存的学习数据文件兜底。
- * 规则：
- *  - 每天第一次 saveS 触发时自动导出一份 studyc-backup-YYYY-MM-DD.json；
- *  - 当天数据有变化则再导一次（同一份内容只导一次，绝不重复下载）；
- *  - 全程零弹窗、零确认，导出失败静默忽略，绝不打断学习。
- * 下载位置由浏览器下载设置决定（默认「下载」文件夹）。
- */
-var LAB_STATE_KEY = "sc_local_backup";
-function labLoadState(){
-  try { return JSON.parse(localStorage.getItem(LAB_STATE_KEY) || "{}") || {}; } catch(e){ return {}; }
-}
-function labSaveState(st){
-  try { localStorage.setItem(LAB_STATE_KEY, JSON.stringify(st)); } catch(e){}
-}
-function labDayStr(){
-  var d = new Date();
-  var p = function(n){ return (n < 10 ? "0" : "") + n; };
-  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
-}
-function labHash(str){
-  /* FNV-1a 轻量签名：只用于判断「当天数据和上次导出是否一样」，不涉安全 */
-  var h = 2166136261;
-  try { for (var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } } catch(e){ return ""; }
-  return (h >>> 0).toString(36);
-}
-function labExportDailyFile(reason, snapData, always){
-  try {
-    var raw = "";
-    var out = {};
-    try {
-      Object.keys(snapData || {}).forEach(function(k){
-        if (k === "sc_cloud" || k === "sc_gist") return; /* 敏感配置（云端口令/GitHub 令牌）不进下载文件 */
-        out[k] = snapData[k];
-      });
-    } catch(e){ out = snapData || {}; }
-    try { raw = JSON.stringify(out); } catch(e){ return; }
-    var today = labDayStr();
-    var sig = labHash(raw);
-    var st = labLoadState();
-    if (!always && st.day === today && st.sig === sig) return; /* 当天且数据没变：不重复导出 */
-    var fname = "studyc-backup-" + today + ".json";
-    var payload = JSON.stringify({ app: "studyc-daily-backup", version: 1, day: today, reason: reason || "save", savedAt: new Date().toISOString(), data: out }, null, 2);
-    var blob = new Blob([payload], { type: "application/json" });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = fname;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ try { URL.revokeObjectURL(url); } catch(e){} }, 3000);
-    st.day = today; st.sig = sig; st.file = fname; st.at = new Date().toISOString();
-    labSaveState(st);
-    try { console.log("[local-backup] 每日备份文件已自动保存：" + fname); } catch(e){}
-  } catch(e){ /* 自动备份绝不影响学习主流程 */ }
-}
-
 /* 迁移函数链：MIGRATIONS[n] 把版本 n 的存档升级到 n+1 */
 var MIGRATIONS = {
   1: function(data){
@@ -74849,9 +74811,8 @@ function bkupNow(reason, force){
     if (Object.keys(data).length === 0) return;
     var snap = { t: Date.now(), reason: reason || "save", data: data };
     bkupWrite(snap);
-    /* 每日自动备份文件：快照写入 IndexedDB 之后，顺手做当天一次性的文件导出
-     * （下载文件夹）。按「天 + 数据签名」双去重：同一天数据没变绝不重复下载。 */
-    if (!force) labExportDailyFile(reason || "save", data);
+    /* 注意：绝不自动下载备份文件（曾导致答题时突然往下载文件夹塞 json，体验极差）。
+     * 本机兜底只走上面的 IndexedDB 隐形快照；手动导出留在同步面板。 */
   } catch(e){}
 }
 function bkupList(){

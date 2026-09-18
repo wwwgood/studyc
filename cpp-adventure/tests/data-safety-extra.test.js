@@ -50,11 +50,24 @@ test("补充铁律F：主存档解析失败也必须置异常标记（与迁移�
   assert.ok(fn.includes("__DB_LOAD_ERROR__ = true"), "loadDB 解析失败未置异常标记");
 });
 
-test("补充铁律G：每日自动备份文件引擎存在且只在真实数据时导出", () => {
-  assert.ok(state.includes("function labExportDailyFile"), "缺少每日自动备份文件引擎");
-  assert.ok(state.includes("labExportDailyFile(reason"), "bkupNow 未接通每日自动导出");
-  /* 只挂在 bkupNow 快照成功路径（其前置已有 dbHasReal 防呆），强制留底不触发下载 */
+test("补充铁律G（反转）：绝不允许答题时自动下载备份文件（用户红线）", () => {
+  assert.ok(!state.includes("labExportDailyFile"), "state.js 仍残留每日自动下载备份文件逻辑（答题时会突然往下载文件夹塞 json）");
+  assert.ok(!state.includes("studyc-backup-"), "state.js 仍残留自动备份文件名");
+  assert.ok(!state.includes("sc_local_backup"), "state.js 仍残留每日导出状态键");
+  /* 本机兜底只允许走 IndexedDB 隐形快照（bkupWrite），不弹任何下载 */
   const bk = state.slice(state.indexOf("function bkupNow"), state.indexOf("function bkupList"));
-  assert.ok(bk.includes("if (!force) labExportDailyFile"), "每日导出必须挂在非强制路径（force 留底不弹下载）");
-  assert.ok(bk.indexOf("labExportDailyFile") > bk.indexOf("bkupWrite(snap)"), "每日导出必须在快照写入之后");
+  assert.ok(bk.includes("bkupWrite(snap)"), "bkupNow 必须保留 IndexedDB 隐形快照");
+  assert.ok(bk.includes("绝不自动下载备份文件"), "bkupNow 缺少防回归注释锚点");
+});
+
+test("补充铁律H：答案浮层层级必须盖过所有引擎弹窗（否则浮层被压在弹窗后面，用户只能点×）", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "src", "styles", "english.css"), "utf8");
+  const zOf = (sel) => {
+    const m = css.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\{[^}]*z-index:(\\d+)"));
+    return m ? parseInt(m[1], 10) : null;
+  };
+  const eq = zOf(".eq-mask"), ba = zOf(".ba-mask"), ao = zOf(".ao-mask"), pill = zOf("#aoPill");
+  assert.ok(eq != null && ba != null && ao != null && pill != null, "关键层级规则缺失（eq/ba/ao-mask 或 aoPill）");
+  assert.ok(ao > eq && ao > ba, `.ao-mask(${ao}) 必须高于 .eq-mask(${eq}) 和 .ba-mask(${ba})`);
+  assert.ok(pill > eq, `#aoPill(${pill}) 必须高于 .eq-mask(${eq})（返回原题后悬浮下一题要盖住弹窗）`);
 });
