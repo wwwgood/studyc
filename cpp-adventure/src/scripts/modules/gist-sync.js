@@ -4,7 +4,9 @@
  *
  * 使用前提：在 GitHub 创建一个只勾选 gist 权限的访问令牌（PAT）。
  * 配置存 localStorage "sc_gist"：{ token, gistId, auto }。
- * 数据文件：Gist 内 studyc-data.json（内容=全部 localStorage）。
+ * 数据文件（v2 增量格式）：每个 localStorage 键一个分段文件 studyc-<键>.json，
+ *   studyc-meta.json 记录段哈希；上传时只 PATCH 内容变了的段（增量），
+ *   旧版单文件 studyc-data.json 首次同步自动迁移删除。
  * 同步策略：双向同步（拉云端→四分支：本机空恢复/本机有上传/两端都有按时间戳
  *   合并——学习进度并集、错题日志去重、金币取大，写回本机并上传）。
  *   自动：页面加载 + saveS 后节流 8 秒（开启自动时）执行 gsSync，旧的绝不冲掉新的；
@@ -13,7 +15,7 @@
  * 与 Cloudflare 云同步（cloud-sync.js）互相独立，可任选其一，逻辑一致。
  */
 var GS_CFG_KEY = "sc_gist";
-var GS_FILE = "studyc-data.json";
+var GS_FILE = "studyc-data.json"; /* 旧版整包文件名（仅兼容读取/迁移用） */
 var GS_DIRTY = false;
 var GS_TIMER = null;
 
@@ -50,6 +52,101 @@ function gsSnapshot(){
   return { app: "studyc-sync", updatedAt: new Date().toISOString(), data: data };
 }
 
+/* ---------- 增量同步（v2）：每个 localStorage 键一个 Gist 文件 ----------
+ * 旧版整包单文件：每次上传都全量 PATCH（几百 KB），平板弱网卡顿、数据越大越慢。
+ * v2：键 → 分段文件（studyc-<safeKey>.json），内容就是该键原值；
+ *     studyc-meta.json 记录每段的键名+内容哈希；上传前只 PATCH 哈希变了的段，
+ *     一次 PATCH 批量带齐（变更段 + 删除段 + meta），云端旧单文件自动迁移删除。
+ * 兼容：云端只有旧 studyc-data.json 时按整包读入，首次成功写入后删除旧文件。 */
+var GS_META_FILE = "studyc-meta.json";
+var GS_LEGACY_FILE = "studyc-data.json";
+
+function gsHashStr(str){
+  /* FNV-1a：判断键内容是否变化，与数据安全无关 */
+  var h = 2166136261;
+  try {
+    str = String(str == null ? "" : str);
+    for (var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  } catch(e){ return ""; }
+  return (h >>> 0).toString(36);
+}
+function gsFileSafeKey(k){
+  return "studyc-" + String(k).replace(/[^A-Za-z0-9_-]/g, function(c){
+    return "_" + c.charCodeAt(0).toString(36) + "_";
+  }) + ".json";
+}
+function gsSegmentFiles(data){
+  var files = {}, keys = {};
+  Object.keys(data || {}).forEach(function(k){
+    var name = gsFileSafeKey(k);
+    var v = data[k] == null ? "" : String(data[k]);
+    files[name] = v;
+    keys[name] = { key: k, hash: gsHashStr(v) };
+  });
+  return { files: files, keys: keys };
+}
+/* 把 Gist JSON 组装成旧格式 payload（兼容四分支逻辑）：
+ * 有 meta → 按段拼装；无 meta → 回退旧单文件。 */
+function gsAssembleCloud(g){
+  var files = (g && g.files) || {};
+  var meta = null;
+  try { meta = JSON.parse(files[GS_META_FILE] && files[GS_META_FILE].content || "null"); } catch(e){ meta = null; }
+  if (meta && meta.keys){
+    var data = {};
+    Object.keys(meta.keys).forEach(function(name){
+      var info = meta.keys[name] || {};
+      var f = files[name];
+      if (info.key && f && typeof f.content === "string") data[info.key] = f.content;
+    });
+    return { data: data, meta: meta, hasLegacy: false, updatedAt: meta.updatedAt || null };
+  }
+  if (files[GS_LEGACY_FILE] && files[GS_LEGACY_FILE].content){
+    try {
+      var p = JSON.parse(files[GS_LEGACY_FILE].content);
+      if (p && p.data) return { data: p.data, meta: null, hasLegacy: true, updatedAt: p.updatedAt || null };
+    } catch(e){}
+  }
+  return { data: {}, meta: null, hasLegacy: false, updatedAt: null };
+}
+
+/* 增量上传：与云端段哈希比对，只传变化段；变更段+删除段+meta 合并进一次 PATCH。 */
+function gsUploadData(data, silent, cloudInfo){
+  var cfg = gsCfg();
+  if (!cfg || !cfg.gistId) return Promise.resolve(false);
+  if (!data || Object.keys(data).length === 0) return Promise.resolve(false);
+  var seg = gsSegmentFiles(data);
+  var prev = (cloudInfo && cloudInfo.meta && cloudInfo.meta.keys) || null;
+  var body = {}, changed = 0;
+  Object.keys(seg.files).forEach(function(name){
+    if (!prev || !prev[name] || prev[name].hash !== seg.keys[name].hash){
+      body[name] = { content: seg.files[name] };
+      changed++;
+    }
+  });
+  if (prev){
+    Object.keys(prev).forEach(function(name){
+      if (!(name in seg.keys)) body[name] = null; /* 本机已无此键 → 删除云端段 */
+    });
+  }
+  if (cloudInfo && cloudInfo.hasLegacy) body[GS_LEGACY_FILE] = null; /* 旧单文件迁移删除 */
+  body[GS_META_FILE] = { content: JSON.stringify({ app: "studyc-sync-meta", version: 2, updatedAt: new Date().toISOString(), keys: seg.keys }) };
+  return fetch("https://api.github.com/gists/" + cfg.gistId, {
+    method: "PATCH",
+    headers: gsApiHeaders(cfg.token),
+    body: JSON.stringify({ files: body })
+  }).then(function(r){
+    if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
+    var c = gsCfg(); c.lastPush = new Date().toISOString(); gsSaveCfg(c);
+    var el = document.getElementById("gsStatus");
+    if (el) el.innerHTML = gsStatusHtml();
+    try { console.log("[gist-sync] 增量上传：" + changed + " 段变更 / 共 " + Object.keys(seg.keys).length + " 段"); } catch(_){}
+    return true;
+  }).catch(function(e){
+    console.warn("[gist-sync] 上传失败:", e.message);
+    return false;
+  });
+}
+
 /* 云端是否有「真实学习数据」：解析 studyc-data.json 里的主存档并用 dbHasReal 判定。
  * 上传防呆的依据：云端空数据没有备份价值，不许覆盖云端好备份。 */
 function gsPayloadHasReal(payload){
@@ -60,28 +157,6 @@ function gsPayloadHasReal(payload){
     var db = JSON.parse(raw);
     return typeof dbHasReal === "function" ? dbHasReal(db) : !!(db && db.users);
   } catch(e){ return false; }
-}
-
-/* 上传指定快照到 Gist（合并结果专用，不重新打包本机） */
-function gsUploadData(data, silent){
-  var cfg = gsCfg();
-  if (!cfg || !cfg.gistId) return Promise.resolve(false);
-  var body = {};
-  body[GS_FILE] = { content: JSON.stringify({ app: "studyc-sync", updatedAt: new Date().toISOString(), data: data }) };
-  return fetch("https://api.github.com/gists/" + cfg.gistId, {
-    method: "PATCH",
-    headers: gsApiHeaders(cfg.token),
-    body: JSON.stringify({ files: body })
-  }).then(function(r){
-    if (!r.ok) return r.json().then(function(j){ throw new Error(j.message || ("HTTP " + r.status)); });
-    var c = gsCfg(); c.lastPush = new Date().toISOString(); gsSaveCfg(c);
-    var el = document.getElementById("gsStatus");
-    if (el) el.innerHTML = gsStatusHtml();
-    return true;
-  }).catch(function(e){
-    console.warn("[gist-sync] 上传失败:", e.message);
-    return false;
-  });
 }
 
 /* 云端数据覆盖本机（留底可反悔） */
@@ -104,11 +179,8 @@ function gsSync(silent){
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   }).then(function(g){
-    var f = g.files && g.files[GS_FILE];
-    var cloudPayload = null;
-    if (f && f.content){
-      try { cloudPayload = JSON.parse(f.content); } catch(e){ cloudPayload = null; }
-    }
+    var cloudInfo = gsAssembleCloud(g);
+    var cloudPayload = { app: "studyc-sync", updatedAt: cloudInfo.updatedAt, data: cloudInfo.data };
     var localPayload = gsSnapshot();
     var localHas = gsPayloadHasReal(localPayload);
     var cloudHas = gsPayloadHasReal(cloudPayload);
@@ -124,7 +196,7 @@ function gsSync(silent){
     if (localHas && cloudHas){
       var merged = csMergeSnapshot(localPayload.data, cloudPayload.data);
       csApplyLocal(merged);
-      return gsUploadData(merged, silent).then(function(ok){
+      return gsUploadData(merged, silent, cloudInfo).then(function(ok){
         if (!silent) gsToast(ok ? "☁️ 已合并云端与本机进度（两边最新记录都保留）" : "☁️ 已合并到本机，云端上传稍后自动重试");
         return { action: ok ? "merge" : "merge-local" };
       });
@@ -226,6 +298,7 @@ function gsPush(silent){
   }).then(function(g){
     /* 多设备保护：对比云端与本机的进度规模 */
     var cloudScore = -1;
+    var cloudInfo = null;
     try {
       var cf = g.files && g.files[GS_FILE];
       if (cf && cf.content){
@@ -233,6 +306,11 @@ function gsPush(silent){
         if (cp && cp.data) cloudScore = gsDataScore(cp.data);
       }
     } catch(e){ cloudScore = -1; }
+    cloudInfo = gsAssembleCloud(g); /* 段哈希供增量比对；旧单文件也兼容读取 */
+    try {
+      if (cloudInfo.meta) cloudScore = gsDataScore(cloudInfo.data);
+      else if (!cf || !cf.content) cloudScore = -1;
+    } catch(e){}
     if (cloudScore > localScore){
       if (!silent){
         var go = confirm("⚠️ 云端进度比本机新（规模 " + cloudScore + " > 本机 " + localScore + "）。\n" +
@@ -245,21 +323,10 @@ function gsPush(silent){
         return false;
       }
     }
-    var body = {};
-    body[GS_FILE] = { content: JSON.stringify(payload) };
-    return fetch("https://api.github.com/gists/" + cfg.gistId, {
-      method: "PATCH",
-      headers: gsApiHeaders(cfg.token),
-      body: JSON.stringify({ files: body })
-    }).then(function(r2){
-      if (!r2.ok) return r2.json().then(function(j){ throw new Error(j.message || ("HTTP " + r2.status)); });
-      var cfg2 = gsCfg();
-      cfg2.lastPush = new Date().toISOString();
-      gsSaveCfg(cfg2);
-      if (!silent) gsToast("☁️ 已上传到 GitHub 云端");
-      var el = document.getElementById("gsStatus");
-      if (el) el.innerHTML = gsStatusHtml();
-      return true;
+    /* 增量上传：与云端段哈希比对，只传变化段（旧单文件自动迁移删除） */
+    return gsUploadData(payload.data, silent, cloudInfo).then(function(ok){
+      if (!silent && ok) gsToast("☁️ 已上传到 GitHub 云端");
+      return ok;
     });
   }).catch(function(e){
     GS_DIRTY = true;
@@ -282,11 +349,9 @@ function gsPull(){
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   }).then(function(g){
-    var f = g.files && g.files[GS_FILE];
-    if (!f || !f.content){ gsToast("云端还没有数据，先点「上传到云端」"); return; }
-    var payload;
-    try { payload = JSON.parse(f.content); } catch(e){ gsToast("云端数据无法解析"); return; }
-    if (!payload || !payload.data){ gsToast("云端数据格式不对"); return; }
+    var cloudInfo = gsAssembleCloud(g);
+    if (!cloudInfo.data || Object.keys(cloudInfo.data).length === 0){ gsToast("云端还没有数据，先点「上传到云端」"); return; }
+    var payload = { app: "studyc-sync", updatedAt: cloudInfo.updatedAt, data: cloudInfo.data };
     var cloudScore = gsDataScore(payload.data);
     var localScore = gsDataScore(gsSnapshot().data);
     var warn = (cloudScore < localScore) ? "\n\n⚠️ 注意：云端规模 " + cloudScore + " 比本机 " + localScore + " 小——云端看起来更旧，恢复会丢掉本机较新的进度！" : "";

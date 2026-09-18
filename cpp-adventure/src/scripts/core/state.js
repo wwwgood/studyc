@@ -148,6 +148,20 @@ function bkupWrite(snap){
     });
   });
 }
+/* 增量 diff：newData 相对 cache 只保留「新增或内容变化」的键。
+ * 返回 null 表示无需增量（cache 未知）；返回 {} 表示无变化（可跳过写入）。
+ * 被删除的键不进增量（快照恢复是按键合并语义，全量锚点负责真实状态）。 */
+function bkupDiffData(newData, cache){
+  if (!cache) return null;
+  var delta = {};
+  var changed = 0;
+  Object.keys(newData || {}).forEach(function(k){
+    if (cache[k] !== newData[k]){ delta[k] = newData[k]; changed++; }
+  });
+  return delta;
+}
+var BKUP_CACHE = null; /* 本会话最近一次快照的全量数据（用于增量 diff） */
+var BKUP_SEQ = 0;      /* 本次会话已写快照数 */
 function bkupNow(reason, force){
   try {
     /* 防呆：非强制时，本机没有真实学习数据就不存快照，防止空快照占满 12 份历史 */
@@ -163,7 +177,18 @@ function bkupNow(reason, force){
       data[k] = localStorage.getItem(k);
     }
     if (Object.keys(data).length === 0) return;
-    var snap = { t: Date.now(), reason: reason || "save", data: data };
+    /* 增量快照：本会话第一次或每 6 份做一次全量锚点（force 留底永远全量）；
+     * 其余只存相对上一份变化的键，平板/手机存储不再被 12 份全量撑爆。 */
+    var full = !!force || !BKUP_CACHE || (BKUP_SEQ > 0 && BKUP_SEQ % 6 === 0);
+    var snapData = data;
+    if (!full){
+      var delta = bkupDiffData(data, BKUP_CACHE);
+      if (delta && Object.keys(delta).length === 0) return; /* 无变化：不重复写 */
+      if (delta) snapData = delta; else full = true;
+    }
+    var snap = { t: Date.now(), reason: reason || "save", full: full, data: snapData };
+    BKUP_SEQ++;
+    BKUP_CACHE = data;
     bkupWrite(snap);
     /* 注意：绝不自动下载备份文件（曾导致答题时突然往下载文件夹塞 json，体验极差）。
      * 本机兜底只走上面的 IndexedDB 隐形快照；手动导出留在同步面板。 */
@@ -181,17 +206,23 @@ function bkupList(){
           if (cur){
             var info = "";
             try {
-              var db2 = JSON.parse((cur.value.data || {})[KEY] || "null");
-              if (db2 && db2.users){
-                var n = Object.keys(db2.users).length, p = 0, empty = 0;
-                Object.keys(db2.users).forEach(function(nm){
-                  var u = db2.users[nm] || {};
-                  var pk = Object.keys(u.passed || {}).length;
-                  p += pk;
-                  if (!pk && Object.keys(u).length <= 1) empty++;
-                });
-                info = n + " 个账号 · 已过 " + p + " 关" + (empty === n ? "（空数据）" : "");
-              } else { info = "（无主存档）"; }
+              var sv = cur.value || {};
+              var sd = sv.data || {};
+              if (sv.full === false && sd[KEY] == null){
+                info = "增量快照（" + Object.keys(sd).length + " 项变更）";
+              } else {
+                var db2 = JSON.parse(sd[KEY] || "null");
+                if (db2 && db2.users){
+                  var n = Object.keys(db2.users).length, p = 0, empty = 0;
+                  Object.keys(db2.users).forEach(function(nm){
+                    var u = db2.users[nm] || {};
+                    var pk = Object.keys(u.passed || {}).length;
+                    p += pk;
+                    if (!pk && Object.keys(u).length <= 1) empty++;
+                  });
+                  info = n + " 个账号 · 已过 " + p + " 关" + (empty === n ? "（空数据）" : "") + (sv.full === false ? "（增量含主档）" : "");
+                } else { info = "（无主存档）"; }
+              }
             } catch(e){ info = ""; }
             all.push({ t: cur.value.t, reason: cur.value.reason || "", info: info });
             cur.continue();
@@ -213,7 +244,9 @@ function bkupRestore(t){
           var snap = rq.result;
           if (!snap || !snap.data){ resolve(false); return; }
           Object.keys(snap.data).forEach(function(k){
-            try { localStorage.setItem(k, snap.data[k]); } catch(e){}
+            var v = snap.data[k];
+            if (v == null) return; /* 增量快照防御：null 值跳过，绝不写坏 localStorage */
+            try { localStorage.setItem(k, v); } catch(e){}
           });
           resolve(true);
         };
