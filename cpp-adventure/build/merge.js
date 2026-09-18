@@ -35,3 +35,14 @@ const out = path.join(DIST_DIR, "index.html");
 fs.writeFileSync(out, jsInline, "utf8");
 const kb = Math.round(fs.statSync(out).size / 1024);
 console.log(`Merged → dist/index.html (${jsInline.split("\n").length} lines, ${kb} KB)`);
+
+// 同步到 GitHub Pages 发布源：仓库根目录的 /docs/index.html。
+// ⚠️ Pages 只认根 docs/，只更新本项目 docs/ 会导致线上永远跑旧版（2026-09-18 踩坑）。
+const pagesTarget = path.join(__dirname, "..", "..", "docs", "index.html");
+try {
+  fs.mkdirSync(path.dirname(pagesTarget), { recursive: true });
+  fs.copyFileSync(out, pagesTarget);
+  console.log(`Synced → ../../docs/index.html (GitHub Pages 发布源)`);
+} catch (e) {
+  console.warn(`⚠️ 根 docs 同步失败（${e.message}）——线上不会更新，请手动复制 dist/index.html 到仓库根 docs/`);
+}
