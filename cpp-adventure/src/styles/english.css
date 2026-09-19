@@ -1139,6 +1139,12 @@
 .bk-batch-rename{flex:1; min-width:160px; padding:5px 8px; border:1px solid #E5E7EB; border-radius:6px; font-size:12px; outline:none;}
 .bk-batch-rename:focus{border-color:#0EA5E9;}
 
+/* 云盘目录版：位置行 */
+.bk-card-loc{display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bk-loc-text{color:#475569; font-weight:600;}
+.bk-loc-link{color:#0369A1; text-decoration:underline;}
+.bk-loc-empty{color:#94A3B8; font-weight:400;}
+
 
 /* ============ 多题型 qt-*（选词填空/填空/阅读/作文） ============
 .qt-opts{margin:10px 0;}

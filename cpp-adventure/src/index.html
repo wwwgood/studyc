@@ -1254,19 +1254,16 @@
   <!-- ============ 电子课本 ============ -->
   <div id="view-books" class="app-view">
     <section class="bk-hero">
-      <h1>📚 电子课本</h1>
-      <p class="tagline">上传 PDF / 图片 / Word 电子课本，原样展示 + 手写标注。所有文件存在本地浏览器，不用联网。</p>
+      <h1>📚 电子课本 · 云盘目录</h1>
+      <p class="tagline">这里只登记课本名字和它在云盘里的位置，文件放在你自己的云盘，看书去云盘看。名字和位置随 GitHub 云同步，所有设备都能看到。</p>
     </section>
     <div class="bk-panel" id="bkPanel">
       <div class="bk-head">
-        <span class="bk-title">📚 我的课本架</span>
-        <span class="bk-sub">PDF 原样展示 · 图片直接看 · Word 转 HTML · 手写标注 · 离线可用</span>
+        <span class="bk-title">📚 我的课本目录</span>
+        <span class="bk-sub">只记名字和云盘位置 · 文件不上传 · 位置自己填自己改 · 点 🔗 去云盘看</span>
         <div class="bk-actions">
-          <button class="bk-btn sm primary" type="button" onclick="bkOpenAdd()">＋ 添加课本</button>
+          <button class="bk-btn sm primary" type="button" onclick="bkOpenAdd()">＋ 登记课本</button>
           <button class="bk-btn sm" type="button" onclick="bkManageCats()">🗂 管理分类</button>
-          <button class="bk-btn sm" type="button" onclick="bkExportPack()">📦 导出课本包</button>
-          <label class="bk-btn sm" for="bkImportInput">📥 导入课本包</label>
-          <input type="file" id="bkImportInput" accept=".json,application/json" style="display:none" onchange="bkImport(this)">
         </div>
       </div>
       <div class="bk-list" id="bkList"></div>
@@ -1381,7 +1378,7 @@
   <div class="pp-dialog" id="ppDialog" role="dialog" aria-modal="true" aria-label="专项试卷"></div>
 </div>
 <div class="bk-mask" id="bkMask">
-  <div class="bk-dialog" id="bkDialog" role="dialog" aria-modal="true" aria-label="电子课本"></div>
+  <div class="bk-dialog" id="bkDialog" role="dialog" aria-modal="true" aria-label="课本目录"></div>
 </div>
 
 </body>
