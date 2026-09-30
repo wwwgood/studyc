@@ -11,12 +11,25 @@ function teState(){
   return S.topicExam;
 }
 
+function teKey(module, topicId, kp){
+  return module + (kp ? "_kp_" + kp : "_" + topicId);
+}
+
+function teStatusBadge(module, topicId, kp){
+  var done = teState().done[teKey(module, topicId, kp)] || 0;
+  if (done){
+    return '<span style="background:#D1FAE5;color:#065F46;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">✅ 本章真题已通过 ' + "★".repeat(done) + '</span>';
+  }
+  return '<span style="background:#FFF6E5;color:#92400E;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">⏳ 本章真题未挑战</span>';
+}
+
 var TE_SESSION = null;
 
 /* 从任意模块调用：module=grammar/vocab/reading/writing, topicId=章节/单元ID, topicName=名称
  * 优先从统一题库随机选题（每次不同），题库无题时回退到 TOPIC_EXAM_DATA。
  * 全部做对过也允许重做：自动转入重做模式（重做时做错的题排最前，金币错题照常计算）。 */
 function topicExamOpen(module, topicId, topicName, kp){
+  if (typeof engEnsureData === "function") engEnsureData();
   var questions = [];
   var count = 10;
   var retest = false;
@@ -124,22 +137,42 @@ function teRenderQuiz(){
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
     '<div class="te-dlg-body">' +
+      '<div class="te-status-row">' + teStatusBadge(TE_SESSION.module, TE_SESSION.topicId, TE_SESSION.kp) + '</div>' +
       '<div class="te-combo-track">🔥 连击 <b>' + TE_SESSION.combo + '</b> · 🪙 ' + teState().coins + '</div>' +
       qTitle +
       inputHtml +
       '<div class="te-feedback" id="teFeedback"></div>' +
       '<div class="te-act" id="teAct">' +
         '<button class="qt-submit" type="button" onclick="teAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
-        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="teSkip()">👀 不做，看下一题</button>' +
+        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="teSkip()">👀 不会做，看答案（自动进错题本）</button>' +
       '</div>' +
     '</div>';
 }
 
-/* 跳过本题不答：不计分、不进错题本，纯浏览下一题 */
+/* 跳过本题不答：不计分、不断连击，但**必须留下痕迹**——自动进错题本（标记跳过），
+ * 并弹出大字答案让孩子看一眼正确答案，绝不无声丢题。 */
 function teSkip(){
   if (TE_SESSION.answered) return;
   TE_SESSION.answered = true;
-  teNext();
+  var q = TE_SESSION.questions[TE_SESSION.idx];
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var sampleHtml = (qType === "writing" && (q.sample || q.why))
+    ? '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>' : "";
+  if (typeof errBookAdd === "function"){
+    errBookAdd(TE_SESSION.module, {
+      q: q.q || q.passage || "", type: qType,
+      o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
+      why: q.why, source: TE_SESSION.topicName + " 专题真题", skipped: true
+    });
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBigAns(q), whyHtml: q.why, extraHtml: sampleHtml, onNext: teNext });
+  } else {
+    teNext();
+  }
 }
 
 
@@ -222,12 +255,8 @@ function teFinish(){
   var wrong = TE_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= Math.floor(total * 0.2) ? 2 : 1);
   var key = TE_SESSION.module + (TE_SESSION.kp ? "_kp_" + TE_SESSION.kp : "_" + TE_SESSION.topicId);
-  var old = teState().done[key] || 0;
-  if (stars > old) teState().done[key] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  if (typeof engRecordStars === "function") engRecordStars(teState().done, key, stars);
+  var starRow = engStars(stars);
   var dialog = document.getElementById("teDialog");
   if (!dialog) return;
   dialog.innerHTML =
@@ -275,6 +304,7 @@ function teClose(){
 
 /* ---------- 考点真题面板：按考点聚合全部真题 ---------- */
 function kpPanelOpen(module, subject, title){
+  if (typeof engEnsureData === "function") engEnsureData();
   var counts = {};
   var total = 0;
   if (typeof QB_DATA !== "undefined"){
@@ -294,11 +324,20 @@ function kpPanelOpen(module, subject, title){
     body = '<div style="text-align:center;padding:40px 20px;font-size:17px;color:#888;">📋 还没有带考点的真题<br><br>请先在「题库管理」导入真题<br>系统会自动按考点归类（专有名词/可数名词/复数规则…）</div>';
   } else {
     var keys = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    var doneCount = 0;
     body = keys.map(function(k){
-      return '<button class="te-go-btn" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;margin:7px 0;padding:14px 16px;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;cursor:pointer;font-size:16px;color:#1F2937;text-align:left;" onclick="topicExamOpen(\'' + module + '\',null,\'' + k.replace(/'/g,"\\'") + '\',\'' + k.replace(/'/g,"\\'") + '\')">' +
-        '<span>📌 ' + k + '</span><span style="background:#F59E0B;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">' + counts[k] + ' 题</span></button>';
+      var got = teState().done[module + "_kp_" + k] || 0;
+      if (got) doneCount++;
+      var stars = got ? "★".repeat(got) : "";
+      var badge = got
+        ? '<span style="background:#10B981;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">✅ ' + stars + '</span>'
+        : '<span style="background:#F59E0B;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">' + counts[k] + ' 题</span>';
+      var border = got ? '#10B981' : '#FCD34D';
+      var bg = got ? '#F0FDF4' : '#FFFBEB';
+      return '<button class="te-go-btn" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;margin:7px 0;padding:14px 16px;background:' + bg + ';border:1.5px solid ' + border + ';border-radius:12px;cursor:pointer;font-size:16px;color:#1F2937;text-align:left;" onclick="topicExamOpen(\'' + module + '\',null,\'' + k.replace(/'/g,"\\'") + '\',\'' + k.replace(/'/g,"\\'") + '\')">' +
+        '<span>📌 ' + k + '</span>' + badge + '</button>';
     }).join("") +
-    '<div style="text-align:center;margin-top:14px;color:#9CA3AF;font-size:13px;">共 ' + total + ' 道真题，按考点分组练习</div>';
+    '<div style="text-align:center;margin-top:14px;color:#9CA3AF;font-size:13px;">共 ' + total + ' 道真题 · 已通过 ' + doneCount + '/' + keys.length + ' 个考点 🏅</div>';
   }
   dialog.innerHTML =
     '<div class="te-dlg-head"><span class="te-cap">🎯 按考点练真题 · ' + title + '</span>' +

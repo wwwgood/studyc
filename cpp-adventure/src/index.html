@@ -500,7 +500,9 @@
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
         <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
-        <button class="eq-tab" type="button" onclick="p1000Open()">📚 1000题</button>
+        <button class="eq-tab" data-tab="blank" onclick="eqSwitchTab('blank')">✅ 选择填空</button>
+        <button class="eq-tab" data-tab="p1000" onclick="eqSwitchTab('p1000')">📚 1000题</button>
+        <button class="eq-tab" data-tab="papers" onclick="eqSwitchTab('papers')">📄 专项试卷</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
     </section>
@@ -508,7 +510,7 @@
     <!-- 语法子模块 -->
     <div class="eq-subview" id="eqSubGrammar">
       <div class="eq-progress-bar" aria-label="语法总进度"><span id="eqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="eqTotalTxt">已点亮 0 / 103 例</p>
+      <p class="eq-progress-txt" id="eqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 语法金币 <b id="eqCoins">0</b></span>
         <span class="eq-star-chip">★ 语法星 <b id="eqStars">0</b></span>
@@ -519,7 +521,7 @@
     <!-- 词汇子模块 -->
     <div class="eq-subview" id="eqSubVocab" style="display:none">
       <div class="eq-progress-bar" aria-label="词汇总进度"><span id="vqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="vqTotalTxt">已点亮 0 / 20 个词库岛</p>
+      <p class="eq-progress-txt" id="vqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 词汇金币 <b id="vqCoins">0</b></span>
       </div>
@@ -529,7 +531,7 @@
     <!-- 阅读子模块 -->
     <div class="eq-subview" id="eqSubReading" style="display:none">
       <div class="eq-progress-bar" aria-label="阅读总进度"><span id="rqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="rqTotalTxt">已读完 0 / 100 篇</p>
+      <p class="eq-progress-txt" id="rqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 阅读金币 <b id="rqCoins">0</b></span>
       </div>
@@ -539,7 +541,7 @@
     <!-- 作文子模块 -->
     <div class="eq-subview" id="eqSubWriting" style="display:none">
       <div class="eq-progress-bar" aria-label="作文总进度"><span id="wqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="wqTotalTxt">已学 0 / 99 篇范文</p>
+      <p class="eq-progress-txt" id="wqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 作文金币 <b id="wqCoins">0</b></span>
       </div>
@@ -549,7 +551,7 @@
     <!-- 口语子模块 -->
     <div class="eq-subview" id="eqSubOral" style="display:none">
       <div class="eq-progress-bar" aria-label="口语总进度"><span id="oqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="oqTotalTxt">已跟读 0 / 0 句</p>
+      <p class="eq-progress-txt" id="oqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 口语金币 <b id="oqCoins">0</b></span>
       </div>
@@ -560,10 +562,23 @@
     <!-- 真题演练子模块 -->
     <div class="eq-subview" id="eqSubExam" style="display:none">
       <div class="eq-progress-bar" aria-label="真题总进度"><span id="xqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="xqTotalTxt">已完成 0 / 9 套真题</p>
+      <p class="eq-progress-txt" id="xqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 真题金币 <b id="xqCoins">0</b></span>
       </div>
+      <div class="xq-papers" id="xqPapers"></div>
+    </div>
+
+    <!-- 选择填空子模块 -->
+    <div class="eq-subview" id="eqSubBlank" style="display:none"></div>
+
+    <!-- 1000题子模块 -->
+    <div class="eq-subview" id="eqSubP1000" style="display:none">
+      <div id="p1000Panel"></div>
+    </div>
+
+    <!-- 专项试卷子模块 -->
+    <div class="eq-subview" id="eqSubPapers" style="display:none">
       <div class="pp-panel" id="ppPanel">
         <div class="pp-head">
           <span class="pp-title">📄 专项试卷</span>
@@ -578,7 +593,6 @@
         </div>
         <div class="pp-list" id="ppList"></div>
       </div>
-      <div class="xq-papers" id="xqPapers"></div>
     </div>
 
     <!-- 错题本子模块 -->
@@ -590,6 +604,9 @@
     <!-- 弹窗 -->
     <div class="eq-mask" id="eqDialogMask">
       <div class="eq-dialog" id="eqDialog" role="dialog" aria-modal="true" aria-label="语法学习"></div>
+    </div>
+    <div class="eq-mask" id="bqDialogMask">
+      <div class="eq-dialog" id="bqDialog" role="dialog" aria-modal="true" aria-label="选择填空"></div>
     </div>
     <div class="eq-mask" id="vqDialogMask">
       <div class="eq-dialog" id="vqDialog" role="dialog" aria-modal="true" aria-label="词汇学习"></div>
@@ -1288,7 +1305,9 @@
 
   <script src="scripts/core/config.js"></script>
   <script src="scripts/data/levels.js"></script>
+  <script src="scripts/modules/english-lazy.js"></script>
   <script src="scripts/data/english-grammar.js"></script>
+  <script src="scripts/data/english-blank.js"></script>
   <script src="scripts/data/english-grammar-exboost.js"></script>
   <script src="scripts/data/english-grammar-extra.js"></script>
   <script src="scripts/data/english-vocab.js"></script>
@@ -1304,7 +1323,9 @@
   <script src="scripts/data/oj-bank.js"></script>
   <script src="scripts/data/school-bank.js"></script>
   <script src="scripts/modules/portal.js"></script>
+  <script src="scripts/modules/english-common.js"></script>
   <script src="scripts/modules/english-quest.js"></script>
+  <script src="scripts/modules/blank-quest.js"></script>
   <script src="scripts/modules/vocab-quest.js"></script>
   <script src="scripts/modules/reading-quest.js"></script>
   <script src="scripts/modules/writing-quest.js"></script>

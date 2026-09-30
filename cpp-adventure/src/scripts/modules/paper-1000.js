@@ -15,14 +15,18 @@ function p1000Stars(chapterId){
   return st || 0;
 }
 
+/* 1000题：渲染到「📚 1000题」子视图（不再用弹窗，页签高亮一致） */
 function p1000Open(){
-  if (typeof PAPER1000_DATA === "undefined"){
-    if (typeof baToast === "function") baToast("1000题数据未加载");
+  if (typeof engEnsureData === "function") engEnsureData();
+  var box = document.getElementById("p1000Panel");
+  if (!box){
+    if (typeof baToast === "function") baToast("1000题面板未加载");
     return;
   }
-  var dialog = document.getElementById("teDialog");
-  var mask = document.getElementById("teDialogMask");
-  if (!dialog || !mask) return;
+  if (typeof PAPER1000_DATA === "undefined"){
+    box.innerHTML = '<p class="eq-progress-txt">1000题数据未加载</p>';
+    return;
+  }
 
   var rows = "";
   PAPER1000_DATA.chapters.forEach(function(ch, i){
@@ -43,15 +47,11 @@ function p1000Open(){
 
   var total = PAPER1000_DATA.questions.length;
   var coins = (typeof teState === "function") ? teState().coins : 0;
-  dialog.innerHTML =
-    '<div class="te-dlg-head"><span class="te-cap">📚 ' + PAPER1000_DATA.name + '</span>' +
-      '<button class="te-close" type="button" onclick="teClose()">×</button></div>' +
-    '<div class="te-dlg-body p1000-body">' +
-      '<div class="p1000-intro">🏫 ' + PAPER1000_DATA.source + ' · 已收录 <b>' + total + '</b> 题' +
+  box.innerHTML =
+    '<div class="p1000-body">' +
+      '<div class="p1000-intro">🏫 ' + PAPER1000_DATA.name + ' · ' + PAPER1000_DATA.source + ' · 已收录 <b>' + total + '</b> 题' +
         ' · 🪙 ' + coins + '<br>' +
         '<span class="p1000-tip">每章 10 题随机练，答对拿金币连击，答错自动进错题本</span></div>' +
       '<div class="p1000-list">' + rows + '</div>' +
     '</div>';
-  mask.classList.add("open");
-  document.body.style.overflow = "hidden";
 }

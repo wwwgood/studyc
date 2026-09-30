@@ -21,11 +21,14 @@ function eqChapterLessons(ch){
 }
 function eqStats(){
   var done = Object.keys(eqState().done).length;
+  /* 数据尚未延迟装载时（如首页统计先于英语数据执行），返回 0 值防御，绝不炸首页 */
+  if (typeof EQ_DATA === "undefined") return { done: done, total: 0, coins: eqState().coins };
   return { done: done, total: EQ_DATA.lessons.length, coins: eqState().coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function eqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = eqStats();
   var bar = document.getElementById("eqTotalBar");
   var txt = document.getElementById("eqTotalTxt");
@@ -172,10 +175,20 @@ var EQ_KP_MAP = [
   ["陈述句语序", "问句与句型综合"]
 ];
 function eqKpOfLesson(l){
-  for (var i = 0; i < EQ_KP_MAP.length; i++){
-    if (l.t.indexOf(EQ_KP_MAP[i][0]) >= 0) return EQ_KP_MAP[i][1];
+  /* 两轮匹配：先精确等值（最可靠），再最长子串（避免短 key 抢先命中）。
+   * 跳过映射为 null 的条目，防止"反身代词"这类无真题考点把后面的匹配拦断。 */
+  var i;
+  for (i = 0; i < EQ_KP_MAP.length; i++){
+    if (EQ_KP_MAP[i][1] && l.t === EQ_KP_MAP[i][0]) return EQ_KP_MAP[i][1];
   }
-  return null;
+  var best = null, bestLen = -1;
+  for (i = 0; i < EQ_KP_MAP.length; i++){
+    var k = EQ_KP_MAP[i][0];
+    if (EQ_KP_MAP[i][1] && l.t.indexOf(k) >= 0 && k.length > bestLen){
+      best = EQ_KP_MAP[i][1]; bestLen = k.length;
+    }
+  }
+  return best;
 }
 function eqChapterName(ch){
   for (var i = 0; i < EQ_DATA.chapters.length; i++){
@@ -188,6 +201,7 @@ function eqChapterName(ch){
 var EQ_SESSION = null;
 
 function eqOpen(id){
+  if (typeof engEnsureData === "function") engEnsureData();
   var l = eqLesson(id);
   if (!l) return;
   EQ_SESSION = { lesson: l, idx: 0, wrong: 0, combo: 0, phase: "learn" };
@@ -226,6 +240,7 @@ function eqDialogLearn(){
       '<span class="eq-ex-zh">' + e.zh + '</span></div>';
   }).join("");
   var kp = eqKpOfLesson(l);
+  var teDone = kp ? (teState().done["grammar_kp_" + kp] || 0) : 0;
   var statusHtml = done
     ? '<span style="background:#D1FAE5;color:#065F46;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">✅ 练一练已通过 ' + "★".repeat(done) + '</span>'
     : '<span style="background:#FFF6E5;color:#92400E;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">⏳ 练一练未完成</span>';
@@ -235,7 +250,11 @@ function eqDialogLearn(){
         '<button class="eq-go-btn ghost" type="button" onclick="eqStartQuiz()">🔁 再练一次</button></div>'
     : '<button class="eq-go-btn" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="eqStartQuiz()">⚔️ 练一练（' + qN + ' 题）</button>';
   var kpBtn = kp
-    ? '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🎯 练本章真题：' + kp + '</button>'
+    ? (teDone
+        ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F0FDF4;border:1.5px solid #10B981;border-radius:12px;padding:10px 14px;">' +
+            '<span style="font-size:15px;font-weight:700;color:#065F46;">✅ 本章真题已通过 ' + "★".repeat(teDone) + '</span>' +
+            '<button class="eq-go-btn topic" type="button" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🔁 再练真题</button></div>'
+        : '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🎯 练本章真题：' + kp + '</button>')
     : '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="kpPanelOpen(\'grammar\',\'english\',\'英语语法\')">🎯 按考点练真题</button>';
   var next = eqNextLessonId(l.id);
   var nextBtn = done && next
@@ -351,6 +370,7 @@ function eqRenderQuiz(){
       '<div class="eq-combo-track">🔥 连击 <b id="eqComboN">' + EQ_SESSION.combo + '</b> · 🪙 ' + eqState().coins + '</div>' +
       '<div class="eq-question">' + q.q + '</div>' +
       '<div class="eq-opts">' + opts + '</div>' +
+      '<button class="eq-again-btn" type="button" style="background:#fff;color:#64748B;border:2px solid #E2E8F0;box-shadow:none;" onclick="eqPeek()">👀 不会做，看答案</button>' +
       '<div class="eq-feedback" id="eqFeedback"></div>' +
     '</div>';
 }
@@ -392,6 +412,21 @@ function eqAnswer(btn){
   saveS();
 }
 
+/* 「不会做，看答案」：看答案也算没做对（错题本记一笔、星级受影响），但绝不无声丢题 */
+function eqPeek(){
+  if (!EQ_SESSION || !EQ_SESSION.quizList) return;
+  var q = EQ_SESSION.quizList[EQ_SESSION.idx];
+  if (typeof errBookAdd === "function") errBookAdd("grammar", { q: q.q, o: q.o, a: q.a, why: q.why, source: EQ_SESSION.lesson.t, skipped: true });
+  EQ_SESSION.combo = 0;
+  EQ_SESSION.wrong++;
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: eqNextQ });
+  } else {
+    eqNextQ();
+  }
+}
+
 function eqNextQ(){
   EQ_SESSION.idx++;
   if (EQ_SESSION.idx < EQ_SESSION.quizList.length){ eqRenderQuiz(); return; }
@@ -403,17 +438,13 @@ function eqFinish(){
   var total = EQ_SESSION.quizList.length;
   var wrong = EQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 2 ? 2 : 1);
-  var old = eqState().done[l.id] || 0;
-  if (stars > old) eqState().done[l.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(eqState().done, l.id, stars);
   var done = Object.keys(eqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   var next = eqNextLessonId(l.id);
-  var msg = stars === 3 ? "一次全对，语法船长为你敬礼！🫡"
-          : stars === 2 ? "很不错！再练一次就是满分船长！"
-          : "过关啦！再来一次巩固一下更棒！";
+  var msg = engResultMsg(stars, ["一次全对，语法船长为你敬礼！🫡",
+                                 "很不错！再练一次就是满分船长！",
+                                 "过关啦！再来一次巩固一下更棒！"]);
   document.getElementById("eqDialog").innerHTML =
     '<div class="eq-dlg-head result"><span class="eq-cap">🏁 闯关完成</span>' +
       '<button class="eq-close" type="button" onclick="eqClose()">×</button></div>' +
@@ -462,25 +493,31 @@ function eqFloatCoin(txt){
 function eqOnEnter(){ eqRender(); }
 
 function eqSwitchTab(tab){
+  if (typeof engEnsureData === "function") engEnsureData();
   var tabs = document.querySelectorAll('.eq-tab');
   for (var i = 0; i < tabs.length; i++){
     tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
   }
-  document.getElementById('eqSubGrammar').style.display = tab === 'grammar' ? '' : 'none';
-  document.getElementById('eqSubVocab').style.display = tab === 'vocab' ? '' : 'none';
-  document.getElementById('eqSubReading').style.display = tab === 'reading' ? '' : 'none';
-  document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
-  document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
-  document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
-  document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
+  var ids = ['eqSubGrammar','eqSubVocab','eqSubReading','eqSubWriting','eqSubOral','eqSubExam','eqSubBlank','eqSubP1000','eqSubPapers','eqSubErrBook'];
+  var tabOf = { grammar:'eqSubGrammar', vocab:'eqSubVocab', reading:'eqSubReading', writing:'eqSubWriting', oral:'eqSubOral', exam:'eqSubExam', blank:'eqSubBlank', p1000:'eqSubP1000', papers:'eqSubPapers', errbook:'eqSubErrBook' };
+  for (var j = 0; j < ids.length; j++){
+    var el = document.getElementById(ids[j]);
+    if (el) el.style.display = (tabOf[tab] === ids[j]) ? '' : 'none';
+  }
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
   if (tab === 'reading' && typeof rqRender === "function") rqRender();
   if (tab === 'writing' && typeof wqRender === "function") wqRender();
   if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
-  if (tab === 'exam' && typeof ppRender === "function") ppRender();
-  if (tab === 'errbook' && typeof ebRender === "function") ebRender();
+  if (tab === 'blank' && typeof bqRender === "function") bqRender();
+  if (tab === 'p1000' && typeof p1000Open === "function") p1000Open();
+  if (tab === 'papers' && typeof ppRender === "function") ppRender();
+  if (tab === 'errbook'){
+    var ebTab = document.querySelector('.eq-tab[data-tab="errbook"]');
+    if (ebTab) ebTab.classList.remove('has-new');
+    if (typeof ebRender === "function") ebRender();
+  }
 }
 
 window.addEventListener("load", function(){

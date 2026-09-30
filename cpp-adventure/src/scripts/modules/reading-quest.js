@@ -14,11 +14,13 @@ function rqState(){
 function rqStats(){
   var st = rqState();
   var done = Object.keys(st.done).length;
+  if (typeof READ_DATA === "undefined") return { done: done, total: 0, coins: st.coins };
   return { done: done, total: READ_DATA.passages.length, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function rqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = rqStats();
   var bar = document.getElementById("rqTotalBar");
   var txt = document.getElementById("rqTotalTxt");
@@ -47,6 +49,7 @@ function rqRender(){
 var RQ_SESSION = null;
 
 function rqOpen(pid){
+  if (typeof engEnsureData === "function") engEnsureData();
   rqStopSpeak();
   var p = READ_DATA.passages.filter(function(x){ return x.id === pid; })[0];
   if (!p) return;
@@ -128,6 +131,7 @@ function rqRenderQuiz(){
       '<div class="rq-combo-track">🔥 连击 <b>' + RQ_SESSION.combo + '</b> · 🪙 ' + rqState().coins + '</div>' +
       '<div class="rq-question">' + q.q + '</div>' +
       '<div class="rq-opts">' + opts + '</div>' +
+      '<button class="rq-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="rqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="rq-feedback" id="rqFeedback"></div>' +
     '</div>';
 }
@@ -168,6 +172,21 @@ function rqAnswer(btn){
   }
 }
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function rqPeek(){
+  if (!RQ_SESSION || !RQ_SESSION.passage) return;
+  var q = RQ_SESSION.passage.q[RQ_SESSION.idx];
+  RQ_SESSION.combo = 0;
+  RQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function") errBookAdd("reading", { q: q.q, o: q.o, a: q.a, why: q.why, source: RQ_SESSION.passage.title, skipped: true });
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: rqNext });
+  } else {
+    rqNext();
+  }
+}
+
 function rqNext(){
   RQ_SESSION.idx++;
   if (RQ_SESSION.idx < RQ_SESSION.passage.q.length){ rqRenderQuiz(); return; }
@@ -178,20 +197,16 @@ function rqFinish(){
   var p = RQ_SESSION.passage;
   var wrong = RQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 1 ? 2 : 1);
-  var old = rqState().done[p.id] || 0;
-  if (stars > old) rqState().done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(rqState().done, p.id, stars);
   var done = Object.keys(rqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   document.getElementById("rqDialog").innerHTML =
     '<div class="rq-dlg-head result"><span class="rq-cap">🏁 阅读完成</span>' +
       '<button class="rq-close" type="button" onclick="rqClose()">×</button></div>' +
     '<div class="rq-dlg-body rq-result">' +
       '<div class="rq-result-stars">' + starRow + '</div>' +
       '<h3>' + p.title + '</h3>' +
-      '<p>' + (stars === 3 ? "全对！阅读理解满分！🌟" : stars === 2 ? "很好！再读一遍争取满分！" : "完成！多读多练更棒！") + '</p>' +
+      '<p>' + engResultMsg(stars, ["全对！阅读理解满分！🌟", "很好！再读一遍争取满分！", "完成！多读多练更棒！"]) + '</p>' +
       '<p class="rq-result-meta">📊 总进度 ' + done + ' / ' + READ_DATA.passages.length + ' · 🪙 ' + rqState().coins + '</p>' +
       '<div class="rq-result-btns">' +
         '<button class="rq-go-btn ghost" type="button" onclick="rqOpen(\'' + p.id + '\')">🔁 再读一次</button>' +

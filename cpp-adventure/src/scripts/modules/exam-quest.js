@@ -14,11 +14,13 @@ function xqState(){
 function xqStats(){
   var st = xqState();
   var done = Object.keys(st.done).length;
+  if (typeof EXAM_DATA === "undefined") return { done: done, total: 0, coins: st.coins };
   return { done: done, total: EXAM_DATA.papers.length, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function xqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = xqStats();
   var bar = document.getElementById("xqTotalBar");
   var txt = document.getElementById("xqTotalTxt");
@@ -83,6 +85,7 @@ function xqRenderQuiz(){
       '<div class="xq-feedback" id="xqFeedback"></div>' +
       '<div class="xq-act" id="xqAct">' +
         '<button class="qt-submit" type="button" onclick="xqAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="xqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '</div>' +
     '</div>';
 }
@@ -148,6 +151,31 @@ function xqAnswer(){
 }
 
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function xqPeek(){
+  var p = XQ_SESSION.paper;
+  var q = p.questions[XQ_SESSION.idx];
+  if (XQ_SESSION.answered) return;
+  XQ_SESSION.answered = true;
+  XQ_SESSION.combo = 0;
+  XQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function"){
+    errBookAdd("exam", {
+      q: q.q || q.passage || "", type: qtTypeOf(q),
+      o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
+      why: q.why, source: p.name, skipped: true
+    });
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: xqNext });
+  } else {
+    xqNext();
+  }
+}
+
 function xqNext(){
   XQ_SESSION.idx++;
   XQ_SESSION.answered = false;
@@ -160,13 +188,9 @@ function xqFinish(){
   var wrong = XQ_SESSION.wrong;
   var total = p.questions.length;
   var stars = wrong === 0 ? 3 : (wrong <= Math.floor(total * 0.2) ? 2 : 1);
-  var old = xqState().done[p.id] || 0;
-  if (stars > old) xqState().done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(xqState().done, p.id, stars);
   var done = Object.keys(xqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   var dialog = document.getElementById("xqDialog");
   if (!dialog) return;
   dialog.innerHTML =

@@ -3653,9 +3653,16 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 
 /* ==================== 子模块 Tab ==================== */
 .eq-subnav{display:flex; gap:8px; justify-content:center; margin:18px 0 0; flex-wrap:wrap;}
-.eq-tab{background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.3); color:#fff; padding:8px 20px; border-radius:999px; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s;}
+.eq-tab{background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.3); color:#fff; padding:8px 20px; border-radius:999px; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s; position:relative;}
 .eq-tab:hover{background:rgba(255,255,255,.3);}
 .eq-tab.active{background:#fff; color:#6C4AB6; border-color:#fff; box-shadow:0 4px 14px rgba(0,0,0,.2);}
+.eq-tab.has-new{animation:eb-tab-blink 1s ease-in-out infinite; border-color:#FCA5A5;}
+@keyframes eb-tab-blink{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.7); background:rgba(239,68,68,.3);}
+  50%{box-shadow:0 0 0 10px rgba(239,68,68,0); background:rgba(239,68,68,.5);}
+}
+.eb-tab-badge{display:inline-block; min-width:20px; height:20px; line-height:20px; background:#EF4444; color:#fff; border-radius:999px; padding:0 6px; font-size:11px; font-weight:700; margin-left:6px; vertical-align:middle; box-shadow:0 2px 6px rgba(239,68,68,.4);}
+.te-status-row{margin:0 0 8px; padding:6px 0; text-align:center;}
 .eq-subview{max-width:1020px; margin:0 auto; padding:20px 16px 40px;}
 
 /* ==================== 词汇闯关 ==================== */
@@ -4700,7 +4707,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
 .bq-opt:hover{border-color:#F59E0B; background:#FFFBEB;}
 .bq-lt{width:28px; height:28px; border-radius:50%; background:#FDE68A; color:#7A4B12; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13.5px; flex:none;}
 .bq-peek{background:none; border:none; color:#94A3B8; font-size:13px; cursor:pointer; margin-top:14px; text-decoration:underline; font-family:inherit;}
-.bq-ansmask{z-index:180; padding:14px;}
+.bq-ansmask{z-index:150200; padding:14px;}
 .bq-anscard{background:#FFFDF7; border-radius:20px; width:min(94vw,560px); padding:24px 20px 20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.4); animation:eqPop .25s ease; border-top:10px solid #94A3B8; max-height:calc(100vh - 30px); overflow-y:auto;}
 .bq-anscard.ok{border-top-color:#16A34A;}
 .bq-anscard.bad{border-top-color:#DC2626;}
@@ -5660,7 +5667,9 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
         <button class="eq-tab" data-tab="oral" onclick="eqSwitchTab('oral')">🗣️ 口语训练</button>
         <button class="eq-tab" data-tab="exam" onclick="eqSwitchTab('exam')">📝 真题演练</button>
-        <button class="eq-tab" type="button" onclick="p1000Open()">📚 1000题</button>
+        <button class="eq-tab" data-tab="blank" onclick="eqSwitchTab('blank')">✅ 选择填空</button>
+        <button class="eq-tab" data-tab="p1000" onclick="eqSwitchTab('p1000')">📚 1000题</button>
+        <button class="eq-tab" data-tab="papers" onclick="eqSwitchTab('papers')">📄 专项试卷</button>
         <button class="eq-tab" data-tab="errbook" onclick="eqSwitchTab('errbook')">❌ 错题本</button>
       </div>
     </section>
@@ -5668,7 +5677,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 语法子模块 -->
     <div class="eq-subview" id="eqSubGrammar">
       <div class="eq-progress-bar" aria-label="语法总进度"><span id="eqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="eqTotalTxt">已点亮 0 / 103 例</p>
+      <p class="eq-progress-txt" id="eqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 语法金币 <b id="eqCoins">0</b></span>
         <span class="eq-star-chip">★ 语法星 <b id="eqStars">0</b></span>
@@ -5679,7 +5688,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 词汇子模块 -->
     <div class="eq-subview" id="eqSubVocab" style="display:none">
       <div class="eq-progress-bar" aria-label="词汇总进度"><span id="vqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="vqTotalTxt">已点亮 0 / 20 个词库岛</p>
+      <p class="eq-progress-txt" id="vqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 词汇金币 <b id="vqCoins">0</b></span>
       </div>
@@ -5689,7 +5698,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 阅读子模块 -->
     <div class="eq-subview" id="eqSubReading" style="display:none">
       <div class="eq-progress-bar" aria-label="阅读总进度"><span id="rqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="rqTotalTxt">已读完 0 / 100 篇</p>
+      <p class="eq-progress-txt" id="rqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 阅读金币 <b id="rqCoins">0</b></span>
       </div>
@@ -5699,7 +5708,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 作文子模块 -->
     <div class="eq-subview" id="eqSubWriting" style="display:none">
       <div class="eq-progress-bar" aria-label="作文总进度"><span id="wqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="wqTotalTxt">已学 0 / 99 篇范文</p>
+      <p class="eq-progress-txt" id="wqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 作文金币 <b id="wqCoins">0</b></span>
       </div>
@@ -5709,7 +5718,7 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 口语子模块 -->
     <div class="eq-subview" id="eqSubOral" style="display:none">
       <div class="eq-progress-bar" aria-label="口语总进度"><span id="oqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="oqTotalTxt">已跟读 0 / 0 句</p>
+      <p class="eq-progress-txt" id="oqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 口语金币 <b id="oqCoins">0</b></span>
       </div>
@@ -5720,10 +5729,23 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 真题演练子模块 -->
     <div class="eq-subview" id="eqSubExam" style="display:none">
       <div class="eq-progress-bar" aria-label="真题总进度"><span id="xqTotalBar"></span></div>
-      <p class="eq-progress-txt" id="xqTotalTxt">已完成 0 / 9 套真题</p>
+      <p class="eq-progress-txt" id="xqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
         <span class="eq-coin-chip">🪙 真题金币 <b id="xqCoins">0</b></span>
       </div>
+      <div class="xq-papers" id="xqPapers"></div>
+    </div>
+
+    <!-- 选择填空子模块 -->
+    <div class="eq-subview" id="eqSubBlank" style="display:none"></div>
+
+    <!-- 1000题子模块 -->
+    <div class="eq-subview" id="eqSubP1000" style="display:none">
+      <div id="p1000Panel"></div>
+    </div>
+
+    <!-- 专项试卷子模块 -->
+    <div class="eq-subview" id="eqSubPapers" style="display:none">
       <div class="pp-panel" id="ppPanel">
         <div class="pp-head">
           <span class="pp-title">📄 专项试卷</span>
@@ -5738,7 +5760,6 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
         </div>
         <div class="pp-list" id="ppList"></div>
       </div>
-      <div class="xq-papers" id="xqPapers"></div>
     </div>
 
     <!-- 错题本子模块 -->
@@ -5750,6 +5771,9 @@ body:not([data-view="cpp"]) .mascot-bubble{display:none;}
     <!-- 弹窗 -->
     <div class="eq-mask" id="eqDialogMask">
       <div class="eq-dialog" id="eqDialog" role="dialog" aria-modal="true" aria-label="语法学习"></div>
+    </div>
+    <div class="eq-mask" id="bqDialogMask">
+      <div class="eq-dialog" id="bqDialog" role="dialog" aria-modal="true" aria-label="选择填空"></div>
     </div>
     <div class="eq-mask" id="vqDialogMask">
       <div class="eq-dialog" id="vqDialog" role="dialog" aria-modal="true" aria-label="词汇学习"></div>
@@ -6987,12 +7011,56 @@ LEVELS.forEach(function(lv, i){ lv.id = i + 1; });
 
 </script>
   <script>
+/* ---------------- 英语数据延迟装载 english-lazy.js ----------------
+ * 重数据文件（语法/词汇/阅读/作文/真题/1000题 等约 3.5 万行）不再在页面打开时立即执行，
+ * 而是注册到 engLazy 队列，首次进入英语相关视图/弹窗时由 engEnsureData() 一次性执行。
+ * 目的：缩短首页冷启动时间（平板端明显）。单文件离线构建不受影响（数据仍内联，只是延后执行）。
+ * 数据文件的包装由 build/merge.js 在构建时完成，src 源文件保持原样（生成器可正常重新生成）。
+ */
+var __ENG_LAZY = { done: false, fns: [] };
+
+function engLazy(fn){
+  if (__ENG_LAZY.done) fn();
+  else __ENG_LAZY.fns.push(fn);
+}
+
+function engEnsureData(){
+  if (__ENG_LAZY.done) return;
+  __ENG_LAZY.done = true;
+  var fns = __ENG_LAZY.fns;
+  __ENG_LAZY.fns = [];
+  for (var i = 0; i < fns.length; i++){
+    try { fns[i](); }
+    catch(e){
+      try { console.error("[english-lazy] 英语数据装载失败：", e); } catch(_){}
+    }
+  }
+  /* 装载完成后刷新首页英语统计（首页可能先于数据渲染过一帧 0 值） */
+  try { if (typeof portalRenderHomeStats === "function") portalRenderHomeStats(); } catch(e){}
+}
+
+/* 页面空闲后自动装载：错开首屏渲染高峰（平板首屏卡顿主因），
+ * 装载完首页统计自动变准。用户更早点进英语视图时，入口函数会先行触发。 */
+(function(){
+  if (typeof window === "undefined" || !window.addEventListener) return;
+  function kick(fn){
+    if (window.requestIdleCallback) window.requestIdleCallback(fn);
+    else setTimeout(fn, 1800);
+  }
+  function go(){ kick(function(){ engEnsureData(); }); }
+  if (document.readyState === "complete") go();
+  else window.addEventListener("load", go);
+})();
+
+</script>
+  <script>
+engLazy(function(){
 /* ---------------- 英语语法大冒险 · 100 例数据 ----------------
  * 依据《小学英语语法 100 例》（主编：蒋树业）的章节体系组织：
  * 12 大语法岛屿，共 100 个关卡；每关 = 卡通讲解 + 生活比喻 + 口诀 + 例句 + 闯关练习。
  * 内容贴合小学英语课本话题（家庭、学校、动物、食物、颜色、数字、日常活动等），由易到难。
  */
-var EQ_DATA = {
+window.EQ_DATA = {
   chapters: [
     { id: 1,  name: "名词岛",       emoji: "🏝️", desc: "给身边的东西起名字" },
     { id: 2,  name: "冠词湾",       emoji: "⛵", desc: "a / an / the 三兄弟" },
@@ -8486,14 +8554,101 @@ var EQ_DATA = {
   }
   ]
 };
+});
 </script>
   <script>
+/* ---------------- 英语选择填空 · 专项练习 english-blank.js ----------------
+ * 「✅ 选择填空」子模块数据：21 道题按 8 个语法章节归类，每题带答案和解析。
+ * 来源：英语卷「四、选择填空」A~J 十题（原卷只复制到了选项，题干按经典考题还原）
+ * + 为选项组补充的不同考点变体。src 字段区分：原卷X = 原卷题，新增 = 补充变体。
+ * 做题交互在 modules/blank-quest.js：大字答案浮层 + 倒计时锁定「下一题」。
+ */
+var BLANK_CHAPTERS = [
+  { id: 1, name: "非谓语动词（不定式与动名词）" },
+  { id: 2, name: "介词" },
+  { id: 3, name: "不定代词" },
+  { id: 4, name: "形容词与副词" },
+  { id: 5, name: "动词时态与主谓一致" },
+  { id: 6, name: "情态动词" },
+  { id: 7, name: "情景交际" },
+  { id: 8, name: "名词（可数与不可数）" }
+];
+
+var BLANK_QUESTIONS = [
+  { ch: 1, tag: "不定式 to do", src: "原卷 A", stem: "Nice ___ you again.",
+    opts: ["see", "to see", "seeing", "to seeing"], ans: 1,
+    exp: "nice / glad / happy 后面接不定式 to do：「很高兴再次见到你」就是 Nice to see you again." },
+  { ch: 1, tag: "go + 动名词", src: "原卷 B", stem: "Let's go ___ this afternoon.",
+    opts: ["swim", "swimming", "to swim", "swims"], ans: 1,
+    exp: "go swimming 去游泳是固定搭配，同类的还有 go shopping、go fishing。" },
+  { ch: 1, tag: "介词后接动名词", src: "新增 · F 题方向", stem: "Thank you for ___ our school.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 0,
+    exp: "for 是介词，介词后面的动词要用动名词 doing。" },
+  { ch: 2, tag: "时间介词", src: "原卷 C", stem: "Li Lei was born ___ the morning of June 1st.",
+    opts: ["in", "on", "for", "at"], ans: 1,
+    exp: "具体某一天的上午、下午、晚上用 on：on the morning of June 1st。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "We have four classes ___ the morning.",
+    opts: ["in", "on", "for", "at"], ans: 0,
+    exp: "泛指在早上、下午、晚上用 in the morning。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "He usually gets up ___ six thirty.",
+    opts: ["in", "on", "for", "at"], ans: 3,
+    exp: "具体到几点几分用 at。" },
+  { ch: 2, tag: "时间介词", src: "新增", stem: "What do you usually have ___ breakfast?",
+    opts: ["in", "on", "for", "at"], ans: 2,
+    exp: "三餐前面用 for：have eggs for breakfast。" },
+  { ch: 2, tag: "地点介词", src: "新增", stem: "There are many apples ___ the tree.",
+    opts: ["in", "on", "under", "at"], ans: 1,
+    exp: "树上长的果实用 on the tree。" },
+  { ch: 2, tag: "地点介词", src: "新增", stem: "Look! Two birds are singing ___ the tree.",
+    opts: ["in", "on", "under", "at"], ans: 0,
+    exp: "外来的东西落在树上用 in the tree。长在树上用 on、外来在树上用 in，是一对经典对比考点。" },
+  { ch: 3, tag: "some / any", src: "原卷 D", stem: "There aren't ___ apples on the table.",
+    opts: ["a", "the", "much", "any"], ans: 3,
+    exp: "否定句和疑问句里用 any；much 只能修饰不可数名词，apples 是复数可数名词。" },
+  { ch: 3, tag: "-body 不定代词", src: "原卷 G", stem: "The room is empty. ___ is in it.",
+    opts: ["Somebody", "Anybody", "Nobody", "Few people"], ans: 2,
+    exp: "房间是空的，说明「没有人在里面」；few people 后面要接复数动词 are。" },
+  { ch: 4, tag: "such / so", src: "原卷 E", stem: "It's ___ a fine day today. Let's go out for a walk.",
+    opts: ["such", "so", "very", "quite"], ans: 0,
+    exp: "such + a/an + 形容词 + 名词（such a fine day）；so / very / quite 只能直接修饰形容词（so fine）。" },
+  { ch: 5, tag: "一般现在时三单", src: "原卷 F", stem: "My uncle ___ us every year.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 3,
+    exp: "every year 提示一般现在时，uncle 是第三人称单数，动词加 s。" },
+  { ch: 5, tag: "现在进行时", src: "新增", stem: "Look! Tom's father ___ the factory now.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 1,
+    exp: "Look / now 提示动作正在进行，用现在进行时 is doing。如果题目是 Tom with his parents ___ the factory now，答案还是 is，因为 with 连接的人不算主语（就前原则）。" },
+  { ch: 6, tag: "must 表推测", src: "原卷 H", stem: "The light in his room is on. He ___ be at home.",
+    opts: ["may", "must", "can", "need"], ans: 1,
+    exp: "灯还亮着，说明他「一定」在家：must 表示有把握的肯定推测。" },
+  { ch: 6, tag: "may 请求许可", src: "新增", stem: "___ I come in? —Come in, please.",
+    opts: ["may", "must", "can", "need"], ans: 0,
+    exp: "请求许可的标准句型是 May I ...?" },
+  { ch: 6, tag: "can 表能力", src: "新增", stem: "___ you play the piano? —No, I can't.",
+    opts: ["may", "must", "can", "need"], ans: 2,
+    exp: "答语是 can't，说明问的是能力，用 Can you ...?" },
+  { ch: 6, tag: "needn't / mustn't", src: "新增", stem: "—Must I finish the work now? —No, you ___.",
+    opts: ["needn't", "mustn't", "can't", "don't"], ans: 0,
+    exp: "Must I ...? 的否定回答用 needn't（不必）；mustn't 的意思是「千万别、禁止」，不是「不必」，这是最容易错的地方。" },
+  { ch: 7, tag: "情景应答", src: "原卷 I", stem: "—Mary, please answer the phone. —___, Mum.",
+    opts: ["You'll help me", "I'm going", "I'm coming", "I'm leaving"], ans: 2,
+    exp: "「我马上就来」固定说 I'm coming：朝说话人过来的方向用 come 不用 go。" },
+  { ch: 8, tag: "不可数名词", src: "原卷 J", stem: "I want two ___.",
+    opts: ["bottle of milk", "bottles of milks", "bottles of milk", "bottle of milks"], ans: 2,
+    exp: "milk 是不可数名词，任何时候都不加 s；bottle 是可数名词，two 后面用复数。结构：数词 + 复数容器 + of + 不可数名词。" },
+  { ch: 8, tag: "可数名词", src: "新增 · F 题方向", stem: "Mr. Wang is a ___ from England.",
+    opts: ["visiting", "is visiting", "visitor", "visits"], ans: 2,
+    exp: "a 后面要接可数名词单数，visitor（参观者）是名词，其他三项都是动词形式。这题考的是名词，所以放在名词章节。" }
+];
+
+</script>
+  <script>
+engLazy(function(){
 /* ---------------- 英语语法例句增强库 english-grammar-exboost.js ----------------
  * 按 lesson id 提供额外教学例句，渲染时与原 ex 数组合并。
  * 每句遵循"例子先行+说明跟进"：英文例句 + 中文翻译 + （括号内点破语法教学点）。
  * 例句覆盖该课核心教学点，供跟读与对照学习。
  */
-var EQ_EXBOOST = {
+window.EQ_EXBOOST = {
   /* ===== 第三章 代词森林 ===== */
   pz: [
     { en: "I like apples. They are sweet.", zh: "我喜欢苹果，它们很甜。（They 代替 apples，避免重复）" },
@@ -9055,8 +9210,10 @@ var EQ_EXBOOST = {
     { en: "There are two cats under the bed.", zh: "床下有两只猫。（there are 复数）" }
   ]
 };
+});
 </script>
   <script>
+engLazy(function(){
 /* ---------------- 英语语法扩题数据（自动生成，请勿手改） ----------------
  * 由 build/gen-english-extra.js 生成。给每例补 lv:2/3 题，并新增第 13 章 30 题综合模拟。
  * 在 english-grammar.js 之后加载，直接修改 EQ_DATA。
@@ -9068,7 +9225,7 @@ var EQ_EXBOOST = {
   });
 
   // 2) 按章节追加 lv:2/3 题
-  var EXTRA = {
+  window.EXTRA = {
   "n1": [
     {
       "q": "「She is my ___ teacher.」中哪个是名词？",
@@ -14076,13 +14233,15 @@ var EQ_EXBOOST = {
   });
 })();
 
+});
 </script>
   <script>
+engLazy(function(){
 /* ---------------- 小学英语 1200 词数据 ----------------
  * 由 build/gen-vocab.js 生成。20 单元 × 60 词 = 1351 词。
  * 每词含 en（英文）、zh（中文）、pos（词性）。
  */
-var VOCAB_DATA = {
+window.VOCAB_DATA = {
   "units": [
     {
       "id": 1,
@@ -20982,12 +21141,14 @@ var VOCAB_DATA = {
   ]
 };
 
+});
 </script>
   <script>
+engLazy(function(){
 /* ---------------- 小学英语 100 篇阅读理解 ----------------
  * 由 build/gen-reading.js 生成。100 篇短文 + 每篇 3 道理解题。
  */
-var READ_DATA = {
+window.READ_DATA = {
   "passages": [
     {
       "id": "r1",
@@ -24692,13 +24853,15 @@ var READ_DATA = {
   ]
 };
 
+});
 </script>
   <script>
+engLazy(function(){
 /* ---------------- "走进闪亮家族"系列英语作文数据 ----------------
  * 由 build/gen-writing.js 生成。4 本书 × 25 篇 = 99 篇范文。
  * 每篇含范文正文、写作要点、重点词汇、3 道练习题。
  */
-var WRITE_DATA = {
+window.WRITE_DATA = {
   "books": [
     {
       "id": 1,
@@ -29949,13 +30112,15 @@ var WRITE_DATA = {
   ]
 };
 
+});
 </script>
   <script>
+engLazy(function(){
 /* ---------------- 英语作文 中文翻译数据 ----------------
  * 由 build/gen-writing-zh.js 生成，请勿手工编辑。
  * s: 范文句子 → 中文   w: 单词/短语 → 中文   q: 练习题题干   o: 练习题选项
  */
-var WRITE_ZH = {
+window.WRITE_ZH = {
   "s": {
     "' I love my grandma.": "我很爱我的奶奶。",
     "' I spoke about wanting to be a scientist.": "我说过我想当一名科学家。",
@@ -32921,6 +33086,7 @@ var WRITE_ZH = {
 };
 if (typeof module !== "undefined") module.exports = WRITE_ZH;
 
+});
 </script>
   <script>
 /* ---------------- 英语口语大冒险 english-oral.js ----------------
@@ -33225,9 +33391,10 @@ var ORAL_DATA = {
 
 </script>
   <script>
+engLazy(function(){
 // AUTO-GENERATED by build/gen-exam.js — 小升初/分班考/密考英语真题
 // 9 套试卷, 180 道题
-var EXAM_DATA = {
+window.EXAM_DATA = {
   categories: [
   {
     "id": 1,
@@ -35304,11 +35471,13 @@ var EXAM_DATA = {
 ]
 };
 
+});
 </script>
   <script>
+engLazy(function(){
 // AUTO-GENERATED by build/gen-topic-exam.js — 专题真题
 // 语法12章 173题, 词汇20单元 110题, 阅读10题, 作文10题
-var TOPIC_EXAM_DATA = {
+window.TOPIC_EXAM_DATA = {
   "grammar": {
     "1": [
       {
@@ -38716,6 +38885,7 @@ var TOPIC_EXAM_DATA = {
   ]
 };
 
+});
 </script>
   <script>
 // AUTO-GENERATED by build/gen-question-bank.js — 统一题库（已由 build/fix-question-bank.js 整治）
@@ -53954,6 +54124,7 @@ var QB_DATA = {
 
 </script>
   <script>
+engLazy(function(){
 /* ---------------- 小学语法1000题 · 真题卷 paper-1000 ----------------
  * 内容转写自学而思《小学语法1000题解析》（图片版 PDF，视觉识别录入）。
  * 全书15章共1000题已全部录入完成（与原书一致）。
@@ -53961,7 +54132,7 @@ var QB_DATA = {
  * 题目在加载时合并进统一题库 QB_DATA（module:"paper1000", topicId=章节id），
  * 由 topic-exam.js 的专题真题引擎判分、发金币、记错题本。
  */
-var PAPER1000_DATA = {
+window.PAPER1000_DATA = {
   name: "小学语法1000题",
   source: "学而思《小学语法1000题》",
   chapters: [
@@ -59190,6 +59361,7 @@ var PAPER1000_DATA = {
   }
 })();
 
+});
 </script>
   <script>
 /* ---------------- 作业练习 english-homework ----------------
@@ -61216,6 +61388,45 @@ window.addEventListener("hashchange", portalRoute);
 window.addEventListener("load", portalRoute);
 </script>
   <script>
+/* ---------------- 英语闯关引擎 · 公共工具 english-common.js ----------------
+ * 收敛 6 个闯关引擎（eq/rq/vq/wq/oq/xq）里逐字重复的结算片段。
+ * 原先「星级行 HTML」和「记录最好成绩 + 撒花」在 4 个引擎里各抄一份，
+ * 改一处要改四处，容易漏。这里统一成两个函数。
+ *
+ *   engStars(n)                     → 三颗星行 HTML（前 n 颗亮）
+ *   engRecordStars(doneMap, id, n)  → 只增不减地记录最好星级，并撒花 + 存档
+ *   engResultMsg(stars, msgs)       → 按星级取三档文案
+ *
+ * 依赖：saveS() / fireConfetti() 由全局提供，缺失时静默跳过，不炸引擎。
+ */
+
+function engStars(stars){
+  stars = stars || 0;
+  var row = "";
+  for (var i = 1; i <= 3; i++) row += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  return row;
+}
+
+/* 记录最好成绩：星星只增不减（重做拿低分不会覆盖高分），≥2 星撒花。 */
+function engRecordStars(doneMap, id, stars){
+  if (!doneMap) return 0;
+  var old = doneMap[id] || 0;
+  if (stars > old) doneMap[id] = stars;
+  if (typeof saveS === "function") saveS();
+  if (stars >= 2 && typeof fireConfetti === "function") fireConfetti();
+  return old > stars ? old : stars;
+}
+
+/* 三档文案：msgs = [满星, 两星, 一星]，缺省回退到通用句。 */
+function engResultMsg(stars, msgs){
+  msgs = msgs || [];
+  if (stars === 3) return msgs[0] || "太棒了，全对通关！🌟";
+  if (stars === 2) return msgs[1] || "很好！再练一次就是满分！";
+  return msgs[2] || "完成！多练几次更熟练！";
+}
+
+</script>
+  <script>
 /* ---------------- 英语语法大冒险 english-quest.js ----------------
  * 玩法：12 大语法岛屿 → 100 个关卡。每关先「学一学」（讲解 + 口诀 + 例句发音），
  * 再「练一练」（逐题闯关）。答对连击涨金币，全对拿三星；进度保存在指挥官档案（S.eng）。
@@ -61239,11 +61450,14 @@ function eqChapterLessons(ch){
 }
 function eqStats(){
   var done = Object.keys(eqState().done).length;
+  /* 数据尚未延迟装载时（如首页统计先于英语数据执行），返回 0 值防御，绝不炸首页 */
+  if (typeof EQ_DATA === "undefined") return { done: done, total: 0, coins: eqState().coins };
   return { done: done, total: EQ_DATA.lessons.length, coins: eqState().coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function eqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = eqStats();
   var bar = document.getElementById("eqTotalBar");
   var txt = document.getElementById("eqTotalTxt");
@@ -61390,10 +61604,20 @@ var EQ_KP_MAP = [
   ["陈述句语序", "问句与句型综合"]
 ];
 function eqKpOfLesson(l){
-  for (var i = 0; i < EQ_KP_MAP.length; i++){
-    if (l.t.indexOf(EQ_KP_MAP[i][0]) >= 0) return EQ_KP_MAP[i][1];
+  /* 两轮匹配：先精确等值（最可靠），再最长子串（避免短 key 抢先命中）。
+   * 跳过映射为 null 的条目，防止"反身代词"这类无真题考点把后面的匹配拦断。 */
+  var i;
+  for (i = 0; i < EQ_KP_MAP.length; i++){
+    if (EQ_KP_MAP[i][1] && l.t === EQ_KP_MAP[i][0]) return EQ_KP_MAP[i][1];
   }
-  return null;
+  var best = null, bestLen = -1;
+  for (i = 0; i < EQ_KP_MAP.length; i++){
+    var k = EQ_KP_MAP[i][0];
+    if (EQ_KP_MAP[i][1] && l.t.indexOf(k) >= 0 && k.length > bestLen){
+      best = EQ_KP_MAP[i][1]; bestLen = k.length;
+    }
+  }
+  return best;
 }
 function eqChapterName(ch){
   for (var i = 0; i < EQ_DATA.chapters.length; i++){
@@ -61406,6 +61630,7 @@ function eqChapterName(ch){
 var EQ_SESSION = null;
 
 function eqOpen(id){
+  if (typeof engEnsureData === "function") engEnsureData();
   var l = eqLesson(id);
   if (!l) return;
   EQ_SESSION = { lesson: l, idx: 0, wrong: 0, combo: 0, phase: "learn" };
@@ -61444,6 +61669,7 @@ function eqDialogLearn(){
       '<span class="eq-ex-zh">' + e.zh + '</span></div>';
   }).join("");
   var kp = eqKpOfLesson(l);
+  var teDone = kp ? (teState().done["grammar_kp_" + kp] || 0) : 0;
   var statusHtml = done
     ? '<span style="background:#D1FAE5;color:#065F46;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">✅ 练一练已通过 ' + "★".repeat(done) + '</span>'
     : '<span style="background:#FFF6E5;color:#92400E;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">⏳ 练一练未完成</span>';
@@ -61453,7 +61679,11 @@ function eqDialogLearn(){
         '<button class="eq-go-btn ghost" type="button" onclick="eqStartQuiz()">🔁 再练一次</button></div>'
     : '<button class="eq-go-btn" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="eqStartQuiz()">⚔️ 练一练（' + qN + ' 题）</button>';
   var kpBtn = kp
-    ? '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🎯 练本章真题：' + kp + '</button>'
+    ? (teDone
+        ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#F0FDF4;border:1.5px solid #10B981;border-radius:12px;padding:10px 14px;">' +
+            '<span style="font-size:15px;font-weight:700;color:#065F46;">✅ 本章真题已通过 ' + "★".repeat(teDone) + '</span>' +
+            '<button class="eq-go-btn topic" type="button" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🔁 再练真题</button></div>'
+        : '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="topicExamOpen(\'grammar\',null,\'' + kp.replace(/'/g, "\\'") + '\',\'' + kp.replace(/'/g, "\\'") + '\')">🎯 练本章真题：' + kp + '</button>')
     : '<button class="eq-go-btn topic" type="button" style="width:100%;padding:14px 20px;font-size:16px;" onclick="kpPanelOpen(\'grammar\',\'english\',\'英语语法\')">🎯 按考点练真题</button>';
   var next = eqNextLessonId(l.id);
   var nextBtn = done && next
@@ -61569,6 +61799,7 @@ function eqRenderQuiz(){
       '<div class="eq-combo-track">🔥 连击 <b id="eqComboN">' + EQ_SESSION.combo + '</b> · 🪙 ' + eqState().coins + '</div>' +
       '<div class="eq-question">' + q.q + '</div>' +
       '<div class="eq-opts">' + opts + '</div>' +
+      '<button class="eq-again-btn" type="button" style="background:#fff;color:#64748B;border:2px solid #E2E8F0;box-shadow:none;" onclick="eqPeek()">👀 不会做，看答案</button>' +
       '<div class="eq-feedback" id="eqFeedback"></div>' +
     '</div>';
 }
@@ -61610,6 +61841,21 @@ function eqAnswer(btn){
   saveS();
 }
 
+/* 「不会做，看答案」：看答案也算没做对（错题本记一笔、星级受影响），但绝不无声丢题 */
+function eqPeek(){
+  if (!EQ_SESSION || !EQ_SESSION.quizList) return;
+  var q = EQ_SESSION.quizList[EQ_SESSION.idx];
+  if (typeof errBookAdd === "function") errBookAdd("grammar", { q: q.q, o: q.o, a: q.a, why: q.why, source: EQ_SESSION.lesson.t, skipped: true });
+  EQ_SESSION.combo = 0;
+  EQ_SESSION.wrong++;
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: eqNextQ });
+  } else {
+    eqNextQ();
+  }
+}
+
 function eqNextQ(){
   EQ_SESSION.idx++;
   if (EQ_SESSION.idx < EQ_SESSION.quizList.length){ eqRenderQuiz(); return; }
@@ -61621,17 +61867,13 @@ function eqFinish(){
   var total = EQ_SESSION.quizList.length;
   var wrong = EQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 2 ? 2 : 1);
-  var old = eqState().done[l.id] || 0;
-  if (stars > old) eqState().done[l.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(eqState().done, l.id, stars);
   var done = Object.keys(eqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   var next = eqNextLessonId(l.id);
-  var msg = stars === 3 ? "一次全对，语法船长为你敬礼！🫡"
-          : stars === 2 ? "很不错！再练一次就是满分船长！"
-          : "过关啦！再来一次巩固一下更棒！";
+  var msg = engResultMsg(stars, ["一次全对，语法船长为你敬礼！🫡",
+                                 "很不错！再练一次就是满分船长！",
+                                 "过关啦！再来一次巩固一下更棒！"]);
   document.getElementById("eqDialog").innerHTML =
     '<div class="eq-dlg-head result"><span class="eq-cap">🏁 闯关完成</span>' +
       '<button class="eq-close" type="button" onclick="eqClose()">×</button></div>' +
@@ -61680,30 +61922,262 @@ function eqFloatCoin(txt){
 function eqOnEnter(){ eqRender(); }
 
 function eqSwitchTab(tab){
+  if (typeof engEnsureData === "function") engEnsureData();
   var tabs = document.querySelectorAll('.eq-tab');
   for (var i = 0; i < tabs.length; i++){
     tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
   }
-  document.getElementById('eqSubGrammar').style.display = tab === 'grammar' ? '' : 'none';
-  document.getElementById('eqSubVocab').style.display = tab === 'vocab' ? '' : 'none';
-  document.getElementById('eqSubReading').style.display = tab === 'reading' ? '' : 'none';
-  document.getElementById('eqSubWriting').style.display = tab === 'writing' ? '' : 'none';
-  document.getElementById('eqSubOral').style.display = tab === 'oral' ? '' : 'none';
-  document.getElementById('eqSubExam').style.display = tab === 'exam' ? '' : 'none';
-  document.getElementById('eqSubErrBook').style.display = tab === 'errbook' ? '' : 'none';
+  var ids = ['eqSubGrammar','eqSubVocab','eqSubReading','eqSubWriting','eqSubOral','eqSubExam','eqSubBlank','eqSubP1000','eqSubPapers','eqSubErrBook'];
+  var tabOf = { grammar:'eqSubGrammar', vocab:'eqSubVocab', reading:'eqSubReading', writing:'eqSubWriting', oral:'eqSubOral', exam:'eqSubExam', blank:'eqSubBlank', p1000:'eqSubP1000', papers:'eqSubPapers', errbook:'eqSubErrBook' };
+  for (var j = 0; j < ids.length; j++){
+    var el = document.getElementById(ids[j]);
+    if (el) el.style.display = (tabOf[tab] === ids[j]) ? '' : 'none';
+  }
   if (tab === 'grammar') eqRender();
   if (tab === 'vocab' && typeof vqRender === "function") vqRender();
   if (tab === 'reading' && typeof rqRender === "function") rqRender();
   if (tab === 'writing' && typeof wqRender === "function") wqRender();
   if (tab === 'oral' && typeof oqRender === "function") oqRender();
   if (tab === 'exam' && typeof xqRender === "function") xqRender();
-  if (tab === 'exam' && typeof ppRender === "function") ppRender();
-  if (tab === 'errbook' && typeof ebRender === "function") ebRender();
+  if (tab === 'blank' && typeof bqRender === "function") bqRender();
+  if (tab === 'p1000' && typeof p1000Open === "function") p1000Open();
+  if (tab === 'papers' && typeof ppRender === "function") ppRender();
+  if (tab === 'errbook'){
+    var ebTab = document.querySelector('.eq-tab[data-tab="errbook"]');
+    if (ebTab) ebTab.classList.remove('has-new');
+    if (typeof ebRender === "function") ebRender();
+  }
 }
 
 window.addEventListener("load", function(){
   if (document.getElementById("eqChapters")) eqRender();
 });
+</script>
+  <script>
+/* ---------------- 英语选择填空 · 做题模块 blank-quest.js ----------------
+ * 「✅ 选择填空」子模块：按章节练习 BLANK_QUESTIONS（data/english-blank.js）。
+ * 交互规则（家长指定，走统一答案浮层 answer-overlay）：
+ *   1. 作答或点「不会做看答案」后弹出全屏大字答案浮层，正确答案放大显示；
+ *   2. 浮层里的「下一题」按钮倒计时锁定：答对 3 秒、答错/看答案 6 秒后才亮起；
+ *      有解析时还必须点「我已看懂」才放行；
+ *   3. 答错和「不会做看答案」都会自动进错题本（blank 模块），跳过的题不会无声丢掉；
+ *   4. 做完出成绩和错题本（错题答案同样大字显示），可只重做错题。
+ * 进度为当次会话有效，不写入 S 全局状态；函数全部 bq 前缀，避免冲突。
+ */
+var BQ_WAIT_OK = 3;   /* 答对后强制停留秒数 */
+var BQ_WAIT_BAD = 6;  /* 答错 / 直接看答案后强制停留秒数 */
+var BQ_LETTERS = ["A", "B", "C", "D"];
+
+var bqQueue = [], bqPos = 0, bqResults = {}, bqLastWrong = [];
+var bqAnswered = false, bqPicked = null, bqIsLast = false;
+
+function bqChName(chId) {
+  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
+    if (BLANK_CHAPTERS[i].id === chId) return BLANK_CHAPTERS[i].name;
+  }
+  return "";
+}
+function bqChips(qi) {
+  var q = BLANK_QUESTIONS[qi];
+  return '<span class="bq-chip bq-chip-ch">第' + q.ch + '章 · ' + bqChName(q.ch) + '</span>' +
+    '<span class="bq-chip bq-chip-tag">考点：' + q.tag + '</span>' +
+    '<span class="bq-chip">' + q.src + '</span>';
+}
+function bqCountCorrect() {
+  var n = 0;
+  for (var i = 0; i < bqPos; i++) { if (bqResults[bqQueue[i]] && bqResults[bqQueue[i]].ok) n++; }
+  return n;
+}
+
+/* ---------- 开始面板（子模块页） ---------- */
+function bqRender() {
+  if (typeof engEnsureData === "function") engEnsureData();
+  var box = document.getElementById("eqSubBlank");
+  if (!box || typeof BLANK_QUESTIONS === "undefined") return;
+  var rows = "";
+  for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
+    var c = BLANK_CHAPTERS[i], n = 0;
+    for (var j = 0; j < BLANK_QUESTIONS.length; j++) { if (BLANK_QUESTIONS[j].ch === c.id) n++; }
+    rows += '<div class="bq-chrow"><span>第' + c.id + '章 ' + c.name + '</span><b>' + n + ' 题</b></div>';
+  }
+  var rules = '<div class="bq-rules">' +
+    '<p>① 每题先自己作答，不会做可点「不会做？看答案」；</p>' +
+    '<p>② 答案用<b>大字浮层</b>显示：答对停留 ' + BQ_WAIT_OK + ' 秒、答错停留 ' + BQ_WAIT_BAD + ' 秒，「下一题」才亮起；</p>' +
+    '<p>③ 答错和看答案都会<b>自动进错题本</b>，看完解析（点「我已看懂」）才能进下一题；</p>' +
+    '<p>④ 做完出成绩和错题本，可以只重做错题。</p></div>';
+  var redo = bqLastWrong.length
+    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>'
+    : "";
+  box.innerHTML =
+    '<div class="bq-panel">' +
+      '<p class="bq-total">共 <b>' + BLANK_QUESTIONS.length + '</b> 题 · ' + BLANK_CHAPTERS.length + ' 个语法章节</p>' +
+      rules +
+      '<div class="bq-chlist">' + rows + '</div>' +
+      '<div class="bq-btnrow"><button class="bq-btn" type="button" onclick="bqStartAll()">开始刷题 ▶</button>' + redo + '</div>' +
+    '</div>';
+}
+
+/* ---------- 流程控制 ---------- */
+function bqStartAll() {
+  bqQueue = []; for (var i = 0; i < BLANK_QUESTIONS.length; i++) bqQueue.push(i);
+  bqPos = 0; bqResults = {};
+  bqOpenDialog(); bqShowIntro();
+}
+function bqStartWrong() {
+  bqQueue = bqLastWrong.slice();
+  if (!bqQueue.length) { bqRender(); return; }
+  for (var i = 0; i < bqQueue.length; i++) delete bqResults[bqQueue[i]];
+  bqPos = 0;
+  bqOpenDialog(); bqShowIntro();
+}
+function bqOpenDialog() {
+  var mask = document.getElementById("bqDialogMask");
+  if (!mask) return;
+  mask.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function bqClose() {
+  var m1 = document.getElementById("bqDialogMask");
+  if (m1) m1.classList.remove("open");
+  document.body.style.overflow = "";
+  bqRender();
+}
+function bqDlgHead(title) {
+  return '<div class="eq-dlg-head"><span class="eq-cap">✅ 选择填空</span>' +
+    '<h3>' + title + '</h3>' +
+    '<button class="eq-close" type="button" onclick="bqClose()">×</button></div>';
+}
+
+function bqShowIntro() {
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var qi = bqQueue[bqPos], chId = BLANK_QUESTIONS[qi].ch, n = 0;
+  for (var i = bqPos; i < bqQueue.length; i++) { if (BLANK_QUESTIONS[bqQueue[i]].ch === chId) n++; }
+  dlg.innerHTML = bqDlgHead(bqChName(chId)) +
+    '<div class="bq-body bq-intro">' +
+      '<div class="bq-chnum">第 ' + chId + ' 章</div>' +
+      '<p class="bq-muted">本章共 ' + n + ' 题 · 先自己作答，再看大字答案</p>' +
+      '<button class="bq-btn" type="button" onclick="bqShowQuestion()">开始本章 ▶</button>' +
+    '</div>';
+}
+
+function bqShowQuestion() {
+  bqAnswered = false; bqPicked = null;
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  var correct = bqCountCorrect(), wrong = bqPos - correct;
+  var pct = Math.round(bqPos / bqQueue.length * 100);
+  var opts = "";
+  for (var i = 0; i < q.opts.length; i++) {
+    opts += '<button class="bq-opt" type="button" onclick="bqPick(' + i + ')">' +
+      '<span class="bq-lt">' + BQ_LETTERS[i] + '</span><span>' + q.opts[i] + '</span></button>';
+  }
+  dlg.innerHTML = bqDlgHead('第 ' + (bqPos + 1) + ' / ' + bqQueue.length + ' 题') +
+    '<div class="bq-body">' +
+      '<div class="bq-topbar">' +
+        '<span class="bq-stat okc">✓ ' + correct + '</span>' +
+        '<span class="bq-stat badc">✗ ' + wrong + '</span>' +
+        '<span class="bq-bar"><i style="width:' + pct + '%"></i></span>' +
+      '</div>' +
+      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
+      '<div class="bq-stem">' + q.stem + '</div>' +
+      '<div class="bq-opts">' + opts + '</div>' +
+      '<button class="bq-peek" type="button" onclick="bqPeek()">👀 不会做？看答案（自动进错题本）→</button>' +
+    '</div>';
+}
+
+function bqPick(i) {
+  if (bqAnswered) return;
+  bqAnswered = true; bqPicked = i;
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi], ok = (q.ans === i);
+  bqResults[qi] = { p: i, ok: ok };
+  if (!ok && typeof errBookAdd === "function"){
+    errBookAdd("blank", { q: q.stem, o: q.opts, a: q.ans, why: q.exp, source: "第" + q.ch + "章 · " + q.tag });
+  }
+  saveS();
+  bqAnswerOverlay(ok ? "ok" : "bad");
+}
+function bqPeek() {
+  if (bqAnswered) return;
+  bqAnswered = true; bqPicked = null;
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  bqResults[qi] = { p: null, ok: false };
+  if (typeof errBookAdd === "function"){
+    errBookAdd("blank", { q: q.stem, o: q.opts, a: q.ans, why: q.exp, source: "第" + q.ch + "章 · " + q.tag, skipped: true });
+  }
+  saveS();
+  bqAnswerOverlay("peek");
+}
+
+/* ---------- 大字答案浮层（统一走 answer-overlay） ---------- */
+function bqAnswerOverlay(mode) {
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  bqIsLast = (bqPos === bqQueue.length - 1);
+  var head = mode === "ok" ? "回答正确 ✓" : mode === "bad" ? "回答错误 ✗" : "正确答案";
+  var wait = (mode === "ok") ? BQ_WAIT_OK : BQ_WAIT_BAD;
+  if (typeof aoShow !== "function"){ bqNext(); return; }
+  aoShow({
+    ok: mode === "ok",
+    head: head,
+    qHtml: aoQHtml({ q: q.stem, o: q.opts, a: q.ans }, mode === "bad" ? bqPicked : undefined),
+    bigHtml: aoBig(BQ_LETTERS[q.ans], q.opts[q.ans]),
+    userHtml: (mode === "bad" && bqPicked != null) ? aoEsc(BQ_LETTERS[bqPicked] + ". " + q.opts[bqPicked]) : "",
+    whyHtml: q.exp,
+    wait: wait,
+    onNext: bqNext
+  });
+}
+
+function bqNext() {
+  var m = document.getElementById("bqAnsMask");
+  if (m) m.classList.remove("open");
+  bqPos++;
+  if (bqPos >= bqQueue.length) { bqSummary(); return; }
+  var prevCh = BLANK_QUESTIONS[bqQueue[bqPos - 1]].ch;
+  var curCh = BLANK_QUESTIONS[bqQueue[bqPos]].ch;
+  if (prevCh !== curCh) { bqShowIntro(); } else { bqShowQuestion(); }
+}
+
+/* ---------- 成绩 + 错题本 ---------- */
+function bqSummary() {
+  var dlg = document.getElementById("bqDialog");
+  if (!dlg) return;
+  var total = bqQueue.length;
+  bqLastWrong = [];
+  for (var i = 0; i < bqQueue.length; i++) {
+    var r = bqResults[bqQueue[i]];
+    if (!r || !r.ok) bqLastWrong.push(bqQueue[i]);
+  }
+  var correct = total - bqLastWrong.length;
+  var rate = total ? Math.round(correct / total * 100) : 0;
+
+  var cards = "";
+  for (var j = 0; j < bqLastWrong.length; j++) {
+    var qi = bqLastWrong[j], q = BLANK_QUESTIONS[qi], r2 = bqResults[qi];
+    var your = (r2 && r2.p !== null && r2.p !== undefined)
+      ? BQ_LETTERS[r2.p] + ". " + q.opts[r2.p] : "未作答";
+    cards += '<div class="bq-wcard">' +
+      '<div class="bq-chips">' + bqChips(qi) + '</div>' +
+      '<div class="bq-stem">' + q.stem + '</div>' +
+      '<div class="bq-yourans">你的答案：<s>' + your + '</s></div>' +
+      '<div class="bq-big sm"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
+      '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
+    '</div>';
+  }
+  var redoBtn = bqLastWrong.length
+    ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>' : "";
+  dlg.innerHTML = bqDlgHead("练习完成 🎉") +
+    '<div class="bq-body bq-center">' +
+      '<div class="bq-score"><span class="bq-num">' + correct + '</span><span class="bq-slash"> / ' + total + '</span></div>' +
+      '<p class="bq-muted">正确率 ' + rate + '% · 错题 ' + bqLastWrong.length + ' 题（正确答案大字显示）</p>' +
+      '<div class="bq-btnrow">' + redoBtn +
+        '<button class="bq-btn" type="button" onclick="bqStartAll()">全部重做</button>' +
+      '</div>' +
+    '</div>' +
+    (bqLastWrong.length ? cards : "");
+}
+
 </script>
   <script>
 /* ---------------- 英语词汇大冒险 vocab-quest.js ----------------
@@ -61726,12 +62200,14 @@ function vqStats(){
   var done = Object.keys(st.done).length;
   var learned = Object.keys(st.learned).length;
   var total = 0;
+  if (typeof VOCAB_DATA === "undefined") return { done: done, total: 0, learned: learned, totalWords: 0, coins: st.coins };
   VOCAB_DATA.units.forEach(function(u){ total += u.words.length; });
   return { done: done, total: VOCAB_DATA.units.length, learned: learned, totalWords: total, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function vqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = vqStats();
   var bar = document.getElementById("vqTotalBar");
   var txt = document.getElementById("vqTotalTxt");
@@ -61766,6 +62242,7 @@ function vqRender(){
 var VQ_SESSION = null;
 
 function vqOpen(uid){
+  if (typeof engEnsureData === "function") engEnsureData();
   var u = VOCAB_DATA.units.filter(function(x){ return x.id === uid; })[0];
   if (!u) return;
   VQ_SESSION = { unit: u, mode: 0, idx: 0, wrong: 0, combo: 0, quizList: [] };
@@ -61842,6 +62319,7 @@ function vqRenderQuiz(){
     '<div class="vq-dlg-body">' +
       '<div class="vq-combo-track">🔥 连击 <b>' + VQ_SESSION.combo + '</b> · 🪙 ' + vqState().coins + '</div>' +
       body +
+      '<button class="vq-go-btn ghost" type="button" style="width:100%;margin-top:10px;" onclick="vqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="vq-feedback" id="vqFeedback"></div>' +
     '</div>';
 
@@ -61905,6 +62383,31 @@ function vqCheckSpell(){
   }
 }
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function vqPeek(){
+  if (!VQ_SESSION) return;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  var w = quiz.word;
+  VQ_SESSION.combo = 0;
+  VQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function"){
+    if (quiz.type === "choice"){
+      errBookAdd("vocab", { q: quiz.q + " = ?", o: quiz.opts, a: quiz.ans, why: w.en + " 的意思是 " + w.zh, source: w.en, skipped: true });
+    } else {
+      errBookAdd("vocab", { q: "拼写：" + w.zh + " [" + (w.pos || "") + "]", o: [w.en], a: 0, why: "正确拼写：" + w.en, source: w.en, skipped: true });
+    }
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案",
+      qHtml: aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }),
+      bigHtml: aoBig("", w.en + " = " + w.zh),
+      whyHtml: w.en + " = " + w.zh, onNext: vqNext });
+  } else {
+    vqNext();
+  }
+}
+
 function vqCorrect(){
   VQ_SESSION.combo++;
   var gain = VQ_COIN_PER_Q * (1 + Math.floor(VQ_SESSION.combo / 3));
@@ -61956,20 +62459,16 @@ function vqFinish(){
   var u = VQ_SESSION.unit;
   var wrong = VQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 3 ? 2 : 1);
-  var old = vqState().done[u.id] || 0;
-  if (stars > old) vqState().done[u.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(vqState().done, u.id, stars);
   var learned = u.words.filter(function(w){ return vqState().learned[w.en]; }).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   document.getElementById("vqDialog").innerHTML =
     '<div class="vq-dlg-head result"><span class="vq-cap">🏁 闯关完成</span>' +
       '<button class="vq-close" type="button" onclick="vqClose()">×</button></div>' +
     '<div class="vq-dlg-body vq-result">' +
       '<div class="vq-result-stars">' + starRow + '</div>' +
       '<h3>第 ' + u.id + ' 岛 · ' + u.name + '</h3>' +
-      '<p>' + (stars === 3 ? "完美通关，你是词汇大师！🌟" : stars === 2 ? "很棒！再练一次就是满分！" : "过关啦！多练几次更熟练！") + '</p>' +
+      '<p>' + engResultMsg(stars, ["完美通关，你是词汇大师！🌟", "很棒！再练一次就是满分！", "过关啦！多练几次更熟练！"]) + '</p>' +
       '<p class="vq-result-meta">📊 本岛已学 ' + learned + '/' + u.words.length + ' 词 · 🪙 ' + vqState().coins + '</p>' +
       '<div class="vq-result-btns">' +
         '<button class="vq-go-btn ghost" type="button" onclick="vqOpen(' + u.id + ')">🔁 再练一次</button>' +
@@ -62008,11 +62507,13 @@ function rqState(){
 function rqStats(){
   var st = rqState();
   var done = Object.keys(st.done).length;
+  if (typeof READ_DATA === "undefined") return { done: done, total: 0, coins: st.coins };
   return { done: done, total: READ_DATA.passages.length, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function rqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = rqStats();
   var bar = document.getElementById("rqTotalBar");
   var txt = document.getElementById("rqTotalTxt");
@@ -62041,6 +62542,7 @@ function rqRender(){
 var RQ_SESSION = null;
 
 function rqOpen(pid){
+  if (typeof engEnsureData === "function") engEnsureData();
   rqStopSpeak();
   var p = READ_DATA.passages.filter(function(x){ return x.id === pid; })[0];
   if (!p) return;
@@ -62122,6 +62624,7 @@ function rqRenderQuiz(){
       '<div class="rq-combo-track">🔥 连击 <b>' + RQ_SESSION.combo + '</b> · 🪙 ' + rqState().coins + '</div>' +
       '<div class="rq-question">' + q.q + '</div>' +
       '<div class="rq-opts">' + opts + '</div>' +
+      '<button class="rq-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="rqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="rq-feedback" id="rqFeedback"></div>' +
     '</div>';
 }
@@ -62162,6 +62665,21 @@ function rqAnswer(btn){
   }
 }
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function rqPeek(){
+  if (!RQ_SESSION || !RQ_SESSION.passage) return;
+  var q = RQ_SESSION.passage.q[RQ_SESSION.idx];
+  RQ_SESSION.combo = 0;
+  RQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function") errBookAdd("reading", { q: q.q, o: q.o, a: q.a, why: q.why, source: RQ_SESSION.passage.title, skipped: true });
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBig("", q.o[q.a]), whyHtml: q.why, onNext: rqNext });
+  } else {
+    rqNext();
+  }
+}
+
 function rqNext(){
   RQ_SESSION.idx++;
   if (RQ_SESSION.idx < RQ_SESSION.passage.q.length){ rqRenderQuiz(); return; }
@@ -62172,20 +62690,16 @@ function rqFinish(){
   var p = RQ_SESSION.passage;
   var wrong = RQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 1 ? 2 : 1);
-  var old = rqState().done[p.id] || 0;
-  if (stars > old) rqState().done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(rqState().done, p.id, stars);
   var done = Object.keys(rqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   document.getElementById("rqDialog").innerHTML =
     '<div class="rq-dlg-head result"><span class="rq-cap">🏁 阅读完成</span>' +
       '<button class="rq-close" type="button" onclick="rqClose()">×</button></div>' +
     '<div class="rq-dlg-body rq-result">' +
       '<div class="rq-result-stars">' + starRow + '</div>' +
       '<h3>' + p.title + '</h3>' +
-      '<p>' + (stars === 3 ? "全对！阅读理解满分！🌟" : stars === 2 ? "很好！再读一遍争取满分！" : "完成！多读多练更棒！") + '</p>' +
+      '<p>' + engResultMsg(stars, ["全对！阅读理解满分！🌟", "很好！再读一遍争取满分！", "完成！多读多练更棒！"]) + '</p>' +
       '<p class="rq-result-meta">📊 总进度 ' + done + ' / ' + READ_DATA.passages.length + ' · 🪙 ' + rqState().coins + '</p>' +
       '<div class="rq-result-btns">' +
         '<button class="rq-go-btn ghost" type="button" onclick="rqOpen(\'' + p.id + '\')">🔁 再读一次</button>' +
@@ -62299,6 +62813,9 @@ function wqState(){
 }
 function wqStats(){
   var st = wqState();
+  if (typeof WRITE_DATA === "undefined"){
+    return { done: Object.keys(st.done).length, total: 0, coins: st.coins, wrote: Object.keys(st.mywork || {}).length };
+  }
   return {
     done: Object.keys(st.done).length,
     total: WRITE_DATA.passages.length,
@@ -62772,13 +63289,8 @@ function wqFinishWrite(){
   var stars = wroteAll ? (avg >= 2.7 ? 3 : (avg >= 1.8 ? 2 : 1)) : (avg >= 2.5 ? 2 : 1);
   if (stars < 1) stars = 1;
 
-  var old = stt.done[p.id] || 0;
-  if (stars > old) stt.done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
-
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  engRecordStars(stt.done, p.id, stars);
+  var starRow = engStars(stars);
 
   var myHtml = my.map(function(t, i){
     return '<div class="wq-my-line"><span class="wq-my-no">' + (i + 1) + '</span>' + wqEsc(t) + '</div>';
@@ -62858,6 +63370,7 @@ function wqRenderQuiz(){
       '<div class="wq-question"><div class="wq-q-en">' + wqEsc(q.q) + '</div>' +
         (zhQ ? '<div class="wq-q-zh">' + wqEsc(zhQ) + '</div>' : '') + '</div>' +
       '<div class="wq-opts">' + opts + '</div>' +
+      '<button class="wq-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="wqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="wq-feedback" id="wqFeedback"></div>' +
     '</div>';
 }
@@ -62869,13 +63382,19 @@ function wqAnswer(btn){
   var opts = btn.parentNode.querySelectorAll(".wq-opt");
   for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
   var fb = document.getElementById("wqFeedback");
+  var aoQ = { q: q.q, o: q.o, a: q.a };
   if (i === q.a){
     btn.classList.add("ok");
     s.combo++;
     var gain = WQ_COIN_PER_Q * (1 + Math.floor(s.combo / 3));
     wqState().coins += gain;
-    fb.innerHTML = '<div class="wq-fb ok">✅ 正确！+🪙' + gain + ' · ' + wqEsc(q.why) + '</div>' +
-      '<button class="wq-next-btn" type="button" onclick="wqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(aoQ, i),
+        bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), whyHtml: q.why, onNext: wqNext });
+    } else {
+      fb.innerHTML = '<div class="wq-fb ok">✅ 正确！+🪙' + gain + ' · ' + wqEsc(q.why) + '</div>' +
+        '<button class="wq-next-btn" type="button" onclick="wqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -62884,9 +63403,32 @@ function wqAnswer(btn){
     s.combo = 0;
     s.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("writing", { q: q.q, o: q.o, a: q.a, why: q.why, source: s.passage.title });
-    fb.innerHTML = '<div class="wq-fb no">❌ ' + wqEsc(q.why) + '</div>' +
-      '<button class="wq-next-btn" type="button" onclick="wqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(aoQ, i),
+        bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: wqNext });
+    } else {
+      fb.innerHTML = '<div class="wq-fb no">❌ ' + wqEsc(q.why) + '</div>' +
+        '<button class="wq-next-btn" type="button" onclick="wqNext()">继续 →</button>';
+    }
     saveS();
+  }
+}
+
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function wqPeek(){
+  var s = WQ_SESSION;
+  if (!s) return;
+  var q = s.passage.q[s.idx];
+  s.combo = 0;
+  s.wrong++;
+  if (typeof errBookAdd === "function") errBookAdd("writing", { q: q.q, o: q.o, a: q.a, why: q.why, source: s.passage.title, skipped: true });
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案",
+      qHtml: aoQHtml({ q: q.q, o: q.o, a: q.a }),
+      bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), whyHtml: q.why, onNext: wqNext });
+  } else {
+    wqNext();
   }
 }
 
@@ -64124,11 +64666,13 @@ function xqState(){
 function xqStats(){
   var st = xqState();
   var done = Object.keys(st.done).length;
+  if (typeof EXAM_DATA === "undefined") return { done: done, total: 0, coins: st.coins };
   return { done: done, total: EXAM_DATA.papers.length, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function xqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = xqStats();
   var bar = document.getElementById("xqTotalBar");
   var txt = document.getElementById("xqTotalTxt");
@@ -64193,6 +64737,7 @@ function xqRenderQuiz(){
       '<div class="xq-feedback" id="xqFeedback"></div>' +
       '<div class="xq-act" id="xqAct">' +
         '<button class="qt-submit" type="button" onclick="xqAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
+        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="xqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '</div>' +
     '</div>';
 }
@@ -64258,6 +64803,31 @@ function xqAnswer(){
 }
 
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function xqPeek(){
+  var p = XQ_SESSION.paper;
+  var q = p.questions[XQ_SESSION.idx];
+  if (XQ_SESSION.answered) return;
+  XQ_SESSION.answered = true;
+  XQ_SESSION.combo = 0;
+  XQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function"){
+    errBookAdd("exam", {
+      q: q.q || q.passage || "", type: qtTypeOf(q),
+      o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
+      why: q.why, source: p.name, skipped: true
+    });
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBigAns(q), whyHtml: q.why, onNext: xqNext });
+  } else {
+    xqNext();
+  }
+}
+
 function xqNext(){
   XQ_SESSION.idx++;
   XQ_SESSION.answered = false;
@@ -64270,13 +64840,9 @@ function xqFinish(){
   var wrong = XQ_SESSION.wrong;
   var total = p.questions.length;
   var stars = wrong === 0 ? 3 : (wrong <= Math.floor(total * 0.2) ? 2 : 1);
-  var old = xqState().done[p.id] || 0;
-  if (stars > old) xqState().done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(xqState().done, p.id, stars);
   var done = Object.keys(xqState().done).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   var dialog = document.getElementById("xqDialog");
   if (!dialog) return;
   dialog.innerHTML =
@@ -64309,14 +64875,20 @@ window.addEventListener("load", function(){ if (document.getElementById("xqPaper
 /* ---------------- 错题本 err-book.js ----------------
  * 自动收集所有英语模块的错题，支持重做和清除。
  * 进度保存在 S.errBook = { items: [...] }。
- * 每条: { id, module, q, o, a, why, source, time, count, correctStreak, status }
+ * 每条: { id, module, q, o, a, why, source, time, count, skips, correctStreak, status }
+ *
+ * 两个失败计数，语义严格分开：
+ * - count  = 真正选错的次数
+ * - skips  = 「不会做 / 看答案 / 跳过」的次数（不是答错，不能混进 count）
+ * - 权重 ebWeight = count + skips，用于排序（最不会的排最前）
  *
  * 智能降频机制：
  * - status: active（活跃）/ dormant（沉没）/ resolved（已解决）
  * - correctStreak: 连续答对次数
  * - 答对3次 → 自动沉没（dormant），不再出现在默认列表
- * - 答错 → 重置 correctStreak=0，status=active（复活）
+ * - 答错 或 再次跳过 → 重置 correctStreak=0，status=active（复活）
  * - 手动标记 resolved → 不再出现在默认列表
+ * - 筛选维度：活跃 / 👀不会做（skips>0） / 已沉没 / 已解决 / 全部
  */
 
 var EB_DORMANT_THRESHOLD = 3;
@@ -64338,11 +64910,16 @@ function errBookAdd(module, item){
       break;
     }
   }
+  /* count = 真正选错的次数；skips = 「不会做/看答案/跳过」的次数。
+   * 二者语义不同、互不污染：不会做不是答错，不能混进 count 里，
+   * 否则「错 N 次」会把没做过的题也算进去，排序和展示都会失真。 */
   if (exist){
-    exist.count = (exist.count || 1) + 1;
+    if (item.skipped) exist.skips = (exist.skips || 0) + 1;
+    else exist.count = (exist.count || 0) + 1;
     exist.time = Date.now();
     exist.correctStreak = 0;
-    exist.status = "active";
+    exist.status = "active";           /* 再次遇到即复活（含跳过——说明还是没掌握） */
+    if (item.source && !exist.source) exist.source = item.source;
   } else {
     st.items.push({
       id: "eb" + Date.now() + Math.floor(Math.random() * 1000),
@@ -64361,25 +64938,59 @@ function errBookAdd(module, item){
       why: item.why,
       source: item.source || "",
       time: Date.now(),
-      count: 1,
+      count: item.skipped ? 0 : 1,
+      skips: item.skipped ? 1 : 0,
       correctStreak: 0,
       status: "active"
     });
+    ebNotifyNew();
   }
   saveS();
+}
+
+function ebNotifyNew(){
+  var tab = document.querySelector('.eq-tab[data-tab="errbook"]');
+  if (tab) tab.classList.add('has-new');
+  ebRefreshTab();
+}
+
+function ebRefreshTab(){
+  var tab = document.querySelector('.eq-tab[data-tab="errbook"]');
+  if (!tab) return;
+  var stats = ebStats();
+  var activeCount = stats.byStatus.active;
+  var badge = tab.querySelector('.eb-tab-badge');
+  if (activeCount > 0){
+    if (!badge){
+      badge = document.createElement('span');
+      badge.className = 'eb-tab-badge';
+      tab.appendChild(badge);
+    }
+    badge.textContent = activeCount;
+  } else if (badge){
+    badge.remove();
+  }
 }
 
 function ebStats(){
   var st = ebState();
   var byModule = {};
   var byStatus = { active: 0, dormant: 0, resolved: 0 };
+  var skipped = 0;                     /* 有过「不会做/跳过」记录的题数 */
   st.items.forEach(function(it){
     var s = it.status || "active";
     if (!byModule[it.module]) byModule[it.module] = { active: 0, dormant: 0, resolved: 0 };
     byModule[it.module][s]++;
     byStatus[s]++;
+    if ((it.skips || 0) > 0) skipped++;
   });
-  return { total: st.items.length, byModule: byModule, byStatus: byStatus };
+  return { total: st.items.length, byModule: byModule, byStatus: byStatus, skipped: skipped };
+}
+
+/* 一道题的「总失败权重」：答错 + 不会做，都算没掌握。
+ * 只答对过、从没失败过的题不参与排序（权重 0）。 */
+function ebWeight(it){
+  return (it.count || 0) + (it.skips || 0);
 }
 
 var EB_MODULE_NAMES = {
@@ -64387,7 +64998,8 @@ var EB_MODULE_NAMES = {
   vocab: "📚 词汇闯关",
   reading: "📄 阅读理解",
   writing: "✍️ 作文训练",
-  exam: "📝 真题演练"
+  exam: "📝 真题演练",
+  blank: "✅ 选择填空"
 };
 
 /* ---------- 渲染 ---------- */
@@ -64407,6 +65019,7 @@ function ebRender(){
 
   var filterOpts = [
     { v: "active", label: "活跃错题（" + stats.byStatus.active + "）" },
+    { v: "skipped", label: "👀 不会做（" + stats.skipped + "）" },
     { v: "dormant", label: "已沉没（" + stats.byStatus.dormant + "）" },
     { v: "resolved", label: "已解决（" + stats.byStatus.resolved + "）" },
     { v: "all", label: "全部（" + stats.total + "）" }
@@ -64422,6 +65035,7 @@ function ebRender(){
 
   var visibleItems = st.items.filter(function(it){
     if (EB_FILTER === "all") return true;
+    if (EB_FILTER === "skipped") return (it.skips || 0) > 0;   /* 「不会做」专属视角 */
     var s = it.status || "active";
     return s === EB_FILTER;
   });
@@ -64432,10 +65046,12 @@ function ebRender(){
     return;
   }
 
-  var modules = ["grammar", "vocab", "reading", "writing", "exam"];
+  var modules = ["grammar", "vocab", "reading", "writing", "exam", "blank"];
   modules.forEach(function(m){
     var items = visibleItems.filter(function(it){ return it.module === m; });
     if (items.length === 0) return;
+    /* 组内按「总失败权重」降序：最不会的题排最前，先看到该重点攻的 */
+    items = items.slice().sort(function(a, b){ return ebWeight(b) - ebWeight(a); });
     var name = EB_MODULE_NAMES[m] || m;
     html += '<div class="eb-group">';
     html += '<div class="eb-group-head"><span class="eb-group-name">' + name + '</span><span class="eb-group-count">' + items.length + ' 题</span></div>';
@@ -64449,9 +65065,14 @@ function ebRender(){
       if (s === "dormant") stBadge = ' <span class="eb-st-dormant">沉没</span>';
       else if (s === "resolved") stBadge = ' <span class="eb-st-resolved">已解决</span>';
       var streakInfo = it.correctStreak > 0 ? ' · 连对 ' + it.correctStreak + ' 次' : "";
+      var metaParts = [];
+      if ((it.count || 0) > 0) metaParts.push('错 ' + it.count + ' 次');
+      if ((it.skips || 0) > 0) metaParts.push('👀 不会做 ' + it.skips + ' 次');
+      if (metaParts.length === 0) metaParts.push('待复习');
       html += '<div class="eb-item">' +
         '<div class="eb-item-q">' + (idx + 1) + ". " + qShort + stBadge + '</div>' +
-        '<div class="eb-item-meta">错 ' + it.count + ' 次' + streakInfo + (it.source ? ' · ' + it.source : '') + '</div>' +
+        '<div class="eb-item-meta">' + metaParts.join(' · ') +
+          streakInfo + (it.source ? ' · ' + it.source : '') + '</div>' +
         '<div class="eb-item-ops">' +
           '<button class="eb-item-btn" type="button" onclick="ebPracticeOne(\'' + it.id + '\')">重做</button>';
       if (s === "active") html += '<button class="eb-item-resolve" type="button" onclick="ebResolve(\'' + it.id + '\')" title="标记已解决">✔️</button>';
@@ -64487,6 +65108,8 @@ function ebPracticeAll(){
   var st = ebState();
   var items = st.items.filter(function(it){ return (it.status || "active") === "active"; });
   if (items.length === 0){ alert("没有活跃错题可重做"); return; }
+  /* 最不会的题排最前：答错次数 + 不会做/跳过次数，一起算，先把硬骨头过一遍 */
+  items = items.slice().sort(function(a, b){ return ebWeight(b) - ebWeight(a); });
   EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
@@ -64563,7 +65186,7 @@ function ebAnswer(){
         '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
     }
   } else {
-    it.count = (it.count || 1) + 1;
+    it.count = (it.count || 0) + 1;   /* count 从 0 起步（只跳过的题 base=0） */
     it.correctStreak = 0;
     it.status = "active";
     saveS();
@@ -64638,7 +65261,7 @@ function ebClearAll(){
   ebRender();
 }
 
-window.addEventListener("load", function(){ if (document.getElementById("ebList")) ebRender(); });
+window.addEventListener("load", function(){ if (document.getElementById("ebList")) ebRender(); ebRefreshTab(); });
 
 </script>
   <script>
@@ -64741,12 +65364,25 @@ function teState(){
   return S.topicExam;
 }
 
+function teKey(module, topicId, kp){
+  return module + (kp ? "_kp_" + kp : "_" + topicId);
+}
+
+function teStatusBadge(module, topicId, kp){
+  var done = teState().done[teKey(module, topicId, kp)] || 0;
+  if (done){
+    return '<span style="background:#D1FAE5;color:#065F46;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">✅ 本章真题已通过 ' + "★".repeat(done) + '</span>';
+  }
+  return '<span style="background:#FFF6E5;color:#92400E;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700;">⏳ 本章真题未挑战</span>';
+}
+
 var TE_SESSION = null;
 
 /* 从任意模块调用：module=grammar/vocab/reading/writing, topicId=章节/单元ID, topicName=名称
  * 优先从统一题库随机选题（每次不同），题库无题时回退到 TOPIC_EXAM_DATA。
  * 全部做对过也允许重做：自动转入重做模式（重做时做错的题排最前，金币错题照常计算）。 */
 function topicExamOpen(module, topicId, topicName, kp){
+  if (typeof engEnsureData === "function") engEnsureData();
   var questions = [];
   var count = 10;
   var retest = false;
@@ -64854,22 +65490,42 @@ function teRenderQuiz(){
       '<button class="te-close" type="button" onclick="teClose()">×</button>' +
     '</div>' +
     '<div class="te-dlg-body">' +
+      '<div class="te-status-row">' + teStatusBadge(TE_SESSION.module, TE_SESSION.topicId, TE_SESSION.kp) + '</div>' +
       '<div class="te-combo-track">🔥 连击 <b>' + TE_SESSION.combo + '</b> · 🪙 ' + teState().coins + '</div>' +
       qTitle +
       inputHtml +
       '<div class="te-feedback" id="teFeedback"></div>' +
       '<div class="te-act" id="teAct">' +
         '<button class="qt-submit" type="button" onclick="teAnswer()">' + (qType === "writing" ? "✍️ 我写完了，看范文" : "✅ 提交答案") + '</button>' +
-        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="teSkip()">👀 不做，看下一题</button>' +
+        '<button class="te-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="teSkip()">👀 不会做，看答案（自动进错题本）</button>' +
       '</div>' +
     '</div>';
 }
 
-/* 跳过本题不答：不计分、不进错题本，纯浏览下一题 */
+/* 跳过本题不答：不计分、不断连击，但**必须留下痕迹**——自动进错题本（标记跳过），
+ * 并弹出大字答案让孩子看一眼正确答案，绝不无声丢题。 */
 function teSkip(){
   if (TE_SESSION.answered) return;
   TE_SESSION.answered = true;
-  teNext();
+  var q = TE_SESSION.questions[TE_SESSION.idx];
+  var qType = (typeof qtTypeOf === "function") ? qtTypeOf(q) : "choice";
+  var sampleHtml = (qType === "writing" && (q.sample || q.why))
+    ? '<div class="qt-sample"><b>📝 参考范文：</b>' + (q.sample || q.why) + '</div>' : "";
+  if (typeof errBookAdd === "function"){
+    errBookAdd(TE_SESSION.module, {
+      q: q.q || q.passage || "", type: qType,
+      o: q.o, a: q.a, ansText: (typeof qtAnswerText === "function") ? qtAnswerText(q) : "",
+      words: q.words, blanks: q.blanks, passage: q.passage,
+      questions: q.questions, sample: q.sample, tips: q.tips,
+      why: q.why, source: TE_SESSION.topicName + " 专题真题", skipped: true
+    });
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案", qHtml: aoQHtml(q), bigHtml: aoBigAns(q), whyHtml: q.why, extraHtml: sampleHtml, onNext: teNext });
+  } else {
+    teNext();
+  }
 }
 
 
@@ -64952,12 +65608,8 @@ function teFinish(){
   var wrong = TE_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= Math.floor(total * 0.2) ? 2 : 1);
   var key = TE_SESSION.module + (TE_SESSION.kp ? "_kp_" + TE_SESSION.kp : "_" + TE_SESSION.topicId);
-  var old = teState().done[key] || 0;
-  if (stars > old) teState().done[key] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  if (typeof engRecordStars === "function") engRecordStars(teState().done, key, stars);
+  var starRow = engStars(stars);
   var dialog = document.getElementById("teDialog");
   if (!dialog) return;
   dialog.innerHTML =
@@ -65005,6 +65657,7 @@ function teClose(){
 
 /* ---------- 考点真题面板：按考点聚合全部真题 ---------- */
 function kpPanelOpen(module, subject, title){
+  if (typeof engEnsureData === "function") engEnsureData();
   var counts = {};
   var total = 0;
   if (typeof QB_DATA !== "undefined"){
@@ -65024,11 +65677,20 @@ function kpPanelOpen(module, subject, title){
     body = '<div style="text-align:center;padding:40px 20px;font-size:17px;color:#888;">📋 还没有带考点的真题<br><br>请先在「题库管理」导入真题<br>系统会自动按考点归类（专有名词/可数名词/复数规则…）</div>';
   } else {
     var keys = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; });
+    var doneCount = 0;
     body = keys.map(function(k){
-      return '<button class="te-go-btn" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;margin:7px 0;padding:14px 16px;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;cursor:pointer;font-size:16px;color:#1F2937;text-align:left;" onclick="topicExamOpen(\'' + module + '\',null,\'' + k.replace(/'/g,"\\'") + '\',\'' + k.replace(/'/g,"\\'") + '\')">' +
-        '<span>📌 ' + k + '</span><span style="background:#F59E0B;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">' + counts[k] + ' 题</span></button>';
+      var got = teState().done[module + "_kp_" + k] || 0;
+      if (got) doneCount++;
+      var stars = got ? "★".repeat(got) : "";
+      var badge = got
+        ? '<span style="background:#10B981;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">✅ ' + stars + '</span>'
+        : '<span style="background:#F59E0B;color:#fff;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:700;">' + counts[k] + ' 题</span>';
+      var border = got ? '#10B981' : '#FCD34D';
+      var bg = got ? '#F0FDF4' : '#FFFBEB';
+      return '<button class="te-go-btn" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;margin:7px 0;padding:14px 16px;background:' + bg + ';border:1.5px solid ' + border + ';border-radius:12px;cursor:pointer;font-size:16px;color:#1F2937;text-align:left;" onclick="topicExamOpen(\'' + module + '\',null,\'' + k.replace(/'/g,"\\'") + '\',\'' + k.replace(/'/g,"\\'") + '\')">' +
+        '<span>📌 ' + k + '</span>' + badge + '</button>';
     }).join("") +
-    '<div style="text-align:center;margin-top:14px;color:#9CA3AF;font-size:13px;">共 ' + total + ' 道真题，按考点分组练习</div>';
+    '<div style="text-align:center;margin-top:14px;color:#9CA3AF;font-size:13px;">共 ' + total + ' 道真题 · 已通过 ' + doneCount + '/' + keys.length + ' 个考点 🏅</div>';
   }
   dialog.innerHTML =
     '<div class="te-dlg-head"><span class="te-cap">🎯 按考点练真题 · ' + title + '</span>' +
@@ -68916,14 +69578,18 @@ function p1000Stars(chapterId){
   return st || 0;
 }
 
+/* 1000题：渲染到「📚 1000题」子视图（不再用弹窗，页签高亮一致） */
 function p1000Open(){
-  if (typeof PAPER1000_DATA === "undefined"){
-    if (typeof baToast === "function") baToast("1000题数据未加载");
+  if (typeof engEnsureData === "function") engEnsureData();
+  var box = document.getElementById("p1000Panel");
+  if (!box){
+    if (typeof baToast === "function") baToast("1000题面板未加载");
     return;
   }
-  var dialog = document.getElementById("teDialog");
-  var mask = document.getElementById("teDialogMask");
-  if (!dialog || !mask) return;
+  if (typeof PAPER1000_DATA === "undefined"){
+    box.innerHTML = '<p class="eq-progress-txt">1000题数据未加载</p>';
+    return;
+  }
 
   var rows = "";
   PAPER1000_DATA.chapters.forEach(function(ch, i){
@@ -68944,17 +69610,13 @@ function p1000Open(){
 
   var total = PAPER1000_DATA.questions.length;
   var coins = (typeof teState === "function") ? teState().coins : 0;
-  dialog.innerHTML =
-    '<div class="te-dlg-head"><span class="te-cap">📚 ' + PAPER1000_DATA.name + '</span>' +
-      '<button class="te-close" type="button" onclick="teClose()">×</button></div>' +
-    '<div class="te-dlg-body p1000-body">' +
-      '<div class="p1000-intro">🏫 ' + PAPER1000_DATA.source + ' · 已收录 <b>' + total + '</b> 题' +
+  box.innerHTML =
+    '<div class="p1000-body">' +
+      '<div class="p1000-intro">🏫 ' + PAPER1000_DATA.name + ' · ' + PAPER1000_DATA.source + ' · 已收录 <b>' + total + '</b> 题' +
         ' · 🪙 ' + coins + '<br>' +
         '<span class="p1000-tip">每章 10 题随机练，答对拿金币连击，答错自动进错题本</span></div>' +
       '<div class="p1000-list">' + rows + '</div>' +
     '</div>';
-  mask.classList.add("open");
-  document.body.style.overflow = "hidden";
 }
 
 </script>

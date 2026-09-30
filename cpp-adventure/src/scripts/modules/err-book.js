@@ -1,14 +1,20 @@
 /* ---------------- 错题本 err-book.js ----------------
  * 自动收集所有英语模块的错题，支持重做和清除。
  * 进度保存在 S.errBook = { items: [...] }。
- * 每条: { id, module, q, o, a, why, source, time, count, correctStreak, status }
+ * 每条: { id, module, q, o, a, why, source, time, count, skips, correctStreak, status }
+ *
+ * 两个失败计数，语义严格分开：
+ * - count  = 真正选错的次数
+ * - skips  = 「不会做 / 看答案 / 跳过」的次数（不是答错，不能混进 count）
+ * - 权重 ebWeight = count + skips，用于排序（最不会的排最前）
  *
  * 智能降频机制：
  * - status: active（活跃）/ dormant（沉没）/ resolved（已解决）
  * - correctStreak: 连续答对次数
  * - 答对3次 → 自动沉没（dormant），不再出现在默认列表
- * - 答错 → 重置 correctStreak=0，status=active（复活）
+ * - 答错 或 再次跳过 → 重置 correctStreak=0，status=active（复活）
  * - 手动标记 resolved → 不再出现在默认列表
+ * - 筛选维度：活跃 / 👀不会做（skips>0） / 已沉没 / 已解决 / 全部
  */
 
 var EB_DORMANT_THRESHOLD = 3;
@@ -30,11 +36,16 @@ function errBookAdd(module, item){
       break;
     }
   }
+  /* count = 真正选错的次数；skips = 「不会做/看答案/跳过」的次数。
+   * 二者语义不同、互不污染：不会做不是答错，不能混进 count 里，
+   * 否则「错 N 次」会把没做过的题也算进去，排序和展示都会失真。 */
   if (exist){
-    exist.count = (exist.count || 1) + 1;
+    if (item.skipped) exist.skips = (exist.skips || 0) + 1;
+    else exist.count = (exist.count || 0) + 1;
     exist.time = Date.now();
     exist.correctStreak = 0;
-    exist.status = "active";
+    exist.status = "active";           /* 再次遇到即复活（含跳过——说明还是没掌握） */
+    if (item.source && !exist.source) exist.source = item.source;
   } else {
     st.items.push({
       id: "eb" + Date.now() + Math.floor(Math.random() * 1000),
@@ -53,25 +64,59 @@ function errBookAdd(module, item){
       why: item.why,
       source: item.source || "",
       time: Date.now(),
-      count: 1,
+      count: item.skipped ? 0 : 1,
+      skips: item.skipped ? 1 : 0,
       correctStreak: 0,
       status: "active"
     });
+    ebNotifyNew();
   }
   saveS();
+}
+
+function ebNotifyNew(){
+  var tab = document.querySelector('.eq-tab[data-tab="errbook"]');
+  if (tab) tab.classList.add('has-new');
+  ebRefreshTab();
+}
+
+function ebRefreshTab(){
+  var tab = document.querySelector('.eq-tab[data-tab="errbook"]');
+  if (!tab) return;
+  var stats = ebStats();
+  var activeCount = stats.byStatus.active;
+  var badge = tab.querySelector('.eb-tab-badge');
+  if (activeCount > 0){
+    if (!badge){
+      badge = document.createElement('span');
+      badge.className = 'eb-tab-badge';
+      tab.appendChild(badge);
+    }
+    badge.textContent = activeCount;
+  } else if (badge){
+    badge.remove();
+  }
 }
 
 function ebStats(){
   var st = ebState();
   var byModule = {};
   var byStatus = { active: 0, dormant: 0, resolved: 0 };
+  var skipped = 0;                     /* 有过「不会做/跳过」记录的题数 */
   st.items.forEach(function(it){
     var s = it.status || "active";
     if (!byModule[it.module]) byModule[it.module] = { active: 0, dormant: 0, resolved: 0 };
     byModule[it.module][s]++;
     byStatus[s]++;
+    if ((it.skips || 0) > 0) skipped++;
   });
-  return { total: st.items.length, byModule: byModule, byStatus: byStatus };
+  return { total: st.items.length, byModule: byModule, byStatus: byStatus, skipped: skipped };
+}
+
+/* 一道题的「总失败权重」：答错 + 不会做，都算没掌握。
+ * 只答对过、从没失败过的题不参与排序（权重 0）。 */
+function ebWeight(it){
+  return (it.count || 0) + (it.skips || 0);
 }
 
 var EB_MODULE_NAMES = {
@@ -79,7 +124,8 @@ var EB_MODULE_NAMES = {
   vocab: "📚 词汇闯关",
   reading: "📄 阅读理解",
   writing: "✍️ 作文训练",
-  exam: "📝 真题演练"
+  exam: "📝 真题演练",
+  blank: "✅ 选择填空"
 };
 
 /* ---------- 渲染 ---------- */
@@ -99,6 +145,7 @@ function ebRender(){
 
   var filterOpts = [
     { v: "active", label: "活跃错题（" + stats.byStatus.active + "）" },
+    { v: "skipped", label: "👀 不会做（" + stats.skipped + "）" },
     { v: "dormant", label: "已沉没（" + stats.byStatus.dormant + "）" },
     { v: "resolved", label: "已解决（" + stats.byStatus.resolved + "）" },
     { v: "all", label: "全部（" + stats.total + "）" }
@@ -114,6 +161,7 @@ function ebRender(){
 
   var visibleItems = st.items.filter(function(it){
     if (EB_FILTER === "all") return true;
+    if (EB_FILTER === "skipped") return (it.skips || 0) > 0;   /* 「不会做」专属视角 */
     var s = it.status || "active";
     return s === EB_FILTER;
   });
@@ -124,10 +172,12 @@ function ebRender(){
     return;
   }
 
-  var modules = ["grammar", "vocab", "reading", "writing", "exam"];
+  var modules = ["grammar", "vocab", "reading", "writing", "exam", "blank"];
   modules.forEach(function(m){
     var items = visibleItems.filter(function(it){ return it.module === m; });
     if (items.length === 0) return;
+    /* 组内按「总失败权重」降序：最不会的题排最前，先看到该重点攻的 */
+    items = items.slice().sort(function(a, b){ return ebWeight(b) - ebWeight(a); });
     var name = EB_MODULE_NAMES[m] || m;
     html += '<div class="eb-group">';
     html += '<div class="eb-group-head"><span class="eb-group-name">' + name + '</span><span class="eb-group-count">' + items.length + ' 题</span></div>';
@@ -141,9 +191,14 @@ function ebRender(){
       if (s === "dormant") stBadge = ' <span class="eb-st-dormant">沉没</span>';
       else if (s === "resolved") stBadge = ' <span class="eb-st-resolved">已解决</span>';
       var streakInfo = it.correctStreak > 0 ? ' · 连对 ' + it.correctStreak + ' 次' : "";
+      var metaParts = [];
+      if ((it.count || 0) > 0) metaParts.push('错 ' + it.count + ' 次');
+      if ((it.skips || 0) > 0) metaParts.push('👀 不会做 ' + it.skips + ' 次');
+      if (metaParts.length === 0) metaParts.push('待复习');
       html += '<div class="eb-item">' +
         '<div class="eb-item-q">' + (idx + 1) + ". " + qShort + stBadge + '</div>' +
-        '<div class="eb-item-meta">错 ' + it.count + ' 次' + streakInfo + (it.source ? ' · ' + it.source : '') + '</div>' +
+        '<div class="eb-item-meta">' + metaParts.join(' · ') +
+          streakInfo + (it.source ? ' · ' + it.source : '') + '</div>' +
         '<div class="eb-item-ops">' +
           '<button class="eb-item-btn" type="button" onclick="ebPracticeOne(\'' + it.id + '\')">重做</button>';
       if (s === "active") html += '<button class="eb-item-resolve" type="button" onclick="ebResolve(\'' + it.id + '\')" title="标记已解决">✔️</button>';
@@ -179,6 +234,8 @@ function ebPracticeAll(){
   var st = ebState();
   var items = st.items.filter(function(it){ return (it.status || "active") === "active"; });
   if (items.length === 0){ alert("没有活跃错题可重做"); return; }
+  /* 最不会的题排最前：答错次数 + 不会做/跳过次数，一起算，先把硬骨头过一遍 */
+  items = items.slice().sort(function(a, b){ return ebWeight(b) - ebWeight(a); });
   EB_SESSION = { items: items, idx: 0, answered: false };
   ebRenderQuiz();
   var mask = document.getElementById("ebDialogMask");
@@ -255,7 +312,7 @@ function ebAnswer(){
         '<button class="eb-next-btn" type="button" onclick="ebNext()">下一题 →</button>';
     }
   } else {
-    it.count = (it.count || 1) + 1;
+    it.count = (it.count || 0) + 1;   /* count 从 0 起步（只跳过的题 base=0） */
     it.correctStreak = 0;
     it.status = "active";
     saveS();
@@ -330,4 +387,4 @@ function ebClearAll(){
   ebRender();
 }
 
-window.addEventListener("load", function(){ if (document.getElementById("ebList")) ebRender(); });
+window.addEventListener("load", function(){ if (document.getElementById("ebList")) ebRender(); ebRefreshTab(); });

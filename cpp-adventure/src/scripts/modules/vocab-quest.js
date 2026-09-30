@@ -18,12 +18,14 @@ function vqStats(){
   var done = Object.keys(st.done).length;
   var learned = Object.keys(st.learned).length;
   var total = 0;
+  if (typeof VOCAB_DATA === "undefined") return { done: done, total: 0, learned: learned, totalWords: 0, coins: st.coins };
   VOCAB_DATA.units.forEach(function(u){ total += u.words.length; });
   return { done: done, total: VOCAB_DATA.units.length, learned: learned, totalWords: total, coins: st.coins };
 }
 
 /* ---------- 总览渲染 ---------- */
 function vqRender(){
+  if (typeof engEnsureData === "function") engEnsureData();
   var st = vqStats();
   var bar = document.getElementById("vqTotalBar");
   var txt = document.getElementById("vqTotalTxt");
@@ -58,6 +60,7 @@ function vqRender(){
 var VQ_SESSION = null;
 
 function vqOpen(uid){
+  if (typeof engEnsureData === "function") engEnsureData();
   var u = VOCAB_DATA.units.filter(function(x){ return x.id === uid; })[0];
   if (!u) return;
   VQ_SESSION = { unit: u, mode: 0, idx: 0, wrong: 0, combo: 0, quizList: [] };
@@ -134,6 +137,7 @@ function vqRenderQuiz(){
     '<div class="vq-dlg-body">' +
       '<div class="vq-combo-track">🔥 连击 <b>' + VQ_SESSION.combo + '</b> · 🪙 ' + vqState().coins + '</div>' +
       body +
+      '<button class="vq-go-btn ghost" type="button" style="width:100%;margin-top:10px;" onclick="vqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="vq-feedback" id="vqFeedback"></div>' +
     '</div>';
 
@@ -197,6 +201,31 @@ function vqCheckSpell(){
   }
 }
 
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function vqPeek(){
+  if (!VQ_SESSION) return;
+  var quiz = VQ_SESSION.quizList[VQ_SESSION.idx];
+  var w = quiz.word;
+  VQ_SESSION.combo = 0;
+  VQ_SESSION.wrong++;
+  if (typeof errBookAdd === "function"){
+    if (quiz.type === "choice"){
+      errBookAdd("vocab", { q: quiz.q + " = ?", o: quiz.opts, a: quiz.ans, why: w.en + " 的意思是 " + w.zh, source: w.en, skipped: true });
+    } else {
+      errBookAdd("vocab", { q: "拼写：" + w.zh + " [" + (w.pos || "") + "]", o: [w.en], a: 0, why: "正确拼写：" + w.en, source: w.en, skipped: true });
+    }
+  }
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案",
+      qHtml: aoQHtml({ q: quiz.q, o: quiz.opts, a: quiz.ans }),
+      bigHtml: aoBig("", w.en + " = " + w.zh),
+      whyHtml: w.en + " = " + w.zh, onNext: vqNext });
+  } else {
+    vqNext();
+  }
+}
+
 function vqCorrect(){
   VQ_SESSION.combo++;
   var gain = VQ_COIN_PER_Q * (1 + Math.floor(VQ_SESSION.combo / 3));
@@ -248,20 +277,16 @@ function vqFinish(){
   var u = VQ_SESSION.unit;
   var wrong = VQ_SESSION.wrong;
   var stars = wrong === 0 ? 3 : (wrong <= 3 ? 2 : 1);
-  var old = vqState().done[u.id] || 0;
-  if (stars > old) vqState().done[u.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
+  engRecordStars(vqState().done, u.id, stars);
   var learned = u.words.filter(function(w){ return vqState().learned[w.en]; }).length;
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  var starRow = engStars(stars);
   document.getElementById("vqDialog").innerHTML =
     '<div class="vq-dlg-head result"><span class="vq-cap">🏁 闯关完成</span>' +
       '<button class="vq-close" type="button" onclick="vqClose()">×</button></div>' +
     '<div class="vq-dlg-body vq-result">' +
       '<div class="vq-result-stars">' + starRow + '</div>' +
       '<h3>第 ' + u.id + ' 岛 · ' + u.name + '</h3>' +
-      '<p>' + (stars === 3 ? "完美通关，你是词汇大师！🌟" : stars === 2 ? "很棒！再练一次就是满分！" : "过关啦！多练几次更熟练！") + '</p>' +
+      '<p>' + engResultMsg(stars, ["完美通关，你是词汇大师！🌟", "很棒！再练一次就是满分！", "过关啦！多练几次更熟练！"]) + '</p>' +
       '<p class="vq-result-meta">📊 本岛已学 ' + learned + '/' + u.words.length + ' 词 · 🪙 ' + vqState().coins + '</p>' +
       '<div class="vq-result-btns">' +
         '<button class="vq-go-btn ghost" type="button" onclick="vqOpen(' + u.id + ')">🔁 再练一次</button>' +

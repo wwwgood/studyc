@@ -1,9 +1,10 @@
 /* ---------------- 英语选择填空 · 做题模块 blank-quest.js ----------------
  * 「✅ 选择填空」子模块：按章节练习 BLANK_QUESTIONS（data/english-blank.js）。
- * 交互规则（家长指定）：
- *   1. 作答或点「直接看答案」后弹出全屏大字答案浮层，正确答案放大显示；
+ * 交互规则（家长指定，走统一答案浮层 answer-overlay）：
+ *   1. 作答或点「不会做看答案」后弹出全屏大字答案浮层，正确答案放大显示；
  *   2. 浮层里的「下一题」按钮倒计时锁定：答对 3 秒、答错/看答案 6 秒后才亮起；
- *   3. 浮层无关闭按钮、无其他前进入口，必须看完答案才能进下一题（答错停留更久）；
+ *      有解析时还必须点「我已看懂」才放行；
+ *   3. 答错和「不会做看答案」都会自动进错题本（blank 模块），跳过的题不会无声丢掉；
  *   4. 做完出成绩和错题本（错题答案同样大字显示），可只重做错题。
  * 进度为当次会话有效，不写入 S 全局状态；函数全部 bq 前缀，避免冲突。
  */
@@ -12,7 +13,7 @@ var BQ_WAIT_BAD = 6;  /* 答错 / 直接看答案后强制停留秒数 */
 var BQ_LETTERS = ["A", "B", "C", "D"];
 
 var bqQueue = [], bqPos = 0, bqResults = {}, bqLastWrong = [];
-var bqAnswered = false, bqPicked = null, bqTimer = null, bqReady = false, bqIsLast = false;
+var bqAnswered = false, bqPicked = null, bqIsLast = false;
 
 function bqChName(chId) {
   for (var i = 0; i < BLANK_CHAPTERS.length; i++) {
@@ -34,6 +35,7 @@ function bqCountCorrect() {
 
 /* ---------- 开始面板（子模块页） ---------- */
 function bqRender() {
+  if (typeof engEnsureData === "function") engEnsureData();
   var box = document.getElementById("eqSubBlank");
   if (!box || typeof BLANK_QUESTIONS === "undefined") return;
   var rows = "";
@@ -43,9 +45,9 @@ function bqRender() {
     rows += '<div class="bq-chrow"><span>第' + c.id + '章 ' + c.name + '</span><b>' + n + ' 题</b></div>';
   }
   var rules = '<div class="bq-rules">' +
-    '<p>① 每题先自己作答，不会做可点「直接看答案」；</p>' +
+    '<p>① 每题先自己作答，不会做可点「不会做？看答案」；</p>' +
     '<p>② 答案用<b>大字浮层</b>显示：答对停留 ' + BQ_WAIT_OK + ' 秒、答错停留 ' + BQ_WAIT_BAD + ' 秒，「下一题」才亮起；</p>' +
-    '<p>③ 浮层没有关闭按钮 —— <b>必须看完答案才能进下一题</b>，错题停留更久；</p>' +
+    '<p>③ 答错和看答案都会<b>自动进错题本</b>，看完解析（点「我已看懂」）才能进下一题；</p>' +
     '<p>④ 做完出成绩和错题本，可以只重做错题。</p></div>';
   var redo = bqLastWrong.length
     ? '<button class="bq-btn warn" type="button" onclick="bqStartWrong()">只重做错题（' + bqLastWrong.length + '）</button>'
@@ -79,10 +81,8 @@ function bqOpenDialog() {
   document.body.style.overflow = "hidden";
 }
 function bqClose() {
-  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
-  var m1 = document.getElementById("bqDialogMask"), m2 = document.getElementById("bqAnsMask");
+  var m1 = document.getElementById("bqDialogMask");
   if (m1) m1.classList.remove("open");
-  if (m2) m2.classList.remove("open");
   document.body.style.overflow = "";
   bqRender();
 }
@@ -127,67 +127,53 @@ function bqShowQuestion() {
       '<div class="bq-chips">' + bqChips(qi) + '</div>' +
       '<div class="bq-stem">' + q.stem + '</div>' +
       '<div class="bq-opts">' + opts + '</div>' +
-      '<button class="bq-peek" type="button" onclick="bqPeek()">不会做？直接看答案 →</button>' +
+      '<button class="bq-peek" type="button" onclick="bqPeek()">👀 不会做？看答案（自动进错题本）→</button>' +
     '</div>';
 }
 
 function bqPick(i) {
   if (bqAnswered) return;
   bqAnswered = true; bqPicked = i;
-  var qi = bqQueue[bqPos], ok = (BLANK_QUESTIONS[qi].ans === i);
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi], ok = (q.ans === i);
   bqResults[qi] = { p: i, ok: ok };
+  if (!ok && typeof errBookAdd === "function"){
+    errBookAdd("blank", { q: q.stem, o: q.opts, a: q.ans, why: q.exp, source: "第" + q.ch + "章 · " + q.tag });
+  }
+  saveS();
   bqAnswerOverlay(ok ? "ok" : "bad");
 }
 function bqPeek() {
   if (bqAnswered) return;
   bqAnswered = true; bqPicked = null;
-  bqResults[bqQueue[bqPos]] = { p: null, ok: false };
+  var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
+  bqResults[qi] = { p: null, ok: false };
+  if (typeof errBookAdd === "function"){
+    errBookAdd("blank", { q: q.stem, o: q.opts, a: q.ans, why: q.exp, source: "第" + q.ch + "章 · " + q.tag, skipped: true });
+  }
+  saveS();
   bqAnswerOverlay("peek");
 }
 
-/* ---------- 大字答案浮层 ---------- */
+/* ---------- 大字答案浮层（统一走 answer-overlay） ---------- */
 function bqAnswerOverlay(mode) {
-  var mask = document.getElementById("bqAnsMask"), card = document.getElementById("bqAnsCard");
-  if (!mask || !card) return;
   var qi = bqQueue[bqPos], q = BLANK_QUESTIONS[qi];
   bqIsLast = (bqPos === bqQueue.length - 1);
-  var head = "", extra = "";
-  if (mode === "ok") {
-    head = '<div class="bq-anshead ok">回答正确 ✓</div>';
-  } else if (mode === "bad") {
-    head = '<div class="bq-anshead bad">回答错误 ✗</div>';
-    extra = '<div class="bq-yourans">你的答案：<s>' + BQ_LETTERS[bqPicked] + '. ' + q.opts[bqPicked] + '</s></div>';
-  } else {
-    head = '<div class="bq-anshead peek">正确答案</div>';
-  }
+  var head = mode === "ok" ? "回答正确 ✓" : mode === "bad" ? "回答错误 ✗" : "正确答案";
   var wait = (mode === "ok") ? BQ_WAIT_OK : BQ_WAIT_BAD;
-  card.className = "bq-anscard " + mode;
-  card.innerHTML = head + extra +
-    '<div class="bq-anslabel">正 确 答 案</div>' +
-    '<div class="bq-big"><span class="bq-letter">' + BQ_LETTERS[q.ans] + '</span><span class="bq-atext">. ' + q.opts[q.ans] + '</span></div>' +
-    '<div class="bq-exp">💡 解析：' + q.exp + '</div>' +
-    '<button id="bqNextBtn" class="bq-nextbtn" type="button" disabled onclick="bqNext()">⏳ ' + wait + ' 秒后可继续</button>';
-  mask.classList.add("open");
-
-  bqReady = false;
-  var left = wait;
-  bqTimer = setInterval(function () {
-    left--;
-    var b = document.getElementById("bqNextBtn");
-    if (!b) { clearInterval(bqTimer); bqTimer = null; return; }
-    if (left > 0) {
-      b.textContent = "⏳ " + left + " 秒后可继续";
-    } else {
-      clearInterval(bqTimer); bqTimer = null; bqReady = true;
-      b.disabled = false; b.classList.add("ready");
-      b.textContent = bqIsLast ? "查看成绩 ▶" : "下一题 ▶";
-    }
-  }, 1000);
+  if (typeof aoShow !== "function"){ bqNext(); return; }
+  aoShow({
+    ok: mode === "ok",
+    head: head,
+    qHtml: aoQHtml({ q: q.stem, o: q.opts, a: q.ans }, mode === "bad" ? bqPicked : undefined),
+    bigHtml: aoBig(BQ_LETTERS[q.ans], q.opts[q.ans]),
+    userHtml: (mode === "bad" && bqPicked != null) ? aoEsc(BQ_LETTERS[bqPicked] + ". " + q.opts[bqPicked]) : "",
+    whyHtml: q.exp,
+    wait: wait,
+    onNext: bqNext
+  });
 }
 
 function bqNext() {
-  if (!bqReady) return;
-  if (bqTimer) { clearInterval(bqTimer); bqTimer = null; }
   var m = document.getElementById("bqAnsMask");
   if (m) m.classList.remove("open");
   bqPos++;

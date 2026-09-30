@@ -20,12 +20,32 @@ const cssInline = html.replace(
   }
 );
 
+// 英语重数据文件：构建时包进 engLazy(function(){...})，首次进入英语视图才执行（english-lazy.js）。
+// ⚠️ src 数据文件保持原样（build/gen-english-extra.js 等生成器可正常重新生成），包装只发生在构建期。
+const ENGLISH_LAZY_DATA = new Set([
+  "scripts/data/english-grammar.js",
+  "scripts/data/english-grammar-exboost.js",
+  "scripts/data/english-grammar-extra.js",
+  "scripts/data/english-vocab.js",
+  "scripts/data/english-reading.js",
+  "scripts/data/english-writing.js",
+  "scripts/data/english-writing-zh.js",
+  "scripts/data/english-exam.js",
+  "scripts/data/english-topic-exam.js",
+  "scripts/data/english-paper-1000.js"
+]);
+
 // 收集 <script src="..."></script> 并内联为 <script>...</script>（外链 http(s) 资源保持原样）
 const jsInline = cssInline.replace(
   /<script src="([^"]+)"><\/script>/g,
   (_, src) => {
     if (/^https?:/i.test(src)) return _;
-    const js = fs.readFileSync(path.join(SRC_DIR, src), "utf8");
+    let js = fs.readFileSync(path.join(SRC_DIR, src), "utf8");
+    if (ENGLISH_LAZY_DATA.has(src.replace(/^\//, ""))){
+      js = js.replace(/^\uFEFF/, "");                        // 去掉 BOM，保证 var 替换命中
+      js = js.replace(/var\s+(\w+)\s*=/, "window.$1 =");     // 第一个顶层 var 挂到全局（无 /g，只替换第一处）
+      js = `engLazy(function(){\n${js}\n});`;
+    }
     return `<script>\n${js}\n</script>`;
   }
 );

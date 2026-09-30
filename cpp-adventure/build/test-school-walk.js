@@ -1,13 +1,14 @@
 /* 验证：解析页逐行讲解（walk）渲染 —— 一行代码配一句解析 */
 const fs = require("fs");
 const path = require("path");
-const { JSDOM } = (() => { try { return require("jsdom"); } catch (e) { return require(path.join("C:/Users/zb/.workbuddy/binaries/node/workspace", "node_modules", "jsdom")); } })();
+const JSDOM_MOD = (() => { try { return require("jsdom"); } catch (e) { return require(path.join("C:/Users/zb/.workbuddy/binaries/node/workspace", "node_modules", "jsdom")); } })();
+const { JSDOM } = JSDOM_MOD;
 
 let pass = 0, fail = 0;
 function ok(cond, msg){ if (cond){ pass++; console.log("  ✅ " + msg); } else { fail++; console.log("  ❌ " + msg); } }
 
 const html = fs.readFileSync(path.join(__dirname, "..", "dist", "index.html"), "utf8");
-const vc = new (require("jsdom").VirtualConsole)();
+const vc = new JSDOM_MOD.VirtualConsole();
 const dom = new JSDOM(html, { runScripts: "dangerously", url: "http://localhost/", virtualConsole: vc, pretendToBeVisual: true });
 const { window } = dom;
 const { document } = window;

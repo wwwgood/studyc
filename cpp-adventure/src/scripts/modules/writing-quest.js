@@ -88,6 +88,9 @@ function wqState(){
 }
 function wqStats(){
   var st = wqState();
+  if (typeof WRITE_DATA === "undefined"){
+    return { done: Object.keys(st.done).length, total: 0, coins: st.coins, wrote: Object.keys(st.mywork || {}).length };
+  }
   return {
     done: Object.keys(st.done).length,
     total: WRITE_DATA.passages.length,
@@ -561,13 +564,8 @@ function wqFinishWrite(){
   var stars = wroteAll ? (avg >= 2.7 ? 3 : (avg >= 1.8 ? 2 : 1)) : (avg >= 2.5 ? 2 : 1);
   if (stars < 1) stars = 1;
 
-  var old = stt.done[p.id] || 0;
-  if (stars > old) stt.done[p.id] = stars;
-  saveS();
-  if (typeof fireConfetti === "function" && stars >= 2) fireConfetti();
-
-  var starRow = "";
-  for (var i = 1; i <= 3; i++) starRow += '<span class="' + (i <= stars ? "on" : "") + '">★</span>';
+  engRecordStars(stt.done, p.id, stars);
+  var starRow = engStars(stars);
 
   var myHtml = my.map(function(t, i){
     return '<div class="wq-my-line"><span class="wq-my-no">' + (i + 1) + '</span>' + wqEsc(t) + '</div>';
@@ -647,6 +645,7 @@ function wqRenderQuiz(){
       '<div class="wq-question"><div class="wq-q-en">' + wqEsc(q.q) + '</div>' +
         (zhQ ? '<div class="wq-q-zh">' + wqEsc(zhQ) + '</div>' : '') + '</div>' +
       '<div class="wq-opts">' + opts + '</div>' +
+      '<button class="wq-go-btn ghost" type="button" style="width:100%;margin-top:8px;" onclick="wqPeek()">👀 不会做，看答案（自动进错题本）</button>' +
       '<div class="wq-feedback" id="wqFeedback"></div>' +
     '</div>';
 }
@@ -658,13 +657,19 @@ function wqAnswer(btn){
   var opts = btn.parentNode.querySelectorAll(".wq-opt");
   for (var k = 0; k < opts.length; k++) opts[k].disabled = true;
   var fb = document.getElementById("wqFeedback");
+  var aoQ = { q: q.q, o: q.o, a: q.a };
   if (i === q.a){
     btn.classList.add("ok");
     s.combo++;
     var gain = WQ_COIN_PER_Q * (1 + Math.floor(s.combo / 3));
     wqState().coins += gain;
-    fb.innerHTML = '<div class="wq-fb ok">✅ 正确！+🪙' + gain + ' · ' + wqEsc(q.why) + '</div>' +
-      '<button class="wq-next-btn" type="button" onclick="wqNext()">下一题 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: true, sub: "+🪙" + gain, qHtml: aoQHtml(aoQ, i),
+        bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), whyHtml: q.why, onNext: wqNext });
+    } else {
+      fb.innerHTML = '<div class="wq-fb ok">✅ 正确！+🪙' + gain + ' · ' + wqEsc(q.why) + '</div>' +
+        '<button class="wq-next-btn" type="button" onclick="wqNext()">下一题 →</button>';
+    }
     saveS();
     if (typeof portalRenderTopbar === "function") portalRenderTopbar();
   } else {
@@ -673,9 +678,32 @@ function wqAnswer(btn){
     s.combo = 0;
     s.wrong++;
     if (typeof errBookAdd === "function") errBookAdd("writing", { q: q.q, o: q.o, a: q.a, why: q.why, source: s.passage.title });
-    fb.innerHTML = '<div class="wq-fb no">❌ ' + wqEsc(q.why) + '</div>' +
-      '<button class="wq-next-btn" type="button" onclick="wqNext()">继续 →</button>';
+    if (typeof aoShow === "function"){
+      aoShow({ ok: false, qHtml: aoQHtml(aoQ, i),
+        bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), userHtml: aoEsc(q.o[i]), whyHtml: q.why, onNext: wqNext });
+    } else {
+      fb.innerHTML = '<div class="wq-fb no">❌ ' + wqEsc(q.why) + '</div>' +
+        '<button class="wq-next-btn" type="button" onclick="wqNext()">继续 →</button>';
+    }
     saveS();
+  }
+}
+
+/* 「不会做，看答案」：跳过不无声丢题，进错题本并标记跳过 */
+function wqPeek(){
+  var s = WQ_SESSION;
+  if (!s) return;
+  var q = s.passage.q[s.idx];
+  s.combo = 0;
+  s.wrong++;
+  if (typeof errBookAdd === "function") errBookAdd("writing", { q: q.q, o: q.o, a: q.a, why: q.why, source: s.passage.title, skipped: true });
+  saveS();
+  if (typeof aoShow === "function"){
+    aoShow({ ok: false, head: "👀 不会做 · 看答案",
+      qHtml: aoQHtml({ q: q.q, o: q.o, a: q.a }),
+      bigHtml: aoBig(String.fromCharCode(65 + q.a), q.o[q.a]), whyHtml: q.why, onNext: wqNext });
+  } else {
+    wqNext();
   }
 }
 
