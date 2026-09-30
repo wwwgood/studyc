@@ -89,8 +89,19 @@ setTimeout(() => {
   w.topicExamOpen("grammar", null, "名词辨认", "名词辨认");
   if (w.TE_SESSION && w.TE_SESSION.questions.length){
     const ebCnt = w.S.errBook.items.length;
+    const teQ = w.TE_SESSION.questions[w.TE_SESSION.idx];
+    const teQText = teQ.q || teQ.passage || "";
+    const findTe = () => w.S.errBook.items.filter((it) => it.module === "grammar" && it.q === teQText)[0];
+    const before = findTe();
+    const beforeSkips = before ? (before.skips || 0) : -1;
     w.teSkip();
-    ok(w.S.errBook.items.length === ebCnt + 1, "teSkip 跳过的题进错题本（不再无声丢题）");
+    const after = findTe();
+    /* 语义：跳过的题必须留下痕迹——新题建条目（skips=1），旧题累加 skips（去重不重复建） */
+    const expectSkips = beforeSkips < 0 ? 1 : beforeSkips + 1;
+    ok(!!after && (after.skips || 0) === expectSkips,
+       "teSkip 跳过的题记入错题本（skips " + (beforeSkips < 0 ? "新建" : beforeSkips) + " → " + (after ? after.skips : "无") + "）");
+    ok(w.S.errBook.items.length === ebCnt + (before ? 0 : 1),
+       "错题本条目数正确（新题 +1 / 已存在则去重，不重复建条目）");
     ok(document.getElementById("aoMask").classList.contains("open"), "跳过后弹出答案浮层");
     if (typeof w.aoReadOk === "function") w.aoReadOk();
     w.aoReady = true; w.aoNext();
@@ -105,7 +116,7 @@ setTimeout(() => {
   ok(ebHtml.indexOf("选择填空") >= 0, "错题本有「选择填空」分组");
   ok(ebHtml.indexOf("不会做") >= 0, "错题条目显示「👀 不会做 N 次」");
   const ebStatsTxt = document.getElementById("ebTotalTxt").textContent;
-  ok(/活跃/.test(ebStatsTxt), "错题本统计正常（" + ebStatsTxt.trim() + "）");
+  ok(/待复习/.test(ebStatsTxt) && /已学会/.test(ebStatsTxt), "错题本统计正常（" + ebStatsTxt.trim() + "）");
 
   console.log("== 错题管理：不会做 vs 答错 语义分离 ==");
   /* 造一道「只跳过、从没答错」的题，count 必须保持 0，skips 才 +1 */
@@ -125,14 +136,57 @@ setTimeout(() => {
   ok(skippedHtml.indexOf("语义分离测试题") >= 0, "「不会做」筛选能列出有跳过记录的题");
   const skippedStats = w.ebStats();
   ok(skippedStats.skipped >= 1, "统计里 skipped=" + skippedStats.skipped + " 已单列");
-  w.EB_FILTER = "active";
+  w.EB_FILTER = "all";
   w.ebRender();
+  w.alert = function(){};   /* 空队列时的 alert 在 jsdom 里会炸，桩掉 */
+
+  console.log("== 错题管理：「已学会」状态机（不留死角不删除）==");
+  const demo = { status: "active", count: 1, skips: 0, correctStreak: 0 };
+  ok(w.ebMarkCorrect(demo) === false && demo.status === "active", "连对 1 次：还没到「已学会」");
+  w.ebMarkCorrect(demo);
+  ok(w.ebMarkCorrect(demo) === true && demo.status === "learned" && demo.learnedAt > 0,
+     "连对满 " + w.EB_LEARN_STREAK + " 次 → 标为「已学会」并记下时间");
+  const cntBefore = demo.count;
+  w.ebMarkWrong(demo);
+  ok(demo.status === "active" && demo.correctStreak === 0 && demo.count === cntBefore + 1,
+     "已学会后再答错 → 退回「待复习」、连对清零、错次 +1");
+
+  console.log("== 错题管理：旧数据归一（沉没/已解决 → 已学会）==");
+  const legacy1 = { module: "reading", q: "旧数据沉没题", status: "dormant" };
+  const legacy2 = { module: "reading", q: "旧数据已解决题", status: "resolved" };
+  w.S.errBook.items.push(legacy1, legacy2);
+  w.ebState();
+  ok(legacy1.status === "learned", "旧状态 dormant（沉没）归一为 learned（已学会）");
+  ok(legacy2.status === "learned", "旧状态 resolved（已解决）归一为 learned（已学会）");
+
+  console.log("== 错题管理：已学会 = 降频但不消失 ==");
+  /* 把 demo 造进错题本，确保有 learned 样本 */
+  w.S.errBook.items.push({ id: "ebDemo", module: "grammar", q: "已学会样例题", o: ["a", "b"], a: 0, why: "x",
+                           count: 1, skips: 0, correctStreak: 3, status: "learned", learnedAt: 1 });
+  w.ebRender();
+  const listAll = document.getElementById("ebList").innerHTML;
+  ok(listAll.indexOf("已学会样例题") >= 0, "已学会的题仍然显示在错题本列表里（默认「全部」）");
+  ok(listAll.indexOf("✅ 已学会") >= 0, "已学会的题带「✅ 已学会」徽章");
+
+  w.ebPracticeAll();
+  ok(w.EB_SESSION.items.length > 0 && w.EB_SESSION.items.every((it) => w.ebNormStatus(it.status) === "active"),
+     "「重做待复习」队列里不含已学会的题（降到不被反复打扰）");
+  w.ebClose();
+
+  w.ebPracticeLearned();
+  ok(w.EB_SESSION.items.length > 0 && w.EB_SESSION.items.every((it) => w.ebNormStatus(it.status) === "learned"),
+     "「复习已学会」只收已学会的题（想练随时能练）");
+  w.ebClose();
+
+  /* 手动剔除是唯一真正消失的途径 */
+  w.ebRemove("ebDemo");
+  ok(!w.S.errBook.items.some((it) => it.id === "ebDemo"), "手动 ✕ 才从错题本真正剔除");
 
   /* 重做排序：按总失败权重（答错+不会做）降序 */
-  const firstItem = w.S.errBook.items[0];
+  const firstItem = w.S.errBook.items.filter((it) => w.ebNormStatus(it.status) === "active")[0];
   firstItem.count = 5;
   w.ebPracticeAll();
-  ok(w.EB_SESSION.items[0] === firstItem, "重做活跃错题按失败权重降序（最不会的排最前）");
+  ok(w.EB_SESSION.items[0] === firstItem, "重做待复习按失败权重降序（最不会的排最前）");
   w.ebClose();
 
   console.log("== 公共工具 english-common（去重后语义锁定）==");
