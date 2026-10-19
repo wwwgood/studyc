@@ -152,6 +152,7 @@ var EL_STEP = 0;         // 当前步骤 0=讲解 1=例题 2=习题 3=笔记
 var EL_EXAMPLE_IDX = 0;  // 当前例题索引
 var EL_QUIZ_IDX = 0;     // 当前习题索引
 var EL_QUIZ_SCORE = 0;   // 习题得分
+var EL_QUIZ_RESULTS = []; // 每题作答结果（回退重答防重复计分）
 var EL_START_TIME = 0;   // 本次学习开始时间戳
 var EL_LESSON_IDX = 0;   // 当前讲解卡片索引
 var EL_LESSON_CARDS = [];// 讲解卡片数组 [{emoji,title,text,quiz:{...},answered,ok}]
@@ -164,6 +165,7 @@ function elStartTopic(id){
   EL_EXAMPLE_IDX = 0;
   EL_QUIZ_IDX = 0;
   EL_QUIZ_SCORE = 0;
+  EL_QUIZ_RESULTS = [];
   EL_LESSON_IDX = 0;
   EL_LESSON_CARDS = [];
   EL_START_TIME = Date.now();
@@ -521,6 +523,7 @@ function elRenderExamples(){
   }
 
   html += '<div id="elExFeedback"></div>';
+  html += '<div class="el-nav">' + (EL_EXAMPLE_IDX > 0 ? '<button class="el-btn" onclick="elPrevExample()">← 上一题</button>' : '') + '</div>';
   html += '</div>';
   return html;
 }
@@ -530,19 +533,21 @@ function elExampleAnswer(idx){
   var fb = document.getElementById("elExFeedback");
   if (!fb) return;
 
+  var prevBtn = EL_EXAMPLE_IDX > 0 ? '<button class="el-btn" onclick="elPrevExample()">← 上一题</button>' : '';
+
   if (ex.answer === -1 || ex.answer === undefined){
     fb.innerHTML = '<div class="el-feedback ok">📝 已作答<div class="el-why"><small>本题暂无标准答案，请对照课本自查。</small></div></div>' +
-      '<div class="el-nav"><button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
+      '<div class="el-nav">' + prevBtn + '<button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
     return;
   }
 
   var correct = (idx === ex.answer);
   if (correct){
     fb.innerHTML = '<div class="el-feedback ok">✅ 正确！<div class="el-why">' + elEscape(ex.why || "很好！") + '</div></div>' +
-      '<div class="el-nav"><button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
+      '<div class="el-nav">' + prevBtn + '<button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
   } else {
     fb.innerHTML = '<div class="el-feedback err">❌ 再想想<div class="el-why">' + elEscape(ex.why || "请仔细阅读讲解内容") + '</div></div>' +
-      '<div class="el-nav"><button class="el-btn" onclick="elNextExample()">跳过，看解析</button></div>';
+      '<div class="el-nav">' + prevBtn + '<button class="el-btn" onclick="elNextExample()">跳过，看解析</button></div>';
   }
 }
 
@@ -559,7 +564,7 @@ function elExampleAnswerText(){
 
   if (!hasAnswer || ex.answer === -1 || ex.answer === undefined){
     fb.innerHTML = '<div class="el-feedback ok">📝 已记录答案：' + elEscape(val) + '<br><small>本题暂无标准答案，请对照课本自查。</small></div>' +
-      '<div class="el-nav"><button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
+      '<div class="el-nav">' + (EL_EXAMPLE_IDX > 0 ? '<button class="el-btn" onclick="elPrevExample()">← 上一题</button>' : '') + '<button class="el-btn primary" onclick="elNextExample()">下一题 →</button></div>';
     return;
   }
 
@@ -581,6 +586,13 @@ function elNextExample(){
   }
 }
 
+function elPrevExample(){
+  if (EL_EXAMPLE_IDX > 0){
+    EL_EXAMPLE_IDX--;
+    elShowStep();
+  }
+}
+
 function elExamplesDone(){
   var state = elTopicState(EL_CURRENT.id);
   state.examplesScore = EL_CURRENT.examples ? EL_CURRENT.examples.length : 0;
@@ -590,6 +602,7 @@ function elExamplesDone(){
   EL_STEP = 2;
   EL_QUIZ_IDX = 0;
   EL_QUIZ_SCORE = 0;
+  EL_QUIZ_RESULTS = [];
   elShowStep();
 }
 
@@ -626,6 +639,7 @@ function elRenderQuiz(){
 
   html += '<div id="elQuizFeedback"></div>';
   html += '<div class="el-quiz-progress"><div class="el-quiz-bar" style="width:' + (EL_QUIZ_IDX / total * 100) + '%"></div></div>';
+  html += '<div class="el-nav">' + (EL_QUIZ_IDX > 0 ? '<button class="el-btn" onclick="elPrevQuiz()">← 上一题</button>' : '') + '</div>';
   html += '</div>';
   return html;
 }
@@ -635,15 +649,18 @@ function elQuizAnswer(idx){
   var fb = document.getElementById("elQuizFeedback");
   if (!fb) return;
 
+  var prevBtn = EL_QUIZ_IDX > 0 ? '<button class="el-btn" onclick="elPrevQuiz()">← 上一题</button>' : '';
+
   if (q.answer === -1 || q.answer === undefined){
     // 暂无标准答案，不判分，只提示
     fb.innerHTML = '<div class="el-feedback ok">📝 已作答：' + elEscape(q.options[idx] || "") + '<br><small>本题暂无标准答案，请对照课本自查。</small></div>' +
-      '<div class="el-nav"><button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
+      '<div class="el-nav">' + prevBtn + '<button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
     return;
   }
 
   var correct = (idx === q.answer);
-  if (correct) EL_QUIZ_SCORE++;
+  EL_QUIZ_RESULTS[EL_QUIZ_IDX] = correct;
+  EL_QUIZ_SCORE = EL_QUIZ_RESULTS.filter(function(v){ return v === true; }).length;
 
   if (correct){
     fb.innerHTML = '<div class="el-feedback ok">✅ 正确！' + (q.why ? '<div class="el-why">' + elEscape(q.why) + '</div>' : '') + '</div>';
@@ -651,7 +668,7 @@ function elQuizAnswer(idx){
     fb.innerHTML = '<div class="el-feedback err">❌ 错误' + (q.why ? '<div class="el-why">' + elEscape(q.why) + '</div>' : '') + '</div>';
   }
 
-  fb.innerHTML += '<div class="el-nav"><button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
+  fb.innerHTML += '<div class="el-nav">' + prevBtn + '<button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
 }
 
 function elQuizAnswerText(){
@@ -668,7 +685,7 @@ function elQuizAnswerText(){
   if (!hasAnswer){
     // 暂无标准答案，只记录不判分
     fb.innerHTML = '<div class="el-feedback ok">📝 已记录答案：' + elEscape(userAns) + '<br><small>本题暂无标准答案，请对照课本自查。</small></div>' +
-      '<div class="el-nav"><button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
+      '<div class="el-nav">' + (EL_QUIZ_IDX > 0 ? '<button class="el-btn" onclick="elPrevQuiz()">← 上一题</button>' : '') + '<button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
     return;
   }
 
@@ -678,14 +695,15 @@ function elQuizAnswerText(){
     return normUser === ans.toLowerCase().replace(/\s+/g, ' ').trim();
   });
 
-  if (correct) EL_QUIZ_SCORE++;
+  EL_QUIZ_RESULTS[EL_QUIZ_IDX] = correct;
+  EL_QUIZ_SCORE = EL_QUIZ_RESULTS.filter(function(v){ return v === true; }).length;
 
   if (correct){
     fb.innerHTML = '<div class="el-feedback ok">✅ 正确！</div>';
   } else {
     fb.innerHTML = '<div class="el-feedback err">❌ 错误。参考答案：' + elEscape(answers.join(' / ')) + '</div>';
   }
-  fb.innerHTML += '<div class="el-nav"><button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
+  fb.innerHTML += '<div class="el-nav">' + (EL_QUIZ_IDX > 0 ? '<button class="el-btn" onclick="elPrevQuiz()">← 上一题</button>' : '') + '<button class="el-btn primary" onclick="elNextQuiz()">下一题 →</button></div>';
 }
 
 function elNextQuiz(){
@@ -694,6 +712,13 @@ function elNextQuiz(){
   if (EL_QUIZ_IDX >= quiz.questions.length){
     elQuizDone();
   } else {
+    elShowStep();
+  }
+}
+
+function elPrevQuiz(){
+  if (EL_QUIZ_IDX > 0){
+    EL_QUIZ_IDX--;
     elShowStep();
   }
 }
@@ -883,8 +908,8 @@ function elMask(){
     m = document.createElement("div");
     m.id = "elMask";
     m.className = "eq-mask el-mask";
-    m.innerHTML = '<div class="el-card" id="elCard"></div>' +
-      '<button class="el-close" type="button" aria-label="关闭" onclick="elCloseMask()">✕</button>';
+    m.innerHTML = '<div class="el-cardbox"><div class="el-card" id="elCard"></div>' +
+      '<button class="el-close" type="button" aria-label="关闭" onclick="elCloseMask()">✕</button></div>';
     document.body.appendChild(m);
   }
   return m;
@@ -897,6 +922,13 @@ function elCloseMask(){
     document.body.style.overflow = "";
   } catch(e){}
 }
+
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape"){
+    var m = document.getElementById("elMask");
+    if (m && m.classList.contains("open")) elCloseMask();
+  }
+});
 
 function elEscape(s){
   if (!s) return "";
