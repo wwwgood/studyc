@@ -107,19 +107,37 @@ function oqRenderSpeakBtn(){
   var b = document.getElementById("oqStopBtn");
   if (b) b.style.display = oqSpeaking ? "" : "none";
 }
+/* 选英文语音：优先 Microsoft / Google 英文语音，无则取任意 en 开头 */
+function oqPickVoice(){
+  try {
+    var voices = window.speechSynthesis.getVoices();
+    if (!voices || !voices.length) return null;
+    var v = voices.find(function(x){ return x.lang && x.lang.indexOf("en") === 0 && /Microsoft|Google|Apple/i.test(x.name); });
+    if (!v) v = voices.find(function(x){ return x.lang && x.lang.indexOf("en") === 0; });
+    return v || null;
+  } catch(e){ return null; }
+}
 /* 朗读一句（带读）；每次调用都从头读，可中途用“停止”停 */
 function oqSpeak(txt){
   try {
     if (!window.speechSynthesis || !txt) return;
     if (oqSpeaking){ oqStop(); return; }
+    /* Chrome/Edge 必须 resume，否则首次朗读无声音 */
+    window.speechSynthesis.resume();
     var u = new SpeechSynthesisUtterance(txt);
+    var v = oqPickVoice();
+    if (v) u.voice = v;
     u.lang = "en-US"; u.rate = 0.8;
     u.onend = function(){ oqSpeaking = false; oqRenderSpeakBtn(); };
-    u.onerror = function(){ oqSpeaking = false; oqRenderSpeakBtn(); };
+    u.onerror = function(e){ 
+      try { console.error("[oral] speak error:", e); } catch(_){}
+      oqSpeaking = false; oqRenderSpeakBtn(); 
+    };
     speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    /* 延迟 60ms 避免 cancel/speak 竞态 */
+    setTimeout(function(){ window.speechSynthesis.speak(u); }, 60);
     oqSpeaking = true; oqRenderSpeakBtn();
-  } catch(e){}
+  } catch(e){ try { console.error("[oral] speak exception:", e); } catch(_){} }
 }
 /* 依次朗读整关全部句子（每句先读问句、再读回答） */
 function oqSpeakAll(){
@@ -131,18 +149,21 @@ function oqSpeakAll(){
       if (it.reply && it.reply.en) list.push(it.reply.en);
     });
     speechSynthesis.cancel();
+    window.speechSynthesis.resume();
     oqSpeaking = true; oqRenderSpeakBtn();
     var i = 0;
     function next(){
       if (i >= list.length){ oqSpeaking = false; oqRenderSpeakBtn(); return; }
       var t = list[i++];
       var u = new SpeechSynthesisUtterance(t);
+      var v = oqPickVoice();
+      if (v) u.voice = v;
       u.lang = "en-US"; u.rate = 0.8;
       u.onend = next; u.onerror = next;
       speechSynthesis.speak(u);
     }
     next();
-  } catch(e){}
+  } catch(e){ try { console.error("[oral] speakAll error:", e); } catch(_){} }
 }
 
 /* ---------- 弹窗：打开一关 ---------- */

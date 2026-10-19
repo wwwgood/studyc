@@ -490,7 +490,7 @@ function eqFloatCoin(txt){
 }
 
 /* ---------- 生命周期 ---------- */
-function eqOnEnter(){ eqRender(); }
+function eqOnEnter(){ eqSwitchTab('enlearn'); }
 
 function eqSwitchTab(tab){
   if (typeof engEnsureData === "function") engEnsureData();
@@ -498,8 +498,8 @@ function eqSwitchTab(tab){
   for (var i = 0; i < tabs.length; i++){
     tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tab);
   }
-  var ids = ['eqSubGrammar','eqSubVocab','eqSubReading','eqSubWriting','eqSubOral','eqSubExam','eqSubBlank','eqSubP1000','eqSubPapers','eqSubErrBook'];
-  var tabOf = { grammar:'eqSubGrammar', vocab:'eqSubVocab', reading:'eqSubReading', writing:'eqSubWriting', oral:'eqSubOral', exam:'eqSubExam', blank:'eqSubBlank', p1000:'eqSubP1000', papers:'eqSubPapers', errbook:'eqSubErrBook' };
+  var ids = ['eqSubEnLearn','eqSubGrammar','eqSubVocab','eqSubReading','eqSubWriting','eqSubOral','eqSubExam','eqSubBlank','eqSubP1000','eqSubPapers','eqSubErrBook'];
+  var tabOf = { enlearn:'eqSubEnLearn', grammar:'eqSubGrammar', vocab:'eqSubVocab', reading:'eqSubReading', writing:'eqSubWriting', oral:'eqSubOral', exam:'eqSubExam', blank:'eqSubBlank', p1000:'eqSubP1000', papers:'eqSubPapers', errbook:'eqSubErrBook' };
   for (var j = 0; j < ids.length; j++){
     var el = document.getElementById(ids[j]);
     if (el) el.style.display = (tabOf[tab] === ids[j]) ? '' : 'none';
@@ -513,6 +513,7 @@ function eqSwitchTab(tab){
   if (tab === 'blank' && typeof bqRender === "function") bqRender();
   if (tab === 'p1000' && typeof p1000Open === "function") p1000Open();
   if (tab === 'papers' && typeof ppRender === "function") ppRender();
+  if (tab === 'enlearn' && typeof elInit === "function") elInit();
   if (tab === 'errbook'){
     var ebTab = document.querySelector('.eq-tab[data-tab="errbook"]');
     if (ebTab) ebTab.classList.remove('has-new');

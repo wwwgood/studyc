@@ -494,7 +494,8 @@
       <h1>🔤 英语 <span class="hi">大冒险</span></h1>
       <p class="tagline">三个星球任你闯：语法岛屿、词汇宝岛、阅读森林。学一学、练一练，答对拿星星、连击赢金币！</p>
       <div class="eq-subnav">
-        <button class="eq-tab active" data-tab="grammar" onclick="eqSwitchTab('grammar')">📖 语法闯关</button>
+        <button class="eq-tab active" data-tab="enlearn" onclick="eqSwitchTab('enlearn')">🎯 系统学习</button>
+        <button class="eq-tab" data-tab="grammar" onclick="eqSwitchTab('grammar')">📖 语法闯关</button>
         <button class="eq-tab" data-tab="vocab" onclick="eqSwitchTab('vocab')">📚 词汇闯关</button>
         <button class="eq-tab" data-tab="reading" onclick="eqSwitchTab('reading')">📄 阅读理解</button>
         <button class="eq-tab" data-tab="writing" onclick="eqSwitchTab('writing')">✍️ 作文训练</button>
@@ -507,8 +508,22 @@
       </div>
     </section>
 
+    <!-- 系统学习子模块（新·主入口） -->
+    <div class="eq-subview" id="eqSubEnLearn" style="display:none">
+      <div class="el-hero">
+        <h2>🎯 系统学习 · 先讲后练</h2>
+        <p class="el-tagline">一次学透一个知识点：讲解 → 例题 → 习题 → 笔记</p>
+        <div class="el-stage-tabs" id="elStageTabs"></div>
+        <div class="el-hero-actions" style="margin-top:10px; display:flex; gap:10px; justify-content:center;">
+          <button class="el-btn" onclick="elToggleRecords()">📅 学习记录</button>
+        </div>
+      </div>
+      <div class="el-topic-list" id="elTopicList"></div>
+      <div class="el-records-panel" id="elRecordsPanel" style="display:none"></div>
+    </div>
+
     <!-- 语法子模块 -->
-    <div class="eq-subview" id="eqSubGrammar">
+      <div class="eq-subview" id="eqSubGrammar" style="display:none">
       <div class="eq-progress-bar" aria-label="语法总进度"><span id="eqTotalBar"></span></div>
       <p class="eq-progress-txt" id="eqTotalTxt">统计加载中…</p>
       <div class="eq-hero-badges">
@@ -1320,6 +1335,8 @@
   <script src="scripts/data/question-bank.js"></script>
   <script src="scripts/data/english-paper-1000.js"></script>
   <script src="scripts/data/english-homework.js"></script>
+  <script src="scripts/data/english-grammar-topics.js"></script>
+  <script src="scripts/data/english-system-xsx.js"></script>
   <script src="scripts/data/oj-bank.js"></script>
   <script src="scripts/data/school-bank.js"></script>
   <script src="scripts/modules/portal.js"></script>
@@ -1348,6 +1365,7 @@
   <script src="scripts/modules/awards.js"></script>
   <script src="scripts/modules/checkin.js"></script>
   <script src="scripts/core/state.js"></script>
+  <script src="scripts/modules/en-learn.js"></script>
   <script src="scripts/modules/map.js"></script>
   <script src="scripts/modules/keyboard.js"></script>
   <script src="scripts/modules/focus.js"></script>
